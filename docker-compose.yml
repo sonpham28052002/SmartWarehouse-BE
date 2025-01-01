@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  springboot_app:
+    build:
+      context: .
+    container_name: springboot_app
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - MYSQL_URL=jdbc:mysql://mysql:3306/cineticket_db?createDatabaseIfNotExist=true
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=rootpassword
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - springboot_app
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cineticket_db
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
