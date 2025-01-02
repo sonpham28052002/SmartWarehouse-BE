@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.cineticketmanagebe.models.User;
@@ -21,8 +22,8 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("/list")
-    public Page<User> index(@AuthenticationPrincipal User user){
-        return userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
+    public ResponseEntity<Page<User>> index(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id"))));
     }
 
     @PostMapping

@@ -21,9 +21,6 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(authService.register(authRequest));
@@ -32,11 +29,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(authService.authentication(authRequest));
-    }
-
-    @GetMapping("/auth")
-    public ResponseEntity<List<User>> index() {
-        return ResponseEntity.ok(userRepository.findAll());
     }
 
     @PostMapping("/refreshToken")
