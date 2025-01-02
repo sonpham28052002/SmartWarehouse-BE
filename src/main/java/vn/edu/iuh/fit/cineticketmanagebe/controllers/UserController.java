@@ -1,25 +1,30 @@
 package vn.edu.iuh.fit.cineticketmanagebe.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.cineticketmanagebe.models.User;
+import vn.edu.iuh.fit.cineticketmanagebe.repositories.UserRepository;
 import vn.edu.iuh.fit.cineticketmanagebe.servies.UserService;
 
 @RestController
-@RequestMapping()
-public class Test {
+@RequestMapping("/user")
+public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @GetMapping("/admin/login")
-    public User adminString(@AuthenticationPrincipal User user){
-        return userService.loadUserByUsername(user.getUsername());
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/list")
+    public Page<User> index(@AuthenticationPrincipal User user){
+        return userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
     }
 
-    @GetMapping("/user/login")
-    public User userString(@AuthenticationPrincipal User user){ return user; }
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);

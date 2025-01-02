@@ -26,7 +26,6 @@ import vn.edu.iuh.fit.cineticketmanagebe.repositories.UserRepository;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserRepository userRepository;
     private final JwtAuthenticationFilter authenticationFilter;
     private final UserDetailsService userService;
 
@@ -37,8 +36,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                                .requestMatchers("/admin/**").hasAnyAuthority(Rule.ADMIN.name())
-                                .requestMatchers("/user/**").hasAnyAuthority(Rule.USER.name())
+                                .requestMatchers("/api/admin/**").hasAnyAuthority(Rule.ADMIN.name())
+                                .requestMatchers("/api/user/**").hasAnyAuthority(Rule.ADMIN.name(), Rule.USER.name())
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
@@ -46,6 +45,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
