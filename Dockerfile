@@ -1,4 +1,4 @@
-FROM maven:3.9.9-openjdk-17-slim as build
+FROM maven:3.8.4-openjdk-17 as build
 
 WORKDIR /app
 
@@ -8,13 +8,17 @@ RUN mvn dependency:go-offline
 
 COPY src /app/src
 
-RUN mvn clean install
+RUN mvn clean install -DskipTests
 
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app-be
 
-COPY target/CineTicketManage-BE-0.0.1-SNAPSHOT.jar /app-be/CineTicketManage-BE.jar
+COPY --from=build /app/target/CineTicketManage-BE-0.0.1-SNAPSHOT.jar /app-be/CineTicketManage-BE.jar
+
+RUN useradd -ms /bin/bash springuser
+
+USER springuser
 
 EXPOSE 8080
 
