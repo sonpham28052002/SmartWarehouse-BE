@@ -1,23 +1,23 @@
 version: '3.8'
 
 services:
-  springboot_app:
-    build:
-      context: .
-    container_name: springboot_app
-    ports:
-      - "8080:8080"
-    networks:
-      - app-network
-    depends_on:
-      - mysql
-      - redis
-    environment:
-      - MYSQL_URL=jdbc:mysql://mysql:3306/cineticket_db?createDatabaseIfNotExist=true
-      - MYSQL_USERNAME=root
-      - MYSQL_PASSWORD=rootpassword
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+#  springboot_app:
+#    build:
+#      context: .
+#    container_name: springboot_app
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - app-network
+#    depends_on:
+#      - mysql
+#      - redis
+#    environment:
+#      - MYSQL_URL=jdbc:mysql://mysql:3306/cineticket_db?createDatabaseIfNotExist=true
+#      - MYSQL_USERNAME=root
+#      - MYSQL_PASSWORD=rootpassword
+#      - REDIS_HOST=redis
+#      - REDIS_PORT=6379
 
   nginx:
     build:
