@@ -22,4 +22,6 @@ USER springuser
 
 EXPOSE 8080
 
+RUN sleep 3
+
 ENTRYPOINT ["java", "-jar", "/app-be/SmartWarehouse-BE.jar"]

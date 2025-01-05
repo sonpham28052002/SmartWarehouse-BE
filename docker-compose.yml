@@ -4,7 +4,7 @@ services:
   springboot_app:
     build:
       context: .
-    container_name: springboot_app
+    container_name: SmartWarehouse_app
     ports:
       - "8080:8080"
     networks:
