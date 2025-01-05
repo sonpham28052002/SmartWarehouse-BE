@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Table(name = "user")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,6 +23,7 @@ import java.util.List;
 @Builder
 @ToString
 @Where(clause = "deleted = false")
+@SQLDelete(sql = "UPDATE user SET deleted = true WHERE id = ?")
 public class User extends Auditable implements UserDetails, Serializable {
 
     @Id

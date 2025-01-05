@@ -13,13 +13,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import vn.edu.iuh.fit.cineticketmanagebe.enums.Rule;
-import vn.edu.iuh.fit.cineticketmanagebe.repositories.UserRepository;
+import vn.edu.iuh.fit.cineticketmanagebe.exceptions.CustomAccessDeniedHandler;
+import vn.edu.iuh.fit.cineticketmanagebe.exceptions.CustomBasicAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -29,10 +30,14 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter authenticationFilter;
     private final UserDetailsService userService;
 
+    private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
@@ -41,7 +46,10 @@ public class SecurityConfig {
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.accessDeniedHandler(accessDeniedHandler())
+                                .authenticationEntryPoint(customBasicAuthenticationEntryPoint));
 
         return http.build();
     }
@@ -64,4 +72,10 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
+    }
+
 }

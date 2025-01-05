@@ -1,12 +1,17 @@
 package vn.edu.iuh.fit.cineticketmanagebe.config;
 
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,10 +20,15 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.ExpiredJwtException;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import vn.edu.iuh.fit.cineticketmanagebe.dtos.responses.error.ErrorResponse;
+import vn.edu.iuh.fit.cineticketmanagebe.exceptions.JwtExpiredException;
 import vn.edu.iuh.fit.cineticketmanagebe.servies.JWTService;
 import vn.edu.iuh.fit.cineticketmanagebe.servies.UserService;
 
+import javax.management.JMException;
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +39,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserService userService;
+
+    @Qualifier("customHandlerExceptionResolver")
+    private final HandlerExceptionResolver resolver;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -56,16 +69,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.setContext(securityContext);
                 }
             }
-        } catch (ExpiredJwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token has expired, please login again.");
+        } catch (ExpiredJwtException  ex) {
+            resolver.resolveException(request, response, null, new ExpiredJwtException(ex.getHeader(), ex.getClaims(), ex.getMessage()));
             return;
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid token.");
+        }  catch (MalformedJwtException ex) {
+            resolver.resolveException(request, response, null, new MalformedJwtException(ex.getMessage()));
             return;
         }
-
         filterChain.doFilter(request, response);
     }
 }

@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @ToString
-@SQLDelete(sql = "UPDATE ${table_name} SET deleted = true WHERE id = ?")
 public abstract  class Auditable implements Serializable {
     @CreatedDate
     @Column(updatable = false)

@@ -7,8 +7,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.iuh.fit.cineticketmanagebe.dtos.requests.AuthRequest;
-import vn.edu.iuh.fit.cineticketmanagebe.dtos.responses.AuthResponse;
+import vn.edu.iuh.fit.cineticketmanagebe.dtos.requests.auth.AuthRequest;
+import vn.edu.iuh.fit.cineticketmanagebe.dtos.responses.auth.AuthResponse;
 import vn.edu.iuh.fit.cineticketmanagebe.enums.Rule;
 import vn.edu.iuh.fit.cineticketmanagebe.mappers.UserMapper;
 import vn.edu.iuh.fit.cineticketmanagebe.models.User;

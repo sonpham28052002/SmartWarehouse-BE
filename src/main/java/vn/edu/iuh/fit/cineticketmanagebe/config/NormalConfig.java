@@ -1,11 +1,17 @@
 package vn.edu.iuh.fit.cineticketmanagebe.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
+
+@Configuration
 
 public class NormalConfig {
-
+        @Bean(name = "customHandlerExceptionResolver")
+        @Primary
+        public HandlerExceptionResolver handlerExceptionResolver() {
+            return new ExceptionHandlerExceptionResolver();
+        }
 }
