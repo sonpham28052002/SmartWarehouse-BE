@@ -14,7 +14,7 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /app-be
 
-COPY --from=build /app/target/CineTicketManage-BE-0.0.1-SNAPSHOT.jar /app-be/CineTicketManage-BE.jar
+COPY --from=build /app/target/SmartWarehouse-BE-0.0.1-SNAPSHOT.jar /app-be/SmartWarehouse-BE.jar
 
 RUN useradd -ms /bin/bash springuser
 
@@ -22,4 +22,4 @@ USER springuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/app-be/CineTicketManage-BE.jar"]
+ENTRYPOINT ["java", "-jar", "/app-be/SmartWarehouse-BE.jar"]
