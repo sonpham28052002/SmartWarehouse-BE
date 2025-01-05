@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -20,9 +21,10 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.error.ErrorResponse;
 import javax.management.JMException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@ControllerAdvice
 @Component
 public class HandleException {
 
@@ -41,14 +43,14 @@ public class HandleException {
     @ExceptionHandler(JMException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleExpiredJwtException(JMException ex) {
-        ErrorResponse errorResponse = new ErrorResponse("Validation failed", List.of("Token has expired, please log in again.1"));
+        ErrorResponse errorResponse = new ErrorResponse("Validation failed", List.of("Token has expired, please log in again."));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     @ExceptionHandler(value = {UsernameNotFoundException.class, BadCredentialsException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleExpiredJwtException1(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse("UserName or password is incorrect", List.of("UserName or password is incorrect"));
+        ErrorResponse errorResponse = new ErrorResponse("Login failed.", List.of("UserName or password is incorrect"));
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
@@ -72,6 +74,12 @@ public class HandleException {
         ErrorResponse errorResponse = new ErrorResponse("Token invalid.", List.of("Token invalid . Please login again."));
         ObjectMapper mapper = new ObjectMapper();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapper.writeValueAsString(errorResponse));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("Not found.", List.of(ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
 }

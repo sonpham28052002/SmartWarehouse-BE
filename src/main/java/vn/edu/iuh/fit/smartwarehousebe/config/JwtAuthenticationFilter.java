@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException  ex) {
             resolver.resolveException(request, response, null, new ExpiredJwtException(ex.getHeader(), ex.getClaims(), ex.getMessage()));
             return;
-        }  catch (MalformedJwtException ex) {
+        } catch (MalformedJwtException ex) {
             resolver.resolveException(request, response, null, new MalformedJwtException(ex.getMessage()));
             return;
         }
