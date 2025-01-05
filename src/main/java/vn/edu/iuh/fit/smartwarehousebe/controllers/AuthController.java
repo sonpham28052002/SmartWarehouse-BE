@@ -1,0 +1,43 @@
+package vn.edu.iuh.fit.smartwarehousebe.controllers;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.auth.AuthResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.auth.AuthRequest;
+import vn.edu.iuh.fit.smartwarehousebe.servies.AuthService;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest authRequest) {
+        return ResponseEntity.ok(authService.register(authRequest));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
+        return ResponseEntity.ok(authService.authentication(authRequest));
+    }
+
+    @PostMapping("/refreshToken")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody AuthRequest authRequest) {
+        try {
+            return ResponseEntity.ok(authService.refreshToken(authRequest));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(AuthResponse.builder()
+                            .message("Invalid or expired refresh token.")
+                            .code(HttpStatus.UNAUTHORIZED.value())
+                            .build());
+        }
+    }
+}

@@ -1,4 +1,4 @@
-# CineTicketManage-BE
+# SmartWarehouse-BE
 
 This project is a backend application for managing a cinema ticket system built with Spring Boot. It provides functionality for ticket management, user authentication, and other services such as Redis caching and JWT authentication.
 
@@ -23,8 +23,8 @@ Before running the project, make sure you have the following installed:
 
 ## Clone the Repository
 ```
-git clone https://github.com/your-username/CineTicketManage-BE.git
-cd CineTicketManage-BE
+git clone https://github.com/your-username/SmartWarehouse-BE.git
+cd SmartWarehouse-BE
 ```
 ## Running the Project Locally
 **1. Build the Project**

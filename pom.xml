@@ -8,10 +8,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>vn.edu.iuh.fit</groupId>
-    <artifactId>CineTicketManage-BE</artifactId>
+    <artifactId>SmartWarehouse-BE</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>CineTicketManage-BE</name>
-    <description>CineTicketManage-BE</description>
+    <name>SmartWarehouse-BE</name>
+    <description>SmartWarehouse-BE</description>
     <properties>
         <java.version>17</java.version>
     </properties>
