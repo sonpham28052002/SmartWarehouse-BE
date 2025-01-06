@@ -21,7 +21,8 @@ public class AuthRequest {
     private String lastName;
     private String firstName;
 
-    @NotNull(message = "password cannot be null")
+    @NotNull(message = "Password cannot be null")
+    @Size(min = 2, max = 100, message = "Password must be between 2 and 100 characters")
     private String password;
     private String token;
     private String refreshToken;
