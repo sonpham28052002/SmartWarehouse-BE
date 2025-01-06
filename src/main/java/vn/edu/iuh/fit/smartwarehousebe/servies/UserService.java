@@ -20,8 +20,8 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
     private UserRepository userRepository;
 
 
-    @Cacheable(value = "user", key = "#username", unless = "#result == null")
     @Override
+    @Cacheable(value = "token", key = "#username", unless = "#result == null")
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByName(username).orElseThrow(() -> new NoSuchElementException("User not found with name: " + username));
     }

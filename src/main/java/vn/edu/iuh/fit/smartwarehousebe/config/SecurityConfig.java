@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(Rule.ADMIN.name())
                                 .requestMatchers("/api/user/**").hasAnyAuthority(Rule.ADMIN.name(), Rule.USER.name())
+                                .requestMatchers("/api/file/**").hasAnyAuthority(Rule.ADMIN.name(), Rule.USER.name())
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
