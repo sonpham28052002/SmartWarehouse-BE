@@ -32,7 +32,6 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Transactional
     public AuthResponse register(AuthRequest request) {
         User user = User.builder()
                 .firstName(request.getFirstName())
@@ -55,7 +54,6 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional
     public AuthResponse authentication(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -65,7 +63,6 @@ public class AuthService {
         );
         User user = userRepository.findByName(request.getName())
                 .orElseThrow();
-
         String refreshToken = jwtService.generateRefreshToken(user);
         String token = jwtService.generateToken(user);
         return AuthResponse.builder()
@@ -75,7 +72,6 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional
     public AuthResponse refreshToken(AuthRequest authRequest) throws Exception {
         try {
             String userName = jwtService.extractUserName(authRequest.getRefreshToken());
