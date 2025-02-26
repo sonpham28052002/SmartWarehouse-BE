@@ -2,24 +2,26 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.auth.AuthRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.auth.AuthResponse;
-import vn.edu.iuh.fit.smartwarehousebe.enums.Rule;
+import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
+import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    @Value("${APP.JWT.EXPIRATION_TIME_ACCESS_TOKEN}")
+    private long EXPIRATION_TIME_ACCESS_TOKEN;
 
     @Autowired
     private UserRepository userRepository;
@@ -34,15 +36,17 @@ public class AuthService {
 
     public AuthResponse register(AuthRequest request) {
         User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .name(request.getName())
+                .fullName(request.getFullName())
+                .code(UUID.randomUUID().toString().replace("-", "").substring(0, 12))
+                .userName(request.getUserName())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .rule(Rule.ADMIN)
+                .role(Role.ADMIN)
+                .status(UserStatus.ACTIVE)
                 .build();
         User newUser = userRepository.save(user);
         Map<String, Object> claims = new HashMap<>();
         claims.put("user", newUser.toString());
+
 
         String refreshToken = jwtService.generateRefreshToken(claims,newUser);
         String token = jwtService.generateToken(claims,newUser);
@@ -51,17 +55,18 @@ public class AuthService {
                 .token(token)
                 .refreshToken(refreshToken)
                 .user(newUser)
+                .exp(new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN).getTime())
                 .build();
     }
 
-    public AuthResponse authentication(AuthRequest request) {
+    public AuthResponse authentication(String userName, String password) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getName(),
-                        request.getPassword()
+                        userName,
+                        password
                 )
         );
-        User user = userRepository.findByName(request.getName())
+        User user = userRepository.findUserByUserName(userName)
                 .orElseThrow();
         String refreshToken = jwtService.generateRefreshToken(user);
         String token = jwtService.generateToken(user);
@@ -69,26 +74,28 @@ public class AuthService {
                 .token(token)
                 .refreshToken(refreshToken)
                 .user(user)
+                .exp(new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN).getTime())
                 .build();
     }
 
-    public AuthResponse refreshToken(AuthRequest authRequest) throws Exception {
+    public AuthResponse refreshToken(String refreshToken) throws Exception {
         try {
-            String userName = jwtService.extractUserName(authRequest.getRefreshToken());
+            String userName = jwtService.extractUserName(refreshToken);
 
-            Optional<User> optionalUser = userRepository.findByName(userName);
+            Optional<User> optionalUser = userRepository.findUserByUserName(userName);
             if (optionalUser.isEmpty()) {
                 throw new Exception("User not found");
             }
 
             User user = optionalUser.get();
-            if (jwtService.isRefreshTokenValid(authRequest.getRefreshToken(), user)) {
+            if (jwtService.isRefreshTokenValid(refreshToken, user)) {
                 String token = jwtService.generateToken(user);
 
                 return AuthResponse.builder()
                         .token(token)
-                        .refreshToken(authRequest.getRefreshToken())
+                        .refreshToken(refreshToken)
                         .user(user)
+                        .exp(new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN).getTime())
                         .build();
             } else {
                 throw new Exception("Invalid refresh token");

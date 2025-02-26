@@ -13,6 +13,7 @@ import vn.edu.iuh.fit.smartwarehousebe.models.User;
 public class AuthResponse {
     private String token;
     private String refreshToken;
+    private Long exp;
     @JsonIgnoreProperties({"authorities", "accountNonExpired", "credentialsNonExpired", "accountNonLocked"})
     private User user;
     private String message;

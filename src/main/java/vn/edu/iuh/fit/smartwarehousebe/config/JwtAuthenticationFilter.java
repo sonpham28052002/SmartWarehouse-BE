@@ -9,6 +9,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ import vn.edu.iuh.fit.smartwarehousebe.servies.JWTService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 @Component
 @RequiredArgsConstructor
@@ -66,6 +68,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             resolver.resolveException(request, response, null, new ExpiredJwtException(ex.getHeader(), ex.getClaims(), ex.getMessage()));
             return;
         } catch (MalformedJwtException ex) {
+            resolver.resolveException(request, response, null, new MalformedJwtException(ex.getMessage()));
+            return;
+        } catch (NoSuchElementException ex) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             resolver.resolveException(request, response, null, new MalformedJwtException(ex.getMessage()));
             return;
         }

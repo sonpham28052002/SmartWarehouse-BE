@@ -72,7 +72,7 @@ public class HandleException {
     public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex) throws JsonProcessingException {
         ErrorResponse errorResponse = new ErrorResponse("Token invalid.", List.of("Token invalid . Please login again."));
         ObjectMapper mapper = new ObjectMapper();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapper.writeValueAsString(errorResponse));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapper.writeValueAsString(errorResponse));
     }
 
     @ExceptionHandler(NoSuchElementException.class)
