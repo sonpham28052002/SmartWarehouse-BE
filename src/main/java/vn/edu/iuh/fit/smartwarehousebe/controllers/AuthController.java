@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.auth.AuthResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.auth.AuthRequest;
@@ -19,19 +20,19 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid AuthRequest authRequest) {
         return ResponseEntity.ok(authService.register(authRequest));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
-        return ResponseEntity.ok(authService.authentication(authRequest));
+    public ResponseEntity<AuthResponse> login(@RequestParam("userName") String userName, @RequestParam("password") String password) {
+        return ResponseEntity.ok(authService.authentication(userName, password));
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody String refreshToken) {
         try {
-            return ResponseEntity.ok(authService.refreshToken(authRequest));
+            return ResponseEntity.ok(authService.refreshToken(refreshToken));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(AuthResponse.builder()

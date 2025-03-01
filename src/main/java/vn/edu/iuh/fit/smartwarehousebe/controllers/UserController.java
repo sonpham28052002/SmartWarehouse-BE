@@ -1,12 +1,16 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
@@ -22,17 +26,40 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("/list")
-    public ResponseEntity<Page<User>> index(@AuthenticationPrincipal User user){
-        return ResponseEntity.ok(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id"))));
+    public ResponseEntity<Page<User>> index(@RequestParam(value = "per_page", defaultValue = "10") int perPage, @RequestParam(value = "current_page", defaultValue = "1") int currentPage, GetUserQuest request) {
+        return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
+    }
+    @GetMapping("/{id}")
+    public UserResponse getUser(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        UserResponse response = UserMapper.INSTANCE.toDto(user);
+        response.setUserName(user.getUsername());
+        return response;
+    }
+    @PostMapping
+    public UserResponse createUser(@RequestBody @Valid UserRequest request) {
+        User user = UserMapper.INSTANCE.toEntity(request);
+        UserResponse newUser = UserMapper.INSTANCE.toDto(userService.createUser(user));
+        newUser.setUserName(user.getUsername());
+        return newUser;
     }
 
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    @PutMapping("/{id}")
+    public UserResponse updateUser(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
+        request.setId(id);
+        User user = UserMapper.INSTANCE.toEntity(request);
+        UserResponse newUser = UserMapper.INSTANCE.toDto(userService.updateUser(user));
+        newUser.setUserName(user.getUsername());
+        return newUser;
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public Boolean deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return true;
+        } catch (Exception exception){
+            return false;
+        }
     }
 }

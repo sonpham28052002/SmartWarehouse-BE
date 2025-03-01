@@ -1,13 +1,16 @@
 package vn.edu.iuh.fit.smartwarehousebe.mappers;
 
 import org.mapstruct.Mapper;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.auth.AuthResponse;
+import org.mapstruct.factory.Mappers;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface UserMapper {
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    AuthResponse toDto(User user);
+    UserResponse toDto(User user);
 
-    User toEntity(AuthResponse response);
+    User toEntity(UserRequest request);
 }
