@@ -27,7 +27,7 @@ public class UserController {
 
     @GetMapping("/list")
     public ResponseEntity<Page<User>> index(@RequestParam(value = "per_page", defaultValue = "10") int perPage, @RequestParam(value = "current_page", defaultValue = "1") int currentPage, GetUserQuest request) {
-        return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.ASC, "id")), request));
+        return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
     }
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable Long id) {
