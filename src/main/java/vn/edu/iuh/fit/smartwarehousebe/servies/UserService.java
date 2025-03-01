@@ -50,7 +50,7 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
      * @param user
      * @return User
      */
-    @CachePut(value = "user", key = "#user.id")
+    @Cacheable(value = "user", unless = "#result == null")
     public User createUser(User user) {
         return userRepository.save(user);
     }
@@ -60,7 +60,7 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
      * @param user
      * @return User
      */
-    @CachePut(value = "user", key = "#user.id")
+    @Cacheable(value = "user", unless = "#result == null")
     public User updateUser(User user) {
         User userOld = userRepository.findById(user.getId()).orElseThrow(() -> new NoSuchElementException());
         userOld.setUserName(user.getUsername());

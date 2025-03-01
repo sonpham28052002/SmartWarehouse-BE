@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/file/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(Role.ADMIN.name())
                                 .requestMatchers("/api/user/**").hasAnyAuthority(RuleConstant.fullRole.toArray(new String[0]))

@@ -29,7 +29,8 @@ public class StorageService {
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
         s3Client.putObject(new PutObjectRequest(bucketName, fileName, fileObj));
         fileObj.delete();
-        return "File uploaded : " + fileName;
+        String fileUrl = s3Client.getUrl(bucketName, fileName).toString();
+        return fileUrl;
     }
 
     public byte[] downloadFile(String fileName) {
