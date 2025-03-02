@@ -70,6 +70,13 @@ public class User extends Auditable implements UserDetails, Serializable {
     @Enumerated(EnumType.ORDINAL)
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
+    @OneToOne(mappedBy = "manager")
+    private Warehouse warehouseManager;
+
     @Override
     public String getPassword() {
         return this.password;

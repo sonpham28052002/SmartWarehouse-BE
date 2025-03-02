@@ -28,53 +28,54 @@ import vn.edu.iuh.fit.smartwarehousebe.exceptions.CustomBasicAuthenticationEntry
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter authenticationFilter;
-    private final UserDetailsService userService;
+   private final JwtAuthenticationFilter authenticationFilter;
+   private final UserDetailsService userService;
 
-    private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
+   private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
-                .authorizeHttpRequests(request ->
-                        request.requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/file/**").permitAll()
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                                .requestMatchers("/api/admin/**").hasAnyAuthority(Role.ADMIN.name())
-                                .requestMatchers("/api/user/**").hasAnyAuthority(RuleConstant.fullRole.toArray(new String[0]))
-                                .requestMatchers("/api/file/**").hasAnyAuthority(Role.ADMIN.name(), Role.USER.name())
-                                .anyRequest().authenticated())
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+   @Bean
+   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+      http.csrf(AbstractHttpConfigurer::disable)
+            .cors(Customizer.withDefaults())
+            .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
+            .authorizeHttpRequests(request ->
+                  request.requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/file/**").permitAll()
+                        .requestMatchers("/warehouses", "/warehouses/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyAuthority(Role.ADMIN.name())
+                        .requestMatchers("/api/user/**").hasAnyAuthority(RuleConstant.fullRole.toArray(new String[0]))
+                        .requestMatchers("/api/file/**").hasAnyAuthority(Role.ADMIN.name(), Role.USER.name())
+                        .anyRequest().authenticated())
+            .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+      return http.build();
+   }
 
 
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
+   @Bean
+   public AuthenticationProvider authenticationProvider() {
+      DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+      authProvider.setUserDetailsService(userService);
+      authProvider.setPasswordEncoder(passwordEncoder());
+      return authProvider;
+   }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+   @Bean
+   public PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder();
+   }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+   @Bean
+   public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+      return authenticationConfiguration.getAuthenticationManager();
+   }
 
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        return new CustomAccessDeniedHandler();
-    }
+   @Bean
+   public AccessDeniedHandler accessDeniedHandler() {
+      return new CustomAccessDeniedHandler();
+   }
 
 }
