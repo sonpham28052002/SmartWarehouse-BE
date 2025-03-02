@@ -125,6 +125,10 @@ public class User extends Auditable implements UserDetails, Serializable {
         if (this.code == null) {
             this.code = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         }
+
+        if (this.profilePicture == null){
+            this.profilePicture = "https://www.shutterstock.com/image-vector/default-profile-picture-avatar-photo-600nw-1681253560.jpg";
+        }
     }
 
     @Override
