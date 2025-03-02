@@ -65,7 +65,13 @@ public class WarehouseController {
 
     @PutMapping("/{id}/update")
     public ResponseEntity<WarehouseResponse> updateWarehouse(@PathVariable Long id, @Valid @RequestBody UpdateWarehouseRequest request) {
-        return ResponseEntity.ok(warehouseService.update(id, request));
+        Warehouse updateWarehouse = Warehouse.builder()
+                .address(request.getAddress())
+                .name(request.getName())
+                .manager(User.builder().id(request.getManagerId()).build())
+                .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
+                .build();
+        return ResponseEntity.ok(WarehouseMapper.INSTANCE.toDto(warehouseService.update(id, updateWarehouse)));
     }
 
     @DeleteMapping("/{id}/delete")

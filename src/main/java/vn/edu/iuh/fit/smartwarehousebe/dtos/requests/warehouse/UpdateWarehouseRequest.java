@@ -1,9 +1,21 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse;
 
-import java.io.Serializable;
+import lombok.*;
 
-/**
- * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Warehouse}
- */
-public record UpdateWarehouseRequest(Long id, String address, String code, String name, Long managerId) implements Serializable {
+import java.io.Serializable;
+import java.util.Set;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+@ToString
+public class UpdateWarehouseRequest implements Serializable{
+
+    private String address;
+    private String code;
+    private String name;
+    private Long managerId;
+    private Set<Long> staffIDs;
 }

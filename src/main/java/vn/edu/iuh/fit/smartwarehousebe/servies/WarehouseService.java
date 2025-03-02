@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,6 +22,7 @@ import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.WarehouseSpecification;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -87,10 +89,51 @@ public class WarehouseService {
         return warehouseRepository.save(newWarehouse);
     }
 
-    @CacheEvict(value = "warehouse", key = "#id", allEntries = true)
-    public WarehouseResponse update(Long id, UpdateWarehouseRequest updateWarehouse) {
+    @CacheEvict(value = "warehouse", allEntries = true)
+    @Transactional
+    public Warehouse update(Long id, Warehouse updateWarehouse) {
+        Warehouse oldWarehouse = warehouseRepository.findById(id).orElseThrow(null);
 
-        return null;
+        oldWarehouse.setAddress(updateWarehouse.getAddress());
+        oldWarehouse.setName(updateWarehouse.getName());
+        oldWarehouse.setCode(updateWarehouse.getCode());
+
+        if (oldWarehouse == null) throw new NotFoundException("no found warehouse");
+
+        if (oldWarehouse.getManager().getId() != updateWarehouse.getManager().getId()){
+
+            // update warehouse manager for the old manager
+            User oldManager = userService.getUserById(oldWarehouse.getManager().getId());
+            oldManager.setWarehouseManager(null);
+            userService.updateUser(oldManager);
+
+            // update warehouse manager for the old manager
+            User newManager = userService.getUserById(updateWarehouse.getManager().getId());
+            newManager.setWarehouseManager(oldWarehouse);
+            oldWarehouse.setManager(userService.updateUser(newManager));
+        }
+
+
+        // update staffs
+        Set<User> oldStaffs = oldWarehouse.getStaffs();
+        Set<User> newStaffs = updateWarehouse.getStaffs();
+        Set<User> allStaff = new HashSet<>(oldStaffs);
+        allStaff.addAll(newStaffs);
+        for (User user : allStaff) {
+            if (oldStaffs.contains(user) && !newStaffs.contains(user))
+            {
+                User staff = userService.getUserById(user.getId());
+                staff.setWarehouse(null);
+                userService.updateUser(staff);
+            } else if (!oldStaffs.contains(user) && newStaffs.contains(user))
+            {
+                User staff = userService.getUserById(user.getId());
+                staff.setWarehouse(oldWarehouse);
+                userService.updateUser(staff);
+            }
+        }
+
+        return warehouseRepository.save(oldWarehouse);
     }
 
     @CacheEvict(value = "warehouse", allEntries = true)
