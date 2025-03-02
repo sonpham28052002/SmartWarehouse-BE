@@ -1,30 +1,28 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "warehouse")
-@SQLDelete(sql = "UPDATE warehouse SET deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE warehouse SET deleted = true, manager_id = null WHERE id = ?")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Warehouse extends Auditable {
    @Id
-   @Column(name = "id", nullable = false)
+   @Column(name = "id")
    @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Integer id;
+   private Long id;
 
    private String address;
 
@@ -32,11 +30,22 @@ public class Warehouse extends Auditable {
 
    private String name;
 
-   @OneToMany(mappedBy = "warehouse")
-   private Set<User> staffs;
+   @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+   private Set<User> staffs = new HashSet<>();
 
    @OneToOne
-   @JoinColumn(name = "manager", referencedColumnName = "id")
+   @JoinColumn(name = "manager_id", referencedColumnName = "id")
+   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+   @JsonBackReference
    private User manager;
 
+   private static final AtomicInteger counter = new AtomicInteger(1);
+
+   @PrePersist
+   public void setDefault() {
+      if (this.code == null) {
+         this.code = "WH" + String.format("%07d", counter.getAndIncrement());
+      }
+   }
 }

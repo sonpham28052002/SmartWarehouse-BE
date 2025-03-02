@@ -1,14 +1,18 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse;
 
-/**
- * @description
- * @author: vie
- * @date: 2/3/25
- */
-public record GetWarehouseQuest(
-      String name,
-      String code,
-      String location,
-      Integer managerId,
-      Boolean deleted
-) { }
+import lombok.*;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+@ToString
+public class GetWarehouseQuest {
+
+    private String name;
+    private String code;
+    private String location;
+    private Long managerId;
+    private boolean deleted;
+}

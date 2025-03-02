@@ -30,27 +30,20 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
     }
     @GetMapping("/{id}")
-    public UserResponse getUser(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        UserResponse response = UserMapper.INSTANCE.toDto(user);
-        response.setUserName(user.getUsername());
-        return response;
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(UserMapper.INSTANCE.toDto(userService.getUserById(id)));
     }
     @PostMapping
-    public UserResponse createUser(@RequestBody @Valid UserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserRequest request) {
         User user = UserMapper.INSTANCE.toEntity(request);
-        UserResponse newUser = UserMapper.INSTANCE.toDto(userService.createUser(user));
-        newUser.setUserName(user.getUsername());
-        return newUser;
+        return ResponseEntity.ok(UserMapper.INSTANCE.toDto(userService.createUser(user)));
     }
 
     @PutMapping("/{id}")
-    public UserResponse updateUser(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
         request.setId(id);
         User user = UserMapper.INSTANCE.toEntity(request);
-        UserResponse newUser = UserMapper.INSTANCE.toDto(userService.updateUser(user));
-        newUser.setUserName(user.getUsername());
-        return newUser;
+        return ResponseEntity.ok(UserMapper.INSTANCE.toDto(userService.updateUser(user)));
     }
 
     @DeleteMapping("/{id}")

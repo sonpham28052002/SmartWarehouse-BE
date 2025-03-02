@@ -1,9 +1,28 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 
-/**
- * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Warehouse}
- */
-public record WarehouseResponse(Integer id, String address, String code, String name, Integer manager) implements Serializable {
+import java.io.Serializable;
+import java.util.Set;
+
+@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@ToString
+public class WarehouseResponse implements Serializable {
+    private Long id;
+    private String address;
+    private String code;
+    private String name;
+    @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+    private User manager;
+    @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+    private Set<User> staffs;
+    private boolean deleted;
+
 }

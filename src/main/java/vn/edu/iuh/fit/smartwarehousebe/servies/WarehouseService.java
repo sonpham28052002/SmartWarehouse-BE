@@ -1,23 +1,28 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.CreateWarehouseRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.GetWarehouseQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.UpdateWarehouseRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.WarehouseSpecification;
 
-import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * @description
@@ -25,60 +30,91 @@ import java.util.NoSuchElementException;
  * @date: 1/3/25
  */
 @Service
-public class WarehouseService extends SoftDeleteService<Warehouse> {
-   private final WarehouseMapper warehouseMapper;
-   private final WarehouseRepository warehouseRepository;
+public class WarehouseService {
 
-   public WarehouseService(WarehouseMapper warehouseMapper, WarehouseRepository warehouseRepository) {
-      super();
-      this.warehouseMapper = warehouseMapper;
-      this.warehouseRepository = warehouseRepository;
-   }
+    @Autowired
+    private WarehouseRepository warehouseRepository;
 
-   @Cacheable(value = "warehouse", unless = "#result == null")
-   public List<WarehouseResponse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
-      Specification<Warehouse> spec = Specification.where(null);
-      if (request.name() != null) {
-         spec = spec.and(WarehouseSpecification.nameLike(request.name()));
-      }
-      if (request.location() != null) {
-         spec = spec.and(WarehouseSpecification.addressLike(request.location()));
-      }
-      if (request.managerId() != null) {
-         spec = spec.and(WarehouseSpecification.hasManager(request.managerId()));
-      }
-      if (request.code() != null) {
-         spec = spec.and(WarehouseSpecification.hasCode(request.code()));
-      }
+    @Autowired
+    private UserService userService;
 
-      Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
-      Pageable pageable = PageRequest.of(page, size, sort);
+    @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
+    public Page<Warehouse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
+        Specification<Warehouse> spec = Specification.where(null);
+        if (request.getName() != null) {
+            spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
+        }
+        if (request.getLocation() != null) {
+            spec = spec.and(WarehouseSpecification.addressLike(request.getLocation()));
+        }
+        if (request.getManagerId() != null) {
+            spec = spec.and(WarehouseSpecification.hasManager(request.getManagerId()));
+        }
+        if (request.getCode() != null) {
+            spec = spec.and(WarehouseSpecification.hasCode(request.getCode()));
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        System.out.println(request.isDeleted());
+        return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable);
+    }
 
-      return warehouseRepository.findAllByDeleted(request.deleted(), spec, pageable).map(warehouseMapper::toDto)
-            .getContent();
-   }
+    @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
+    public Warehouse getById(Long id) {
+        return warehouseRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
+    }
 
-   @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
-   public WarehouseResponse getById(Integer id) {
-      return warehouseRepository.findById(id).map(warehouseMapper::toDto)
-            .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
-   }
+    @CacheEvict(value = "warehouse", allEntries = true)
+    @Transactional
+    public Warehouse create(Warehouse createWarehouse) {
+        Long managerId = createWarehouse.getManager().getId();
+        Set<User> staffs = createWarehouse.getStaffs();
+        System.out.println(managerId);
+        Warehouse temp = createWarehouse;
+        temp.setManager(null);
+        Warehouse newWarehouse = warehouseRepository.save(temp);
 
-   @Cacheable(value = "warehouse", unless = "#result == null")
-   public WarehouseResponse create(CreateWarehouseRequest createWarehouse) {
-      Warehouse warehouse = warehouseMapper.toEntity(createWarehouse);
-      return warehouseMapper.toDto(warehouseRepository.save(warehouse));
-   }
+        User manager = userService.getUserById(managerId);
+        manager.setWarehouseManager(newWarehouse);
+        newWarehouse.setManager(userService.updateUser(manager));
 
-   @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
-   public WarehouseResponse update(Integer id, UpdateWarehouseRequest updateWarehouse) {
-      Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
-      warehouseMapper.partialUpdate(updateWarehouse, warehouse);
-      return warehouseMapper.toDto(warehouseRepository.save(warehouse));
-   }
+        for (User user : staffs) {
+            User staff = userService.getUserById(user.getId());
+            staff.setWarehouse(newWarehouse);
+            userService.updateUser(staff);
+        }
 
-   @CacheEvict(value = "warehouse", allEntries = true)
-   public void delete(Integer id) {
-      warehouseRepository.deleteById(id);
-   }
+        return warehouseRepository.save(newWarehouse);
+    }
+
+    @CacheEvict(value = "warehouse", key = "#id", allEntries = true)
+    public WarehouseResponse update(Long id, UpdateWarehouseRequest updateWarehouse) {
+
+        return null;
+    }
+
+    @CacheEvict(value = "warehouse", allEntries = true)
+    @Transactional
+    public boolean delete(Long id) {
+        try {
+            Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(null);
+            if (warehouse == null) return false;
+
+            User manager = userService.getUserById(warehouse.getManager().getId());
+            manager.setWarehouseManager(null);
+            userService.updateUser(manager);
+
+            for (User user: warehouse.getStaffs()) {
+                User staff = userService.getUserById(user.getId());
+                staff.setWarehouse(null);
+                userService.updateUser(staff);
+            }
+            warehouseRepository.deleteById(id);
+            return true;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return false;
+
+    }
 }

@@ -19,7 +19,7 @@ public class WarehouseSpecification {
       return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("address"), "%" + address + "%");
    }
 
-   public static Specification<Warehouse> hasManager(int managerId) {
+   public static Specification<Warehouse> hasManager(Long managerId) {
       return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("manager").get("id"), managerId);
    }
 
