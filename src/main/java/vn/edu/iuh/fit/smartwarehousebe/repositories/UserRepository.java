@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     public Page<User> findUserByDeleted(@NonNull Class<User> entityClass, Specification<User> specification, Pageable pageable, boolean includeDeleted);
 
-    default Page<User> findUserByDeleted(@NonNull Specification<User> specification, Pageable pageable, boolean includeDeleted) {
+    default Page<User> findAllUsers(@NonNull Specification<User> specification, Pageable pageable, boolean includeDeleted) {
         Specification<User> finalSpecification = specification;
 
         // Add a condition to include or exclude deleted users

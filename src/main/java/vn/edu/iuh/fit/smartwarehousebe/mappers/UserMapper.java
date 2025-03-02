@@ -6,6 +6,8 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 
+import java.util.List;
+
 @Mapper
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
@@ -13,4 +15,8 @@ public interface UserMapper {
     UserResponse toDto(User user);
 
     User toEntity(UserRequest request);
+
+    List<UserResponse> toDtoList(List<User> users);
+
+    List<User> toEntityList(List<UserRequest> userRequests);
 }

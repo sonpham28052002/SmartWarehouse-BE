@@ -15,6 +15,8 @@ import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -28,6 +30,12 @@ public class UserController {
     @GetMapping("/list")
     public ResponseEntity<Page<User>> index(@RequestParam(value = "per_page", defaultValue = "10") int perPage, @RequestParam(value = "current_page", defaultValue = "1") int currentPage, GetUserQuest request) {
         return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<UserResponse>> getAllUser(GetUserQuest request) {
+        List<UserResponse> userResponses = UserMapper.INSTANCE.toDtoList(userService.getAllUser(request));
+        return ResponseEntity.ok(userResponses);
     }
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable Long id) {

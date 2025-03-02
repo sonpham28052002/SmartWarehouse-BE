@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
+import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.SupplierRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import net.datafaker.Faker;
 
@@ -18,11 +20,10 @@ class SmartWarehouseBeApplicationTests {
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    @Autowired
+    private SupplierRepository supplierRepository;
     @Test
     void contextLoads() {
-
-
         Faker faker = new Faker();
         for (int i = 0; i < 100; i++) {
             userRepository.save(User.builder()
@@ -40,4 +41,16 @@ class SmartWarehouseBeApplicationTests {
         }
     }
 
+    @Test
+    void supplier() {
+        Faker faker = new Faker();
+        for (int i = 0; i < 10; i++) {
+            supplierRepository.save(Supplier.builder()
+                            .phone(faker.phoneNumber().phoneNumber())
+                            .address(faker.address().fullAddress())
+                            .name(faker.company().name())
+                            .email(faker.internet().emailAddress())
+                    .build());
+        }
+    }
 }
