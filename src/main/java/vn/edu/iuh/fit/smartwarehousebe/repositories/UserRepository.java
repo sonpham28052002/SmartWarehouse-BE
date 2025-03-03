@@ -21,6 +21,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Query("SELECT u FROM User u JOIN Warehouse w ON u.id = w.manager.id")
     List<User> findUsersWithManagerInWarehouse();
 
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT w.manager.id FROM Warehouse w WHERE w.manager IS NOT NULL) and u.role = 3")
+    List<User> findUsersManagerNotInWarehouse();
+
     public Page<User> findUserByDeleted(@NonNull Class<User> entityClass, Specification<User> specification, Pageable pageable, boolean includeDeleted);
 
     default Page<User> findUserByDeleted(@NonNull Specification<User> specification, Pageable pageable, boolean includeDeleted) {
@@ -33,5 +36,15 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
         // Use the findAll method with the modified specification
         return findAll(finalSpecification, pageable);
+    }
+
+    default List<User> getAllUser(Specification<User> specification, boolean excluded) {
+        Specification<User> finalSpecification = specification;
+
+        if (excluded) {
+            finalSpecification = finalSpecification.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
+        }
+
+        return findAll(finalSpecification);
     }
 }

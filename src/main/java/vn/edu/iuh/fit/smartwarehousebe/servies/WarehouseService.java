@@ -66,7 +66,7 @@ public class WarehouseService {
         return warehouseRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
     }
 
-    @CacheEvict(value = "warehouse", allEntries = true)
+    @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
     @Transactional
     public Warehouse create(Warehouse createWarehouse) {
         Long managerId = createWarehouse.getManager().getId();
@@ -113,7 +113,6 @@ public class WarehouseService {
             oldWarehouse.setManager(userService.updateUser(newManager));
         }
 
-
         // update staffs
         Set<User> oldStaffs = oldWarehouse.getStaffs();
         Set<User> newStaffs = updateWarehouse.getStaffs();
@@ -136,7 +135,7 @@ public class WarehouseService {
         return warehouseRepository.save(oldWarehouse);
     }
 
-    @CacheEvict(value = "warehouse", allEntries = true)
+    @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
     @Transactional
     public boolean delete(Long id) {
         try {

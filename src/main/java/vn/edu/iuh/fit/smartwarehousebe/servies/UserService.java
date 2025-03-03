@@ -11,11 +11,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.UserSpecification;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -109,5 +112,20 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
         boolean includeDeleted = userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true : false;
 
         return userRepository.findUserByDeleted(spec, pageRequest, includeDeleted );
+    }
+
+    @Cacheable(value = "users", key = "'getUsersManagerNotInWarehouse'")
+    public List<User> getUsersManagerNotInWarehouse(){
+        return userRepository.findUsersManagerNotInWarehouse();
+    }
+
+    @Cacheable(value = "users", key = "'getAllUserStaff'")
+    public List<User> getAllUserStaff(){
+        List<Integer> roles = Arrays.asList(Role.USER.getRole(), Role.SUPERVISOR.getRole());
+        Specification<User> specification = UserSpecification.hasRoles(roles);
+        specification = specification.and(UserSpecification.hasWareHouseIsNull());
+
+        List<User> usersWithRoles = userRepository.getAllUser(specification, true);
+        return usersWithRoles;
     }
 }

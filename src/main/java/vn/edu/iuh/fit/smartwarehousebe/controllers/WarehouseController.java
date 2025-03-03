@@ -68,6 +68,7 @@ public class WarehouseController {
         Warehouse updateWarehouse = Warehouse.builder()
                 .address(request.getAddress())
                 .name(request.getName())
+                .code(request.getCode())
                 .manager(User.builder().id(request.getManagerId()).build())
                 .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
                 .build();
