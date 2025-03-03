@@ -14,9 +14,6 @@ public interface ProductMapper {
    @Mapping(target = "supplierId", source = "supplier.id")
    ProductResponse toDto(Product product);
 
-   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-   Product partialUpdate(ProductResponse productResponse, @MappingTarget Product product);
-
    @Mapping(target = "supplier", ignore = true)
    Product toEntity(CreateProductRequest createProductRequest);
 

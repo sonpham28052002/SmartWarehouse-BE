@@ -14,12 +14,7 @@ public interface SupplierMapper {
 
    SupplierResponse toDto(Supplier supplier);
 
-   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-   Supplier partialUpdate(SupplierResponse supplierResponse, @MappingTarget Supplier supplier);
-
    Supplier toEntity(CreateSupplierRequest createSupplierRequest);
-
-   CreateSupplierRequest toDto1(Supplier supplier);
 
    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
    Supplier partialUpdate(CreateSupplierRequest createSupplierRequest, @MappingTarget Supplier supplier);
