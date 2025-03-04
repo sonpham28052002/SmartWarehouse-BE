@@ -5,6 +5,7 @@ import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -24,5 +25,6 @@ public class WarehouseResponse implements Serializable {
     @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
     private Set<User> staffs;
     private boolean deleted;
-
+    private LocalDateTime createdDate;
+    private LocalDateTime lastModifiedDate;
 }

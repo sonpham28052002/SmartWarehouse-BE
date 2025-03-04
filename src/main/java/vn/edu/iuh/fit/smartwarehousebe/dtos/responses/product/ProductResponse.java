@@ -1,8 +1,12 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
 import lombok.Value;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Product}
@@ -16,4 +20,7 @@ public class ProductResponse implements Serializable {
    String description;
    String image;
    Long supplierId;
+   LocalDateTime createdDate;
+   LocalDateTime lastModifiedDate;
+   boolean deleted;
 }

@@ -1,5 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,7 +24,7 @@ import java.util.List;
  * @date: 2/3/25
  */
 @Service
-public class SupplierService extends SoftDeleteService<Supplier> {
+public class SupplierService {
     private final SupplierRepository supplierRepository;
     private final SupplierMapper supplierMapper;
 
@@ -32,7 +34,7 @@ public class SupplierService extends SoftDeleteService<Supplier> {
         this.supplierRepository = supplierRepository;
         this.supplierMapper = supplierMapper;
     }
-
+    @Cacheable(value = "suppliers", key = "#supplierQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
     public Page<SupplierResponse> getAll(PageRequest pageRequest, GetSupplierQuest supplierQuest) {
         Specification<Supplier> specification = SpecificationBuilder.<Supplier>builder()
                 .with(SupplierSpecification.hasActive(supplierQuest.getActive()))
@@ -46,13 +48,14 @@ public class SupplierService extends SoftDeleteService<Supplier> {
         return supplierRepository.findAll(specification, pageRequest).map(supplierMapper::toDto);
     }
 
+    @Cacheable(value = "suppliers", key = "#supplierQuest")
     public List<SupplierResponse> getAll(GetSupplierQuest supplierQuest) {
         Specification<Supplier> specification = SpecificationBuilder.<Supplier>builder()
-                .with(SupplierSpecification.hasActive(supplierQuest.getActive()))
                 .with(SupplierSpecification.hasCode(supplierQuest.getCode()))
                 .with(SupplierSpecification.hasName(supplierQuest.getName()))
                 .with(SupplierSpecification.hasLocation(supplierQuest.getLocation()))
                 .with(SupplierSpecification.hasPhone(supplierQuest.getPhone()))
+                .with(SupplierSpecification.hasEmail(supplierQuest.getEmail()))
                 .with(SupplierSpecification.hasEmail(supplierQuest.getEmail()))
                 .build();
 
@@ -60,23 +63,26 @@ public class SupplierService extends SoftDeleteService<Supplier> {
                 .map(supplierMapper::toDto)
                 .toList();
     }
-
+    @Cacheable(value = "suppliers", key = "#id")
     public SupplierResponse getById(Long id) {
         return supplierRepository.findById(id).map(supplierMapper::toDto)
                 .orElseThrow(SupplierNotFoundException::new);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public SupplierResponse create(CreateSupplierRequest supplierRequest) {
         Supplier supplier = supplierMapper.toEntity(supplierRequest);
         return supplierMapper.toDto(supplierRepository.save(supplier));
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public SupplierResponse update(Long id, CreateSupplierRequest supplierRequest) {
         Supplier supplier = supplierRepository.findById(id).orElseThrow(SupplierNotFoundException::new);
         supplierMapper.partialUpdate(supplierRequest, supplier);
         return supplierMapper.toDto(supplierRepository.save(supplier));
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public boolean delete(Long id) {
         return supplierRepository.findById(id)
                 .map(supplier -> {

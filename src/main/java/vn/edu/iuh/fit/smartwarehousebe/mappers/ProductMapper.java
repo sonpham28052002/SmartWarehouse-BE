@@ -12,6 +12,9 @@ import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
    @Mapping(target = "supplierId", source = "supplier.id")
+   @Mapping(source = "deleted", target = "deleted")
+   @Mapping(source = "createdDate", target = "createdDate")
+   @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
    ProductResponse toDto(Product product);
 
    @Mapping(target = "supplier", ignore = true)

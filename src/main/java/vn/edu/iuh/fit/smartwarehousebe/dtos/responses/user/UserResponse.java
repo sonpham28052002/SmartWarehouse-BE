@@ -40,6 +40,8 @@ public class UserResponse {
 
     private Role role;
 
+    private LocalDateTime createdDate;
+    private LocalDateTime lastModifiedDate;
     private boolean deleted;
 
 }

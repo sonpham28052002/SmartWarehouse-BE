@@ -13,7 +13,6 @@ import java.io.Serializable;
 public class CreateProductRequest implements Serializable {
    @NotBlank(message = "Code is required")
    String code;
-   @NotBlank(message = "Sku is required")
    String sku;
    @NotBlank(message = "Name is required")
    String name;

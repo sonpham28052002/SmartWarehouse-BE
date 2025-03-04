@@ -1,5 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,7 +27,7 @@ import java.util.List;
  * @date: 2/3/25
  */
 @Service
-public class ProductService extends SoftDeleteService<Product> {
+public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final SupplierService supplierService;
@@ -40,9 +42,9 @@ public class ProductService extends SoftDeleteService<Product> {
         this.supplierMapper = supplierMapper;
     }
 
+    @Cacheable(value = "products", key = "#productQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
     public Page<ProductResponse> getAll(PageRequest pageRequest, GetProductQuest productQuest) {
         Specification<Product> specification = SpecificationBuilder.<Product>builder()
-                .with(ProductSpecification.hasActive(productQuest.getActive()))
                 .with(ProductSpecification.hasCode(productQuest.getCode()))
                 .with(ProductSpecification.hasSku(productQuest.getSku()))
                 .with(ProductSpecification.hasName(productQuest.getName()))
@@ -51,7 +53,7 @@ public class ProductService extends SoftDeleteService<Product> {
 
         return productRepository.findAll(specification, pageRequest).map(productMapper::toDto);
     }
-
+    @Cacheable(value = "products", key = "#productQuest")
     public List<ProductResponse> getAll(GetProductQuest productQuest) {
         Specification<Product> specification = SpecificationBuilder.<Product>builder()
                 .with(ProductSpecification.hasActive(productQuest.getActive()))
@@ -66,18 +68,21 @@ public class ProductService extends SoftDeleteService<Product> {
                 .toList();
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse getById(Long id) {
         return productRepository.findById(id).map(productMapper::toDto)
                 .orElseThrow(ProductNotFoundException::new);
     }
-
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse create(CreateProductRequest productRequest) {
         Product product = productMapper.toEntity(productRequest);
         SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
         product.setSupplier(supplierMapper.toEntity(supplier));
         return productMapper.toDto(productRepository.save(product));
     }
-
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse update(Long id, CreateProductRequest productRequest) {
         Product product = productRepository.findById(id).orElseThrow(ProductNotFoundException::new);
         productMapper.partialUpdate(productRequest, product);
@@ -87,6 +92,7 @@ public class ProductService extends SoftDeleteService<Product> {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public boolean delete(Long id) {
         return productRepository
                 .findById(id)
