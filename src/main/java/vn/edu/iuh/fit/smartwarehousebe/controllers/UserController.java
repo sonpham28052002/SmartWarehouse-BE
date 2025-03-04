@@ -32,11 +32,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers(PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<UserResponse>> getAllUser(GetUserQuest request) {
-        List<UserResponse> userResponses = UserMapper.INSTANCE.toDtoList(userService.getAllUser(request));
-        return ResponseEntity.ok(userResponses);
+    @GetMapping("/UsersManagerNotInWarehouse")
+    public ResponseEntity<List<UserResponse>> getUsersManagerNotInWarehouse() {
+        return ResponseEntity.ok(UserMapper.INSTANCE.toDtoList(userService.getUsersManagerNotInWarehouse()));
     }
+
+    @GetMapping("/getAllUserStaff")
+    public ResponseEntity<List<UserResponse>> getAllUserStaff() {
+        return ResponseEntity.ok(UserMapper.INSTANCE.toDtoList(userService.getAllUserStaff()));
+    }
+
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable Long id) {
         User user = userService.getUserById(id);

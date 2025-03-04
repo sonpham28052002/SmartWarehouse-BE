@@ -12,6 +12,7 @@
  File Encoding         : 65001
 
  Date: 03/03/2025 18:17:16
+ Date: 02/03/2025 17:37:18
 */
 
 SET NAMES utf8mb4;
@@ -1703,6 +1704,7 @@ INSERT INTO `user` (`id`, `created_date`, `deleted`, `last_modified_date`, `addr
 COMMIT;
 
 -- ----------------------------
+<<<<<<< HEAD
 -- Table structure for warehouse
 -- ----------------------------
 DROP TABLE IF EXISTS `warehouse`;
@@ -1721,6 +1723,8 @@ CREATE TABLE `warehouse` (
 ) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+=======
+>>>>>>> 4f7d946e7f8b9dc7fc19566f285ce5d2cfe49367
 -- Records of warehouse
 -- ----------------------------
 BEGIN;

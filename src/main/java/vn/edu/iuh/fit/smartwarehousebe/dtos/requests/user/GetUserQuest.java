@@ -14,4 +14,6 @@ public class GetUserQuest {
     private String fullName;
     private UserStatus status;
     private boolean isWareHouse;
+    private boolean getAll;
+    private boolean hasWareHouse;
 }

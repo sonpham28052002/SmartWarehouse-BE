@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,11 +11,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.UserSpecification;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -50,7 +53,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      * @param user
      * @return User
      */
-    @CacheEvict(value = "user", allEntries = true)
+    @Cacheable(value = "user", unless = "#result == null")
     public User createUser(User user) {
         return userRepository.save(user);
     }
@@ -79,7 +82,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      * delete user by id
      * @param id
      */
-    @CacheEvict(value = "user", allEntries = true)
+    @CacheEvict(value = "users", allEntries = true)
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
@@ -90,7 +93,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      * @param userQuest
      * @return Page<User>
      */
-    @Cacheable(value = "user", key = "#userQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
+    @Cacheable(value = "users", key = "#userQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
     public Page<User> getUsers(PageRequest pageRequest, GetUserQuest userQuest) {
         Specification<User> spec = Specification.where(null);
         if (userQuest.getCode() != null) {
@@ -136,5 +139,20 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
         }
 
         return userRepository.findAll(spec);
+    }
+
+    @Cacheable(value = "users", key = "'getUsersManagerNotInWarehouse'")
+    public List<User> getUsersManagerNotInWarehouse(){
+        return userRepository.findUsersManagerNotInWarehouse();
+    }
+
+    @Cacheable(value = "users", key = "'getAllUserStaff'")
+    public List<User> getAllUserStaff(){
+        List<Integer> roles = Arrays.asList(Role.USER.getRole(), Role.SUPERVISOR.getRole());
+        Specification<User> specification = UserSpecification.hasRoles(roles);
+        specification = specification.and(UserSpecification.hasWareHouseIsNull());
+
+        List<User> usersWithRoles = userRepository.getAllUser(specification, true);
+        return usersWithRoles;
     }
 }
