@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Entity
 @Table(name = "user")
@@ -112,6 +113,7 @@ public class User extends Auditable implements UserDetails, Serializable {
         return true;
     }
 
+    private static final AtomicInteger counter = new AtomicInteger(1);
     @PrePersist
     public void setDefault() {
         if (this.status == null) {
@@ -123,7 +125,7 @@ public class User extends Auditable implements UserDetails, Serializable {
         }
 
         if (this.code == null) {
-            this.code = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+            this.code = "USER" + String.format("%07d", counter.getAndIncrement());
         }
 
         if (this.profilePicture == null){

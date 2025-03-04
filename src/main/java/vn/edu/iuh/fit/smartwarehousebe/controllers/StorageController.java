@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
 
+import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -9,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.iuh.fit.smartwarehousebe.servies.CsvService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.StorageService;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -19,9 +22,10 @@ public class StorageController {
 
     @Autowired
     private StorageService service;
-
+    @Autowired
+    private CsvService csvService;
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadFile(@RequestParam(value = "file") MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestParam(value = "file") MultipartFile file) throws IOException, CsvValidationException {
         return new ResponseEntity<>(service.uploadFile(file), HttpStatus.OK);
     }
 

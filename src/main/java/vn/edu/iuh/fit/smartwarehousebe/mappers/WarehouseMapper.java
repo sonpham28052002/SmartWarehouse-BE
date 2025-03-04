@@ -17,5 +17,7 @@ public interface WarehouseMapper {
    Warehouse toEntity(CreateWarehouseRequest createWarehouseRequest);
 
    @Mapping(source = "deleted", target = "deleted")
+   @Mapping(source = "createdDate", target = "createdDate")
+   @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
    WarehouseResponse toDto(Warehouse warehouse);
 }

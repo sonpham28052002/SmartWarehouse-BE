@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class UserService extends SoftDeleteService<User> implements UserDetailsService {
+public class  UserService extends SoftDeleteService<User> implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -53,7 +53,7 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
      * @param user
      * @return User
      */
-    @CacheEvict(value = "user",  allEntries = true)
+    @Cacheable(value = "user", unless = "#result == null")
     public User createUser(User user) {
         return userRepository.save(user);
     }
@@ -75,7 +75,6 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
         userOld.setDateOfBirth(user.getDateOfBirth());
         userOld.setSex(user.isSex());
         userOld.setProfilePicture(user.getProfilePicture());
-        userOld.setWarehouse(user.getWarehouse());
         return userRepository.save(userOld);
     }
 
@@ -111,7 +110,35 @@ public class UserService extends SoftDeleteService<User> implements UserDetailsS
 
         boolean includeDeleted = userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true : false;
 
-        return userRepository.findUserByDeleted(spec, pageRequest, includeDeleted );
+        return userRepository.findAllUsers(spec, pageRequest, includeDeleted );
+    }
+
+    /**
+     * get list user
+     *
+     * @param userQuest
+     * @return Page<User>
+     */
+    @Cacheable(value = "user", key = "#userQuest")
+    public List<User> getAllUser(GetUserQuest userQuest) {
+        Specification<User> spec = Specification.where(null);
+        if (userQuest.getCode() != null) {
+            spec = spec.and(UserSpecification.hasCode(userQuest.getCode()));
+        }
+
+        if (userQuest.getFullName() != null) {
+            spec = spec.and(UserSpecification.hasName(userQuest.getFullName()));
+        }
+
+        if (userQuest.getStatus() != null) {
+            spec = spec.and(UserSpecification.hasStatus(userQuest.getStatus().name()));
+        }
+
+        if (userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true : false) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
+        }
+
+        return userRepository.findAll(spec);
     }
 
     @Cacheable(value = "users", key = "'getUsersManagerNotInWarehouse'")

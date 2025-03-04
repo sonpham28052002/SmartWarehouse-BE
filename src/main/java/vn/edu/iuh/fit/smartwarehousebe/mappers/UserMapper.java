@@ -14,12 +14,16 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "deleted", target = "deleted")
+    @Mapping(source = "createdDate", target = "createdDate")
+    @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
     UserResponse toDto(User user);
 
     User toEntity(UserRequest request);
 
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "deleted", target = "deleted")
+    @Mapping(source = "createdDate", target = "createdDate")
+    @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
     List<UserResponse> toDtoList(List<User> users);
 
     List<User> toEntityList(List<UserRequest> userRequests);
