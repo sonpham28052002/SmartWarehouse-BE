@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -70,6 +71,13 @@ public class User extends Auditable implements UserDetails, Serializable {
     @Enumerated(EnumType.ORDINAL)
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
+    @OneToOne(mappedBy = "manager")
+    private Warehouse warehouseManager;
+
     @Override
     public String getPassword() {
         return this.password;
@@ -117,7 +125,23 @@ public class User extends Auditable implements UserDetails, Serializable {
         if (this.code == null) {
             this.code = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         }
+
+        if (this.profilePicture == null){
+            this.profilePicture = "https://www.shutterstock.com/image-vector/default-profile-picture-avatar-photo-600nw-1681253560.jpg";
+        }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
 

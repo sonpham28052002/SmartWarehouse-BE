@@ -39,4 +39,7 @@ public class UserResponse {
     private UserStatus status;
 
     private Role role;
+
+    private boolean deleted;
+
 }
