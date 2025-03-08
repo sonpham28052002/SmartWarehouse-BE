@@ -22,8 +22,7 @@ public class StorageController {
 
     @Autowired
     private StorageService service;
-    @Autowired
-    private CsvService csvService;
+
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadFile(@RequestParam(value = "file") MultipartFile file) throws IOException, CsvValidationException {
         return new ResponseEntity<>(service.uploadFile(file), HttpStatus.OK);
