@@ -12,6 +12,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
 
@@ -74,5 +75,10 @@ public class UserController {
         } catch (Exception exception){
             return false;
         }
+    }
+
+    @GetMapping("/{code}/checkCode")
+    public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
+        return ResponseEntity.ok(userService.checkCodeIsExist(User.class, code));
     }
 }

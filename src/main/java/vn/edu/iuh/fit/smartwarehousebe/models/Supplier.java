@@ -1,5 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -16,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 @SQLDelete(sql = "UPDATE supplier SET deleted = true WHERE id = ?")
 public class Supplier extends  Auditable{
 
@@ -39,12 +40,7 @@ public class Supplier extends  Auditable{
     private String address;
 
     @OneToMany(mappedBy = "supplier")
+    @JsonIgnore
     private List<Product> products;
-    private static final AtomicInteger counter = new AtomicInteger(1);
-    @PrePersist
-    public void setDefault() {
-        if (this.code == null) {
-            this.code = "SUP" + String.format("%07d", counter.getAndIncrement());
-        }
-    }
+
 }

@@ -1,8 +1,10 @@
 package vn.edu.iuh.fit.smartwarehousebe.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -28,8 +30,12 @@ import vn.edu.iuh.fit.smartwarehousebe.exceptions.CustomBasicAuthenticationEntry
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter authenticationFilter;
-    private final UserDetailsService userService;
+    @Autowired
+    private JwtAuthenticationFilter authenticationFilter;
+
+    @Lazy
+    @Autowired
+    private UserDetailsService userService;
 
     private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
 
@@ -53,7 +59,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
@@ -118,14 +119,6 @@ public class User extends Auditable implements UserDetails, Serializable {
     public void setDefault() {
         if (this.status == null) {
             this.status = UserStatus.ACTIVE;
-        }
-
-        if (this.password == null) {
-            this.password = "11111";
-        }
-
-        if (this.code == null) {
-            this.code = "USER" + String.format("%07d", counter.getAndIncrement());
         }
 
         if (this.profilePicture == null){

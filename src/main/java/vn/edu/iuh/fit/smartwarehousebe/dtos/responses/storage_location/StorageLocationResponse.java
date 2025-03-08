@@ -1,4 +1,4 @@
-package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse;
+package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.storage_location;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @ToString
-public class WarehouseResponse implements Serializable {
+public class StorageLocationResponse implements Serializable {
     private Long id;
     private String address;
     private String code;

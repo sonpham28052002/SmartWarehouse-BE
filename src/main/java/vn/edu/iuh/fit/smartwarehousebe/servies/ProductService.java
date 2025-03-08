@@ -14,11 +14,15 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.ProductNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.ConversionUnit;
 import vn.edu.iuh.fit.smartwarehousebe.models.Product;
+import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.ProductSpecification;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,80 +31,108 @@ import java.util.List;
  * @date: 2/3/25
  */
 @Service
-public class ProductService {
+public class ProductService extends CommonService<Product> {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final SupplierService supplierService;
     private final SupplierMapper supplierMapper;
 
-    public ProductService(ProductRepository productRepository,
-                          ProductMapper productMapper, SupplierService supplierService, SupplierMapper supplierMapper) {
+    private final UnitService unitService;
+
+    private final ConversionUnitService conversionUnitService;
+
+
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, SupplierService supplierService, SupplierMapper supplierMapper, UnitService unitService, ConversionUnitService conversionUnitService) {
         super();
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.supplierService = supplierService;
         this.supplierMapper = supplierMapper;
+        this.unitService = unitService;
+        this.conversionUnitService = conversionUnitService;
     }
 
     @Cacheable(value = "products", key = "#productQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
     public Page<ProductResponse> getAll(PageRequest pageRequest, GetProductQuest productQuest) {
-        Specification<Product> specification = SpecificationBuilder.<Product>builder()
-                .with(ProductSpecification.hasCode(productQuest.getCode()))
-                .with(ProductSpecification.hasSku(productQuest.getSku()))
-                .with(ProductSpecification.hasName(productQuest.getName()))
-                .with(ProductSpecification.hasSupplierId(productQuest.getSupplierId()))
-                .build();
+        Specification<Product> specification = SpecificationBuilder.<Product>builder().with(ProductSpecification.hasCode(productQuest.getCode())).with(ProductSpecification.hasSku(productQuest.getSku())).with(ProductSpecification.hasName(productQuest.getName())).with(ProductSpecification.hasSupplierId(productQuest.getSupplierId())).build();
 
         return productRepository.findAll(specification, pageRequest).map(productMapper::toDto);
     }
+
     @Cacheable(value = "products", key = "#productQuest")
     public List<ProductResponse> getAll(GetProductQuest productQuest) {
-        Specification<Product> specification = SpecificationBuilder.<Product>builder()
-                .with(ProductSpecification.hasActive(productQuest.getActive()))
-                .with(ProductSpecification.hasCode(productQuest.getCode()))
-                .with(ProductSpecification.hasSku(productQuest.getSku()))
-                .with(ProductSpecification.hasName(productQuest.getName()))
-                .with(ProductSpecification.hasSupplierId(productQuest.getSupplierId()))
-                .build();
+        Specification<Product> specification = SpecificationBuilder.<Product>builder().with(ProductSpecification.hasActive(productQuest.getActive())).with(ProductSpecification.hasCode(productQuest.getCode())).with(ProductSpecification.hasSku(productQuest.getSku())).with(ProductSpecification.hasName(productQuest.getName())).with(ProductSpecification.hasSupplierId(productQuest.getSupplierId())).build();
 
-        return productRepository.findAll(specification).stream()
-                .map(productMapper::toDto)
-                .toList();
+        return productRepository.findAll(specification).stream().map(productMapper::toDto).toList();
     }
 
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponse getById(Long id) {
-        return productRepository.findById(id).map(productMapper::toDto)
-                .orElseThrow(ProductNotFoundException::new);
+        return productRepository.findById(id).map(productMapper::toDto).orElseThrow(ProductNotFoundException::new);
     }
+
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponse create(CreateProductRequest productRequest) {
+
         Product product = productMapper.toEntity(productRequest);
+        Unit unit = UnitMapper.INSTANCE.toEntity(unitService.getUnitById(productRequest.getUnitId()));
         SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
         product.setSupplier(supplierMapper.toEntity(supplier));
-        return productMapper.toDto(productRepository.save(product));
+        product.setUnit(unit);
+
+        Product newProduct = productRepository.save(product);
+        List<ConversionUnit> conversionUnits = new ArrayList<>();
+        if (productRequest.getConversionUnits() != null) {
+            productRequest.getConversionUnits().forEach(conversionUnit -> {
+                conversionUnits.add(conversionUnitService.create(unit.getId(), conversionUnit.getFromUnit().getId(), newProduct.getId(), conversionUnit.getConversionRate()));
+            });
+        }
+        newProduct.setConversionUnits(conversionUnits);
+
+        return productMapper.toDto(productRepository.save(newProduct));
     }
+
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponse update(Long id, CreateProductRequest productRequest) {
         Product product = productRepository.findById(id).orElseThrow(ProductNotFoundException::new);
+        for (ConversionUnit conversionUnit: product.getConversionUnits()) {
+            conversionUnitService.delete(conversionUnit.getId());
+        }
+        System.out.println(product.getUnit().getId());
+
         productMapper.partialUpdate(productRequest, product);
-        SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
-        product.setSupplier(supplierMapper.toEntity(supplier));
-        return productMapper.toDto(productRepository.save(product));
+
+        if (product.getUnit().getId() != productRequest.getUnitId()) {
+            Unit unit = UnitMapper.INSTANCE.toEntity(unitService.getUnitById(productRequest.getUnitId()));
+            product.setUnit(unit);
+        }
+
+        if (product.getSupplier().getId() != productRequest.getSupplierId()) {
+            SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
+            product.setSupplier(supplierMapper.toEntity(supplier));
+        }
+
+        Product newProduct = productRepository.save(product);
+
+        List<ConversionUnit> conversionUnits = new ArrayList<>();
+        if (productRequest.getConversionUnits() != null) {
+            productRequest.getConversionUnits().forEach(conversionUnit -> {
+                conversionUnits.add(conversionUnitService.create(newProduct.getUnit().getId(), conversionUnit.getFromUnit().getId(), newProduct.getId(), conversionUnit.getConversionRate()));
+            });
+        }
+        newProduct.setConversionUnits(conversionUnits);
+        return productMapper.toDto(productRepository.save(newProduct));
     }
 
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public boolean delete(Long id) {
-        return productRepository
-                .findById(id)
-                .map(product -> {
-                    productRepository.delete(product);
-                    return true;
-                })
-                .orElseThrow(ProductNotFoundException::new);
+        return productRepository.findById(id).map(product -> {
+            productRepository.delete(product);
+            return true;
+        }).orElseThrow(ProductNotFoundException::new);
     }
 
 }

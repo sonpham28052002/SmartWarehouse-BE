@@ -37,7 +37,6 @@ public class WarehouseController {
     public ResponseEntity<Page<WarehouseResponse>> getWarehouse(@RequestParam(defaultValue = "1") int current_page, @RequestParam(defaultValue = "10") int per_page, @RequestParam(defaultValue = "id") String sortBy, GetWarehouseQuest request) {
 
         Page<Warehouse> warehouses = warehouseService.getAll(current_page - 1, per_page, sortBy, request);
-        System.out.println(warehouses.getContent().get(0).isDeleted());
         Pageable pageable = PageRequest.of(current_page - 1, per_page, Sort.by(sortBy));
 
         List<WarehouseResponse> warehouseResponses = warehouses.getContent().stream().map(warehouse -> WarehouseMapper.INSTANCE.toDto(warehouse)).collect(Collectors.toList());
@@ -49,15 +48,20 @@ public class WarehouseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<WarehouseResponse> getWarehouseById(@PathVariable Long id) {
+        System.out.println(warehouseService.getById(id));
         return ResponseEntity.ok(WarehouseMapper.INSTANCE.toDto(warehouseService.getById(id)));
     }
 
     @PostMapping("/create")
     public ResponseEntity<WarehouseResponse> createWarehouse(@Valid @RequestBody CreateWarehouseRequest request) {
         Warehouse newWarehouse = Warehouse.builder()
+                .code(request.getCode())
                 .address(request.getAddress())
                 .name(request.getName())
                 .manager(User.builder().id(request.getManagerId()).build())
+                .rowNum(request.getRowNum())
+                .shelfNum(request.getShelfNum())
+                .columnNum(request.getColumnNum())
                 .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
                 .build();
         return new ResponseEntity<>(WarehouseMapper.INSTANCE.toDto(warehouseService.create(newWarehouse)), HttpStatus.CREATED);
@@ -69,6 +73,9 @@ public class WarehouseController {
                 .address(request.getAddress())
                 .name(request.getName())
                 .code(request.getCode())
+                .rowNum(request.getRowNum())
+                .shelfNum(request.getShelfNum())
+                .columnNum(request.getColumnNum())
                 .manager(User.builder().id(request.getManagerId()).build())
                 .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
                 .build();
@@ -78,6 +85,11 @@ public class WarehouseController {
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<Boolean> deleteWarehouse(@PathVariable Long id) {
         return ResponseEntity.ok(warehouseService.delete(id));
+    }
+
+    @GetMapping("/{code}/checkCode")
+    public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
+        return ResponseEntity.ok(warehouseService.checkCodeIsExist(Warehouse.class, code));
     }
 
 

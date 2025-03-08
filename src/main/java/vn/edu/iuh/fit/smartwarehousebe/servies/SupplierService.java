@@ -12,6 +12,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.SupplierNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.SupplierRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SupplierSpecification;
@@ -24,7 +25,7 @@ import java.util.List;
  * @date: 2/3/25
  */
 @Service
-public class SupplierService {
+public class SupplierService extends CommonService<Supplier>{
     private final SupplierRepository supplierRepository;
     private final SupplierMapper supplierMapper;
 
@@ -34,7 +35,7 @@ public class SupplierService {
         this.supplierRepository = supplierRepository;
         this.supplierMapper = supplierMapper;
     }
-    @Cacheable(value = "suppliers", key = "#supplierQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
+    @Cacheable(value = "suppliers", key = "#supplierQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize + '_' +#supplierQuest")
     public Page<SupplierResponse> getAll(PageRequest pageRequest, GetSupplierQuest supplierQuest) {
         Specification<Supplier> specification = SpecificationBuilder.<Supplier>builder()
                 .with(SupplierSpecification.hasActive(supplierQuest.getActive()))
@@ -69,20 +70,20 @@ public class SupplierService {
                 .orElseThrow(SupplierNotFoundException::new);
     }
 
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = "suppliers", allEntries = true)
     public SupplierResponse create(CreateSupplierRequest supplierRequest) {
         Supplier supplier = supplierMapper.toEntity(supplierRequest);
         return supplierMapper.toDto(supplierRepository.save(supplier));
     }
 
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = "suppliers", allEntries = true)
     public SupplierResponse update(Long id, CreateSupplierRequest supplierRequest) {
         Supplier supplier = supplierRepository.findById(id).orElseThrow(SupplierNotFoundException::new);
         supplierMapper.partialUpdate(supplierRequest, supplier);
         return supplierMapper.toDto(supplierRepository.save(supplier));
     }
 
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = "suppliers", allEntries = true)
     public boolean delete(Long id) {
         return supplierRepository.findById(id)
                 .map(supplier -> {

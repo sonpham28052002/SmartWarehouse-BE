@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse;
 
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.io.Serializable;
@@ -18,4 +19,7 @@ public class CreateWarehouseRequest implements Serializable {
     private String name;
     private Long managerId;
     private Set<Long> staffIDs;
+    private Long columnNum;
+    private Long rowNum;
+    private Long shelfNum;
 }

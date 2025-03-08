@@ -1,14 +1,15 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
@@ -22,10 +23,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class  UserService extends SoftDeleteService<User> implements UserDetailsService {
+@RequiredArgsConstructor
+public class  UserService extends CommonService<User> implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Cacheable(value = "token", key = "#username", unless = "#result == null")
@@ -55,6 +59,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      */
     @Cacheable(value = "user", unless = "#result == null")
     public User createUser(User user) {
+        user.setPassword(passwordEncoder.encode("11111"));
         return userRepository.save(user);
     }
 
@@ -74,6 +79,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
         userOld.setRole(user.getRole());
         userOld.setDateOfBirth(user.getDateOfBirth());
         userOld.setSex(user.isSex());
+        userOld.setCode(user.getCode());
         userOld.setProfilePicture(user.getProfilePicture());
         return userRepository.save(userOld);
     }
@@ -82,7 +88,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      * delete user by id
      * @param id
      */
-    @CacheEvict(value = "users", allEntries = true)
+    @CacheEvict(value = "user", allEntries = true)
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
@@ -93,7 +99,7 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
      * @param userQuest
      * @return Page<User>
      */
-    @Cacheable(value = "users", key = "#userQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
+    @Cacheable(value = "user", key = "#userQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
     public Page<User> getUsers(PageRequest pageRequest, GetUserQuest userQuest) {
         Specification<User> spec = Specification.where(null);
         if (userQuest.getCode() != null) {
@@ -141,12 +147,12 @@ public class  UserService extends SoftDeleteService<User> implements UserDetails
         return userRepository.findAll(spec);
     }
 
-    @Cacheable(value = "users", key = "'getUsersManagerNotInWarehouse'")
+    @Cacheable(value = "user", key = "'getUsersManagerNotInWarehouse'")
     public List<User> getUsersManagerNotInWarehouse(){
         return userRepository.findUsersManagerNotInWarehouse();
     }
 
-    @Cacheable(value = "users", key = "'getAllUserStaff'")
+    @Cacheable(value = "user", key = "'getAllUserStaff'")
     public List<User> getAllUserStaff(){
         List<Integer> roles = Arrays.asList(Role.USER.getRole(), Role.SUPERVISOR.getRole());
         Specification<User> specification = UserSpecification.hasRoles(roles);

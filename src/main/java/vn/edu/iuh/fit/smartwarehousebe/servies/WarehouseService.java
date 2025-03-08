@@ -32,7 +32,7 @@ import java.util.Set;
  * @date: 1/3/25
  */
 @Service
-public class WarehouseService {
+public class WarehouseService extends CommonService<Warehouse> {
 
     @Autowired
     private WarehouseRepository warehouseRepository;
@@ -57,7 +57,6 @@ public class WarehouseService {
         }
         Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        System.out.println(request.isDeleted());
         return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable);
     }
 
@@ -71,7 +70,6 @@ public class WarehouseService {
     public Warehouse create(Warehouse createWarehouse) {
         Long managerId = createWarehouse.getManager().getId();
         Set<User> staffs = createWarehouse.getStaffs();
-        System.out.println(managerId);
         Warehouse temp = createWarehouse;
         temp.setManager(null);
         Warehouse newWarehouse = warehouseRepository.save(temp);
@@ -97,6 +95,9 @@ public class WarehouseService {
         oldWarehouse.setAddress(updateWarehouse.getAddress());
         oldWarehouse.setName(updateWarehouse.getName());
         oldWarehouse.setCode(updateWarehouse.getCode());
+        oldWarehouse.setColumnNum(updateWarehouse.getColumnNum());
+        oldWarehouse.setRowNum(updateWarehouse.getRowNum());
+        oldWarehouse.setShelfNum(updateWarehouse.getShelfNum());
 
         if (oldWarehouse == null) throw new NotFoundException("no found warehouse");
 

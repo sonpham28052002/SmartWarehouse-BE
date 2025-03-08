@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.supplier.CreateSupplierRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.supplier.GetSupplierQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
 import vn.edu.iuh.fit.smartwarehousebe.servies.SupplierService;
 
 import java.util.List;
@@ -62,5 +63,10 @@ public class SupplierController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         return ResponseEntity.ok(supplierService.delete(id));
+    }
+
+    @GetMapping("/{code}/checkCode")
+    public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
+        return ResponseEntity.ok(supplierService.checkCodeIsExist(Supplier.class, code));
     }
 }

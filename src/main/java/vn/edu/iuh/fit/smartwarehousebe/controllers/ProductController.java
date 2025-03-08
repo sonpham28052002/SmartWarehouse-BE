@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.CreateProductRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.GetProductQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 import vn.edu.iuh.fit.smartwarehousebe.servies.ProductService;
 
 import java.util.List;
@@ -57,11 +58,17 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id, @RequestBody @Valid CreateProductRequest request) {
+        System.out.println(request);
         return ResponseEntity.ok(productService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable Long id) {
         return ResponseEntity.ok(productService.delete(id));
+    }
+
+    @GetMapping("/{code}/checkCode")
+    public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
+        return ResponseEntity.ok(productService.checkCodeIsExist(Product.class, code));
     }
 }

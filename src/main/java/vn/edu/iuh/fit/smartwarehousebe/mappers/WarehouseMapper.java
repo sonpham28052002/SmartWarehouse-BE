@@ -19,5 +19,8 @@ public interface WarehouseMapper {
    @Mapping(source = "deleted", target = "deleted")
    @Mapping(source = "createdDate", target = "createdDate")
    @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
+   @Mapping(source = "columnNum", target = "columnNum")
+   @Mapping(source = "rowNum", target = "rowNum")
+   @Mapping(source = "shelfNum", target = "shelfNum")
    WarehouseResponse toDto(Warehouse warehouse);
 }

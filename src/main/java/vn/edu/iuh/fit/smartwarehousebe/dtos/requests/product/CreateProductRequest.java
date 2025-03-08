@@ -1,10 +1,14 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product;
 
+import com.zaxxer.hikari.util.FastList;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Value;
+import vn.edu.iuh.fit.smartwarehousebe.models.ConversionUnit;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Product}
@@ -20,4 +24,7 @@ public class CreateProductRequest implements Serializable {
    String image;
    @NotNull(message = "Supplier id is required")
    Long supplierId;
+
+   Long unitId;
+   List<ConversionUnit> conversionUnits;
 }

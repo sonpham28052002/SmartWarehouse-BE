@@ -18,4 +18,7 @@ public class UpdateWarehouseRequest implements Serializable{
     private String name;
     private Long managerId;
     private Set<Long> staffIDs;
+    private Long columnNum;
+    private Long rowNum;
+    private Long shelfNum;
 }
