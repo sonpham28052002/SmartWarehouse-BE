@@ -1,11 +1,16 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.storage_location;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import lombok.*;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -16,18 +21,12 @@ import java.util.Set;
 @Builder
 @ToString
 public class StorageLocationResponse implements Serializable {
-    private Long id;
-    private String address;
-    private String code;
-    private String name;
-    @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
-    private User manager;
-    @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
-    private Set<User> staffs;
-    private boolean deleted;
-    private LocalDateTime createdDate;
-    private LocalDateTime lastModifiedDate;
-    private Long columnNum;
-    private Long rowNum;
-    private Long shelfNum;
+
+  private Long id;
+  private String name;
+  private Long columnIndex;
+  private Long rowIndex;
+  private Double maxCapacity;
+  private Long warehouseShelfID;
+  private List<InventoryResponse> inventories;
 }

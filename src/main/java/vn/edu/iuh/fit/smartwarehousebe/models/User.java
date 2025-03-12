@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -30,113 +31,118 @@ import java.util.concurrent.atomic.AtomicInteger;
 @ToString
 @SQLDelete(sql = "UPDATE user SET deleted = true, status = 'DELETED'  WHERE id = ?")
 public class User extends Auditable implements UserDetails, Serializable {
-    private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  private static final long serialVersionUID = 1L;
 
-    @Column(name = "code", nullable = false, length = 12)
-    private String code;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "username", nullable = false, length = 255)
-    private String userName;
+  @Column(name = "code", nullable = false, length = 12)
+  private String code;
 
-    @Column(name = "password", nullable = false, length = 255)
-    private String password;
+  @Column(name = "username", nullable = false, length = 255)
+  private String userName;
 
-    @Column(name = "email", length = 255)
-    private String email;
+  @Column(name = "password", nullable = false, length = 255)
+  private String password;
 
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
+  @Column(name = "email", length = 255)
+  private String email;
 
-    @Column(name = "full_name", length = 255)
-    private String fullName;
+  @Column(name = "phone_number", length = 20)
+  private String phoneNumber;
 
-    @Column(name = "address", columnDefinition = "TEXT")
-    private String address;
+  @Column(name = "full_name", length = 255)
+  private String fullName;
 
-    @Column(name = "date_of_birth")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime dateOfBirth;
+  @Column(name = "address", columnDefinition = "TEXT")
+  private String address;
 
-    @Column(name = "profile_picture", length = 255)
-    private String profilePicture;
+  @Column(name = "date_of_birth")
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDateTime dateOfBirth;
 
-    private boolean sex;
+  @Column(name = "profile_picture", length = 255)
+  private String profilePicture;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status" )
-    private UserStatus status;
+  private boolean sex;
 
-    @Enumerated(EnumType.ORDINAL)
-    private Role role;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private UserStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "warehouse_id")
-    private Warehouse warehouse;
+  @Enumerated(EnumType.ORDINAL)
+  private Role role;
 
-    @OneToOne(mappedBy = "manager")
-    private Warehouse warehouseManager;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "warehouse_id")
+  private Warehouse warehouse;
 
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.role.name()));
-    }
+  @OneToOne(mappedBy = "manager")
+  private Warehouse warehouseManager;
 
-    @Override
-    public String getUsername() {
-        return this.userName;
-    }
+  @Override
+  public String getPassword() {
+    return this.password;
+  }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of(new SimpleGrantedAuthority(this.role.name()));
+  }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+  @Override
+  public String getUsername() {
+    return this.userName;
+  }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
 
-    private static final AtomicInteger counter = new AtomicInteger(1);
-    @PrePersist
-    public void setDefault() {
-        if (this.status == null) {
-            this.status = UserStatus.ACTIVE;
-        }
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
 
-        if (this.profilePicture == null){
-            this.profilePicture = "https://www.shutterstock.com/image-vector/default-profile-picture-avatar-photo-600nw-1681253560.jpg";
-        }
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @PrePersist
+  public void setDefault() {
+    if (this.status == null) {
+      this.status = UserStatus.ACTIVE;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id);
+    if (this.profilePicture == null) {
+      this.profilePicture = "https://www.shutterstock.com/image-vector/default-profile-picture-avatar-photo-600nw-1681253560.jpg";
     }
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    User user = (User) o;
+    return Objects.equals(id, user.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
+  }
 }
 

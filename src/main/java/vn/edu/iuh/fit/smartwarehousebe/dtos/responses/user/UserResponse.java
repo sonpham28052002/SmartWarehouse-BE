@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
 import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
@@ -14,34 +15,35 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @ToString
-public class UserResponse {
-    private Long id;
+public class UserResponse implements Serializable {
 
-    private String code;
+  private Long id;
 
-    private String userName;
+  private String code;
 
-    private String email;
+  private String userName;
 
-    private String phoneNumber;
+  private String email;
 
-    private String fullName;
+  private String phoneNumber;
 
-    private String address;
+  private String fullName;
 
-    private boolean sex;
+  private String address;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime dateOfBirth;
+  private boolean sex;
 
-    private String profilePicture;
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDateTime dateOfBirth;
 
-    private UserStatus status;
+  private String profilePicture;
 
-    private Role role;
+  private UserStatus status;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime lastModifiedDate;
-    private boolean deleted;
+  private Role role;
+
+  private LocalDateTime createdDate;
+  private LocalDateTime lastModifiedDate;
+  private boolean deleted;
 
 }

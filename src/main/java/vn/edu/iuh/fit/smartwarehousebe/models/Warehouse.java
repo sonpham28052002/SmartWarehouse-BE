@@ -33,16 +33,6 @@ public class Warehouse extends Auditable implements Serializable {
 
    private String name;
 
-
-   @Column(name = "column_num")
-   private Long columnNum;
-
-   @Column(name = "row_num")
-   private Long rowNum;
-
-   @Column(name = "shelf_num")
-   private Long shelfNum;
-
    @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
    @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
    private Set<User> staffs = new HashSet<>();
@@ -53,6 +43,5 @@ public class Warehouse extends Auditable implements Serializable {
    private User manager;
 
    @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
-   private List<StorageLocation> storageLocations;
-
+   private List<WarehouseShelf> warehouseShelves;
 }
