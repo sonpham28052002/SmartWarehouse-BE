@@ -30,6 +30,6 @@ public class Inventory extends Auditable {
     private Long quantity;
 
     @ManyToOne()
-    private ConversionUnit unit;
+    private Unit unit;
 
 }

@@ -25,18 +25,20 @@ import java.util.Map;
 @Builder
 @ToString
 public class ProductResponse implements Serializable {
-    Long id;
-    String code;
-    String sku;
-    String name;
-    String description;
-    String image;
-    Long supplierId;
-    LocalDateTime createdDate;
-    LocalDateTime lastModifiedDate;
-    boolean deleted;
-    @JsonIgnoreProperties({"product"})
-    Unit unit;
-    @JsonIgnoreProperties({"product", "inventories"})
-    List<ConversionUnit> conversionUnits;
+
+  Long id;
+  String code;
+  String sku;
+  String name;
+  String description;
+  String image;
+  Long supplierId;
+  LocalDateTime createdDate;
+  LocalDateTime lastModifiedDate;
+  Double unitWeight;
+  boolean deleted;
+  @JsonIgnoreProperties({"product"})
+  Unit unit;
+  @JsonIgnoreProperties({"product", "inventories"})
+  List<ConversionUnit> conversionUnits;
 }

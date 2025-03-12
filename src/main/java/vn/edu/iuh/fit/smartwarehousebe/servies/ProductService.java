@@ -100,7 +100,6 @@ public class ProductService extends CommonService<Product> {
         for (ConversionUnit conversionUnit: product.getConversionUnits()) {
             conversionUnitService.delete(conversionUnit.getId());
         }
-        System.out.println(product.getUnit().getId());
 
         productMapper.partialUpdate(productRequest, product);
 
