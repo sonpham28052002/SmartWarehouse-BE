@@ -11,16 +11,13 @@ import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 @Mapper
 public interface WarehouseMapper {
 
-   WarehouseMapper INSTANCE = Mappers.getMapper(WarehouseMapper.class);
+  WarehouseMapper INSTANCE = Mappers.getMapper(WarehouseMapper.class);
 
 
-   Warehouse toEntity(CreateWarehouseRequest createWarehouseRequest);
+  Warehouse toEntity(CreateWarehouseRequest createWarehouseRequest);
 
-   @Mapping(source = "deleted", target = "deleted")
-   @Mapping(source = "createdDate", target = "createdDate")
-   @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
-   @Mapping(source = "columnNum", target = "columnNum")
-   @Mapping(source = "rowNum", target = "rowNum")
-   @Mapping(source = "shelfNum", target = "shelfNum")
-   WarehouseResponse toDto(Warehouse warehouse);
+  @Mapping(source = "deleted", target = "deleted")
+  @Mapping(source = "createdDate", target = "createdDate")
+  @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
+  WarehouseResponse toDto(Warehouse warehouse);
 }

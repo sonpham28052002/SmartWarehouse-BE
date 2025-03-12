@@ -9,9 +9,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 @Configuration
 
 public class NormalConfig {
-        @Bean(name = "customHandlerExceptionResolver")
-        @Primary
-        public HandlerExceptionResolver handlerExceptionResolver() {
-            return new ExceptionHandlerExceptionResolver();
-        }
+
+  @Bean(name = "customHandlerExceptionResolver")
+  @Primary
+  public HandlerExceptionResolver handlerExceptionResolver() {
+    return new ExceptionHandlerExceptionResolver();
+  }
 }

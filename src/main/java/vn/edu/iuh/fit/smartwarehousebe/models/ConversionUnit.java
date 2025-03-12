@@ -38,7 +38,4 @@ public class ConversionUnit extends Auditable{
     @Column(nullable = false)
     private Double conversionRate;
 
-    @OneToMany(mappedBy = "unit")
-    private List<Inventory> inventories;
-
 }

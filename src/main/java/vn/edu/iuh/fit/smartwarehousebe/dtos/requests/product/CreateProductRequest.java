@@ -15,16 +15,17 @@ import java.util.Map;
  */
 @Value
 public class CreateProductRequest implements Serializable {
-   @NotBlank(message = "Code is required")
-   String code;
-   String sku;
-   @NotBlank(message = "Name is required")
-   String name;
-   String description;
-   String image;
-   @NotNull(message = "Supplier id is required")
-   Long supplierId;
 
-   Long unitId;
-   List<ConversionUnit> conversionUnits;
+  @NotBlank(message = "Code is required")
+  String code;
+  String sku;
+  @NotBlank(message = "Name is required")
+  String name;
+  String description;
+  String image;
+  @NotNull(message = "Supplier id is required")
+  Long supplierId;
+  Double unitWeight;
+  Long unitId;
+  List<ConversionUnit> conversionUnits;
 }
