@@ -4,20 +4,22 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.CreateWarehouseRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.WarehouseShelf.WarehouseShelfResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
-
+import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 
 @Mapper
-public interface WarehouseMapper {
+public interface WarehouseShelfMapper {
 
-  WarehouseMapper INSTANCE = Mappers.getMapper(WarehouseMapper.class);
-
-
-  Warehouse toEntity(CreateWarehouseRequest createWarehouseRequest);
+  WarehouseShelfMapper INSTANCE = Mappers.getMapper(WarehouseShelfMapper.class);
 
   @Mapping(source = "deleted", target = "deleted")
   @Mapping(source = "createdDate", target = "createdDate")
   @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
-  WarehouseResponse toDto(Warehouse warehouse);
+  @Mapping(source = "warehouse.id", target = "warehouseId")
+  WarehouseShelfResponse toDto(WarehouseShelf warehouse);
+
+  Warehouse toEntity(WarehouseShelfResponse response);
+
 }

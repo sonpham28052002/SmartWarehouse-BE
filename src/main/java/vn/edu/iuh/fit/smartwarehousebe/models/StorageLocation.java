@@ -1,6 +1,8 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -18,26 +20,27 @@ import java.util.List;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StorageLocation extends Auditable implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    private String name;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "column_index")
-    private Long columnIndex;
+  private String name;
 
-    @Column(name = "row_index")
-    private Long rowIndex;
+  @Column(name = "column_index")
+  private Long columnIndex;
 
-    @Column(name = "shelf_index")
-    private Long shelfIndex;
+  @Column(name = "row_index")
+  private Long rowIndex;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "warehouse_id")
-    private Warehouse warehouse;
+  @Column(name = "max_capacity", nullable = false)
+  private Double maxCapacity;
 
-    @OneToMany(mappedBy = "storageLocation")
-    private List<Inventory> inventories;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "warehouse_shelf_id")
+  private WarehouseShelf warehouseShelf;
+
+  @OneToMany(mappedBy = "storageLocation")
+  private List<Inventory> inventories;
 
 }

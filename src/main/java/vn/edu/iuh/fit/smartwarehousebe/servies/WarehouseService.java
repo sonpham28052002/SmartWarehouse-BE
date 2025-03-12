@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -34,130 +35,150 @@ import java.util.Set;
 @Service
 public class WarehouseService extends CommonService<Warehouse> {
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+  @Autowired
+  private WarehouseRepository warehouseRepository;
 
-    @Autowired
-    private UserService userService;
+  @Autowired
+  private UserService userService;
 
-    @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
-    public Page<Warehouse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
-        Specification<Warehouse> spec = Specification.where(null);
-        if (request.getName() != null) {
-            spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
-        }
-        if (request.getLocation() != null) {
-            spec = spec.and(WarehouseSpecification.addressLike(request.getLocation()));
-        }
-        if (request.getManagerId() != null) {
-            spec = spec.and(WarehouseSpecification.hasManager(request.getManagerId()));
-        }
-        if (request.getCode() != null) {
-            spec = spec.and(WarehouseSpecification.hasCode(request.getCode()));
-        }
-        Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable);
+  @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
+  public Page<Warehouse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
+    Specification<Warehouse> spec = Specification.where(null);
+    if (request.getName() != null) {
+      spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
+    }
+    if (request.getLocation() != null) {
+      spec = spec.and(WarehouseSpecification.addressLike(request.getLocation()));
+    }
+    if (request.getManagerId() != null) {
+      spec = spec.and(WarehouseSpecification.hasManager(request.getManagerId()));
+    }
+    if (request.getCode() != null) {
+      spec = spec.and(WarehouseSpecification.hasCode(request.getCode()));
+    }
+    Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable);
+  }
+
+  @Cacheable(value = "warehouse", key = "#request", unless = "#result == null")
+  public List<Warehouse> getAll(GetWarehouseQuest request) {
+    Specification<Warehouse> spec = Specification.where(null);
+    if (request.getName() != null) {
+      spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
+    }
+    if (request.getLocation() != null) {
+      spec = spec.and(WarehouseSpecification.addressLike(request.getLocation()));
+    }
+    if (request.getManagerId() != null) {
+      spec = spec.and(WarehouseSpecification.hasManager(request.getManagerId()));
+    }
+    if (request.getCode() != null) {
+      spec = spec.and(WarehouseSpecification.hasCode(request.getCode()));
     }
 
-    @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
-    public Warehouse getById(Long id) {
-        return warehouseRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
+    spec = spec.and(WarehouseSpecification.hasDeleted(false));
+    return warehouseRepository.findAll(spec);
+  }
+
+  @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
+  public Warehouse getById(Long id) {
+    return warehouseRepository.findById(id)
+        .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
+  }
+
+  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
+  @Transactional
+  public Warehouse create(Warehouse createWarehouse) {
+    Long managerId = createWarehouse.getManager().getId();
+    Set<User> staffs = createWarehouse.getStaffs();
+    Warehouse temp = createWarehouse;
+    temp.setManager(null);
+    Warehouse newWarehouse = warehouseRepository.save(temp);
+
+    User manager = userService.getUserById(managerId);
+    manager.setWarehouseManager(newWarehouse);
+    newWarehouse.setManager(userService.updateUser(manager));
+
+    for (User user : staffs) {
+      User staff = userService.getUserById(user.getId());
+      staff.setWarehouse(newWarehouse);
+      userService.updateUser(staff);
     }
 
-    @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
-    @Transactional
-    public Warehouse create(Warehouse createWarehouse) {
-        Long managerId = createWarehouse.getManager().getId();
-        Set<User> staffs = createWarehouse.getStaffs();
-        Warehouse temp = createWarehouse;
-        temp.setManager(null);
-        Warehouse newWarehouse = warehouseRepository.save(temp);
+    return warehouseRepository.save(newWarehouse);
+  }
 
-        User manager = userService.getUserById(managerId);
-        manager.setWarehouseManager(newWarehouse);
-        newWarehouse.setManager(userService.updateUser(manager));
+  @CacheEvict(value = "warehouse", allEntries = true)
+  @Transactional
+  public Warehouse update(Long id, Warehouse updateWarehouse) {
+    Warehouse oldWarehouse = warehouseRepository.findById(id).orElseThrow(null);
 
-        for (User user : staffs) {
-            User staff = userService.getUserById(user.getId());
-            staff.setWarehouse(newWarehouse);
-            userService.updateUser(staff);
-        }
+    oldWarehouse.setAddress(updateWarehouse.getAddress());
+    oldWarehouse.setName(updateWarehouse.getName());
+    oldWarehouse.setCode(updateWarehouse.getCode());
 
-        return warehouseRepository.save(newWarehouse);
+    if (oldWarehouse == null) {
+      throw new NotFoundException("no found warehouse");
     }
 
-    @CacheEvict(value = "warehouse", allEntries = true)
-    @Transactional
-    public Warehouse update(Long id, Warehouse updateWarehouse) {
-        Warehouse oldWarehouse = warehouseRepository.findById(id).orElseThrow(null);
+    if (oldWarehouse.getManager().getId() != updateWarehouse.getManager().getId()) {
 
-        oldWarehouse.setAddress(updateWarehouse.getAddress());
-        oldWarehouse.setName(updateWarehouse.getName());
-        oldWarehouse.setCode(updateWarehouse.getCode());
-        oldWarehouse.setColumnNum(updateWarehouse.getColumnNum());
-        oldWarehouse.setRowNum(updateWarehouse.getRowNum());
-        oldWarehouse.setShelfNum(updateWarehouse.getShelfNum());
+      // update warehouse manager for the old manager
+      User oldManager = userService.getUserById(oldWarehouse.getManager().getId());
+      oldManager.setWarehouseManager(null);
+      userService.updateUser(oldManager);
 
-        if (oldWarehouse == null) throw new NotFoundException("no found warehouse");
-
-        if (oldWarehouse.getManager().getId() != updateWarehouse.getManager().getId()){
-
-            // update warehouse manager for the old manager
-            User oldManager = userService.getUserById(oldWarehouse.getManager().getId());
-            oldManager.setWarehouseManager(null);
-            userService.updateUser(oldManager);
-
-            // update warehouse manager for the old manager
-            User newManager = userService.getUserById(updateWarehouse.getManager().getId());
-            newManager.setWarehouseManager(oldWarehouse);
-            oldWarehouse.setManager(userService.updateUser(newManager));
-        }
-
-        // update staffs
-        Set<User> oldStaffs = oldWarehouse.getStaffs();
-        Set<User> newStaffs = updateWarehouse.getStaffs();
-        Set<User> allStaff = new HashSet<>(oldStaffs);
-        allStaff.addAll(newStaffs);
-        for (User user : allStaff) {
-            if (oldStaffs.contains(user) && !newStaffs.contains(user))
-            {
-                User staff = userService.getUserById(user.getId());
-                staff.setWarehouse(null);
-                userService.updateUser(staff);
-            } else if (!oldStaffs.contains(user) && newStaffs.contains(user))
-            {
-                User staff = userService.getUserById(user.getId());
-                staff.setWarehouse(oldWarehouse);
-                userService.updateUser(staff);
-            }
-        }
-
-        return warehouseRepository.save(oldWarehouse);
+      // update warehouse manager for the old manager
+      User newManager = userService.getUserById(updateWarehouse.getManager().getId());
+      newManager.setWarehouseManager(oldWarehouse);
+      oldWarehouse.setManager(userService.updateUser(newManager));
     }
 
-    @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
-    @Transactional
-    public boolean delete(Long id) {
-        try {
-            Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(null);
-            if (warehouse == null) return false;
+    // update staffs
+    Set<User> oldStaffs = oldWarehouse.getStaffs();
+    Set<User> newStaffs = updateWarehouse.getStaffs();
+    Set<User> allStaff = new HashSet<>(oldStaffs);
+    allStaff.addAll(newStaffs);
+    for (User user : allStaff) {
+      if (oldStaffs.contains(user) && !newStaffs.contains(user)) {
+        User staff = userService.getUserById(user.getId());
+        staff.setWarehouse(null);
+        userService.updateUser(staff);
+      } else if (!oldStaffs.contains(user) && newStaffs.contains(user)) {
+        User staff = userService.getUserById(user.getId());
+        staff.setWarehouse(oldWarehouse);
+        userService.updateUser(staff);
+      }
+    }
 
-            User manager = userService.getUserById(warehouse.getManager().getId());
-            manager.setWarehouseManager(null);
-            userService.updateUser(manager);
+    return warehouseRepository.save(oldWarehouse);
+  }
 
-            for (User user: warehouse.getStaffs()) {
-                User staff = userService.getUserById(user.getId());
-                staff.setWarehouse(null);
-                userService.updateUser(staff);
-            }
-            warehouseRepository.deleteById(id);
-            return true;
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
+  @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
+  @Transactional
+  public boolean delete(Long id) {
+    try {
+      Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(null);
+      if (warehouse == null) {
         return false;
+      }
 
+      User manager = userService.getUserById(warehouse.getManager().getId());
+      manager.setWarehouseManager(null);
+      userService.updateUser(manager);
+
+      for (User user : warehouse.getStaffs()) {
+        User staff = userService.getUserById(user.getId());
+        staff.setWarehouse(null);
+        userService.updateUser(staff);
+      }
+      warehouseRepository.deleteById(id);
+      return true;
+    } catch (Exception exception) {
+      exception.printStackTrace();
     }
+    return false;
+
+  }
 }

@@ -19,37 +19,40 @@ import java.util.List;
 @Builder
 @SQLDelete(sql = "UPDATE product SET deleted = true WHERE id = ?")
 public class Product extends Auditable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(name = "code", length = 10)
-    private String code;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "sku")
-    private String sku;
+  @Column(name = "code", length = 10)
+  private String code;
 
-    @Column(name = "name", length = 255)
-    private String name;
+  @Column(name = "sku")
+  private String sku;
 
-    private String description;
+  @Column(name = "name", length = 255)
+  private String name;
 
-    @ManyToOne
-    private Unit unit;
+  private String description;
 
-    @Column(name = "image", length = 255)
-    private String image;
+  @ManyToOne
+  private Unit unit;
 
-    @ManyToOne
-    @JoinColumn(name = "supplier_id")
-    @JsonIgnore
-    private Supplier supplier;
+  @Column(name = "image", length = 255)
+  private String image;
 
-    @OneToMany(mappedBy = "product")
-    private List<Inventory> inventories;
+  private Double unitWeight;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
-    @JsonIgnore
-    private List<ConversionUnit> conversionUnits;
+  @ManyToOne
+  @JoinColumn(name = "supplier_id")
+  @JsonIgnore
+  private Supplier supplier;
+
+  @OneToMany(mappedBy = "product")
+  private List<Inventory> inventories;
+
+  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
+  @JsonIgnore
+  private List<ConversionUnit> conversionUnits;
 
 }
