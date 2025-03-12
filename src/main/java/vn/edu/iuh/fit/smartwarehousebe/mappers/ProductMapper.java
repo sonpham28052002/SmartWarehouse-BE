@@ -7,7 +7,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.ConversionUnit;
 import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface ProductMapper {
 
   ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);

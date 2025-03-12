@@ -22,26 +22,39 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Warehouse extends Auditable implements Serializable {
-   @Id
-   @Column(name = "id")
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long id;
 
-   private String address;
+  @Id
+  @Column(name = "id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-   private String code;
+  private String address;
 
-   private String name;
+  private String code;
 
-   @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
-   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
-   private Set<User> staffs = new HashSet<>();
+  private String name;
 
-   @OneToOne
-   @JoinColumn(name = "manager_id", referencedColumnName = "id")
-   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
-   private User manager;
+  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+  private Set<User> staffs = new HashSet<>();
 
-   @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
-   private List<WarehouseShelf> warehouseShelves;
+  @OneToOne
+  @JoinColumn(name = "manager_id", referencedColumnName = "id", nullable = true)
+  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+  private User manager;
+
+  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+  private List<WarehouseShelf> warehouseShelves;
+
+  @Override
+  public String toString() {
+    return "Warehouse{" +
+        "id=" + id +
+        ", address='" + address + '\'' +
+        ", code='" + code + '\'' +
+        ", name='" + name + '\'' +
+        ", staffs=" + staffs +
+        ", manager=" + manager +
+        '}';
+  }
 }

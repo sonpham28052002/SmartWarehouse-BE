@@ -23,7 +23,6 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 @SQLDelete(sql = "UPDATE user SET deleted = true, status = 'DELETED'  WHERE id = ?")
 public class User extends Auditable implements UserDetails, Serializable {
 

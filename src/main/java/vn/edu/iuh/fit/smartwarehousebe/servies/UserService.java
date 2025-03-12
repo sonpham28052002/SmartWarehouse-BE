@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserCodeNotValid;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
@@ -68,7 +68,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
+  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
   public User createUser(User user) {
     user.setPassword(passwordEncoder.encode("11111"));
     return userRepository.save(user);
@@ -80,7 +80,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
+  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
   public User updateUser(User user) {
     User userOld = userRepository.findById(user.getId())
         .orElseThrow(() -> new NoSuchElementException());
@@ -129,8 +129,8 @@ public class UserService extends CommonService<User> implements UserDetailsServi
       spec = spec.and(UserSpecification.hasStatus(userQuest.getStatus().name()));
     }
 
-    boolean includeDeleted =
-        userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true : false;
+    boolean includeDeleted = userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true
+        : false;
 
     return userRepository.findAllUsers(spec, pageRequest, includeDeleted)
         .map(i -> UserMapper.INSTANCE.toDto(i));
@@ -181,28 +181,29 @@ public class UserService extends CommonService<User> implements UserDetailsServi
   }
 
   /**
-     * Imports users from a CSV file.
-     *
-     * @param file the CSV file containing user data
-     * @return the number of users successfully imported
-     * @throws IllegalArgumentException if there is an error reading the file or if any user code is not valid
-     */
-    public Integer importUser(MultipartFile file) {
-        try {
-            List<UserImportRequest> userRequests = UserCsvHelper.csvToUserRequest(file.getInputStream());
-            boolean notValid = userRequests.stream().anyMatch(userRequest -> !validateCode(userRequest.getCode()));
-            if (notValid) {
-                throw new UserCodeNotValid();
-            }
-            return userRepository.saveAll(userRequests.stream().map(UserMapper.INSTANCE::toEntity).toList()).size();
-        } catch (IOException | UserCodeNotValid e) {
-            throw new IllegalArgumentException(e);
-        }
+   * Imports users from a CSV file.
+   *
+   * @param file the CSV file containing user data
+   * @return the number of users successfully imported
+   * @throws IllegalArgumentException if there is an error reading the file or if
+   *                                  any user code is not valid
+   */
+  public Integer importUser(MultipartFile file) {
+    try {
+      List<UserImportRequest> userRequests = UserCsvHelper.csvToUserRequest(file.getInputStream());
+      boolean notValid = userRequests.stream().anyMatch(userRequest -> !validateCode(userRequest.getCode()));
+      if (notValid) {
+        throw new UserCodeNotValid();
+      }
+      return userRepository.saveAll(userRequests.stream().map(UserMapper.INSTANCE::toEntity).toList()).size();
+    } catch (IOException | UserCodeNotValid e) {
+      throw new IllegalArgumentException(e);
     }
+  }
 
-    private boolean validateCode(String code) {
-        String regex = "USER-\\d{5}";
-        return code.matches(regex);
-    }
+  private boolean validateCode(String code) {
+    String regex = "USER-\\d{5}";
+    return code.matches(regex);
+  }
 
 }
