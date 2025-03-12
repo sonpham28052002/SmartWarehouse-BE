@@ -135,4 +135,8 @@ public class ProductService extends CommonService<Product> {
         }).orElseThrow(ProductNotFoundException::new);
     }
 
+    public List<ProductResponse> getByIds(List<Long> productIds) {
+        return productRepository.findByIdInAndDeletedFalse(productIds).stream()
+                .map(productMapper::toDto).toList();
+    }
 }

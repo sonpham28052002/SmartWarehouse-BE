@@ -3,24 +3,18 @@ package vn.edu.iuh.fit.smartwarehousebe.controllers;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.CreateWarehouseRequest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.GetWarehouseQuest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.UpdateWarehouseRequest;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
+import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
+import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseService;
 
 import java.util.List;
@@ -30,8 +24,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/warehouses")
 public class WarehouseController {
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+    private final DeliveryNotePdfService deliveryNotePdfService;
+    private final WarehouseReceiptPdfService warehouseReceiptPdfService;
+
+    public WarehouseController(WarehouseService warehouseService, DeliveryNotePdfService deliveryNotePdfService, WarehouseReceiptPdfService warehouseReceiptPdfService) {
+        this.warehouseService = warehouseService;
+        this.deliveryNotePdfService = deliveryNotePdfService;
+        this.warehouseReceiptPdfService = warehouseReceiptPdfService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<WarehouseResponse>> getWarehouse(@RequestParam(defaultValue = "1") int current_page, @RequestParam(defaultValue = "10") int per_page, @RequestParam(defaultValue = "id") String sortBy, GetWarehouseQuest request) {
@@ -62,7 +63,7 @@ public class WarehouseController {
                 .rowNum(request.getRowNum())
                 .shelfNum(request.getShelfNum())
                 .columnNum(request.getColumnNum())
-                .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
+                .staffs(request.getStaffIDs().stream().map(staffId -> User.builder().id(staffId).build()).collect(Collectors.toSet()))
                 .build();
         return new ResponseEntity<>(WarehouseMapper.INSTANCE.toDto(warehouseService.create(newWarehouse)), HttpStatus.CREATED);
     }
@@ -77,7 +78,7 @@ public class WarehouseController {
                 .shelfNum(request.getShelfNum())
                 .columnNum(request.getColumnNum())
                 .manager(User.builder().id(request.getManagerId()).build())
-                .staffs(request.getStaffIDs().stream().map( staffId -> User.builder().id(staffId).build() ).collect(Collectors.toSet()))
+                .staffs(request.getStaffIDs().stream().map(staffId -> User.builder().id(staffId).build()).collect(Collectors.toSet()))
                 .build();
         return ResponseEntity.ok(WarehouseMapper.INSTANCE.toDto(warehouseService.update(id, updateWarehouse)));
     }
@@ -92,5 +93,25 @@ public class WarehouseController {
         return ResponseEntity.ok(warehouseService.checkCodeIsExist(Warehouse.class, code));
     }
 
+    @PostMapping("/export-warehouse-receipt")
+    public ResponseEntity<byte[]> exportPdf(@RequestBody @Valid WarehouseReceiptRequest request) {
+        byte[] pdfContent = warehouseReceiptPdfService.generatePdf(request);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "phieu-nhap-kho.pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/export-delivery-note")
+    public ResponseEntity<byte[]> exportPdf(@RequestBody @Valid DeliveryNoteRequest request) {
+        byte[] pdfContent = deliveryNotePdfService.generatePdf(request);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "phieu-xuat-kho.pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    }
 }
