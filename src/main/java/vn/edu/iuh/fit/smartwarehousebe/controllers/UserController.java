@@ -7,14 +7,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.FileTypeException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
-import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
+import vn.edu.iuh.fit.smartwarehousebe.utils.helpers.UserCsvHelper;
 
 import java.util.List;
 
@@ -80,5 +82,13 @@ public class UserController {
     @GetMapping("/{code}/checkCode")
     public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
         return ResponseEntity.ok(userService.checkCodeIsExist(User.class, code));
+    }
+
+    @PostMapping(value = "/import", consumes = {"multipart/form-data"})
+    public ResponseEntity<Integer> importUser(@RequestParam("file") MultipartFile file) throws FileTypeException {
+        if (!UserCsvHelper.hasCSVFormat(file)) {
+            throw new FileTypeException();
+        }
+        return ResponseEntity.ok(userService.importUser(file));
     }
 }

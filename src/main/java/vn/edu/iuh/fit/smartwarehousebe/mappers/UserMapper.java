@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
@@ -19,6 +20,8 @@ public interface UserMapper {
     UserResponse toDto(User user);
 
     User toEntity(UserRequest request);
+
+    User toEntity(UserImportRequest request);
 
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "deleted", target = "deleted")

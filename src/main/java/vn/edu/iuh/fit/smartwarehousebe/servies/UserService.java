@@ -11,20 +11,26 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserCodeNotValid;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.UserSpecification;
+import vn.edu.iuh.fit.smartwarehousebe.utils.helpers.UserCsvHelper;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
-public class  UserService extends CommonService<User> implements UserDetailsService {
+public class UserService extends CommonService<User> implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -39,6 +45,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
     /**
      * get user by name
+     *
      * @param name
      * @return User
      */
@@ -54,6 +61,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
     /**
      * create new user
+     *
      * @param user
      * @return User
      */
@@ -65,6 +73,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
     /**
      * update user
+     *
      * @param user
      * @return User
      */
@@ -86,6 +95,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
     /**
      * delete user by id
+     *
      * @param id
      */
     @CacheEvict(value = "user", allEntries = true)
@@ -95,6 +105,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
     /**
      * get list user
+     *
      * @param pageRequest
      * @param userQuest
      * @return Page<User>
@@ -116,7 +127,7 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
 
         boolean includeDeleted = userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true : false;
 
-        return userRepository.findAllUsers(spec, pageRequest, includeDeleted );
+        return userRepository.findAllUsers(spec, pageRequest, includeDeleted);
     }
 
     /**
@@ -148,17 +159,42 @@ public class  UserService extends CommonService<User> implements UserDetailsServ
     }
 
     @Cacheable(value = "user", key = "'getUsersManagerNotInWarehouse'")
-    public List<User> getUsersManagerNotInWarehouse(){
+    public List<User> getUsersManagerNotInWarehouse() {
         return userRepository.findUsersManagerNotInWarehouse();
     }
 
     @Cacheable(value = "user", key = "'getAllUserStaff'")
-    public List<User> getAllUserStaff(){
+    public List<User> getAllUserStaff() {
         List<Integer> roles = Arrays.asList(Role.USER.getRole(), Role.SUPERVISOR.getRole());
         Specification<User> specification = UserSpecification.hasRoles(roles);
         specification = specification.and(UserSpecification.hasWareHouseIsNull());
 
         List<User> usersWithRoles = userRepository.getAllUser(specification, true);
         return usersWithRoles;
+    }
+
+    /**
+     * Imports users from a CSV file.
+     *
+     * @param file the CSV file containing user data
+     * @return the number of users successfully imported
+     * @throws IllegalArgumentException if there is an error reading the file or if any user code is not valid
+     */
+    public Integer importUser(MultipartFile file) {
+        try {
+            List<UserImportRequest> userRequests = UserCsvHelper.csvToUserRequest(file.getInputStream());
+            boolean notValid = userRequests.stream().anyMatch(userRequest -> !validateCode(userRequest.getCode()));
+            if (notValid) {
+                throw new UserCodeNotValid();
+            }
+            return userRepository.saveAll(userRequests.stream().map(UserMapper.INSTANCE::toEntity).toList()).size();
+        } catch (IOException | UserCodeNotValid e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private boolean validateCode(String code) {
+        String regex = "USER-\\d{5}";
+        return code.matches(regex);
     }
 }
