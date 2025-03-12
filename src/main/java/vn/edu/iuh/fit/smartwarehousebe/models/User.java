@@ -1,15 +1,12 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
@@ -18,8 +15,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Entity
 @Table(name = "user")
@@ -32,25 +27,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class User extends Auditable implements UserDetails, Serializable {
 
   private static final long serialVersionUID = 1L;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "code", nullable = false, length = 12)
+  @Column(name = "code", nullable = false, length = 12, unique = true)
   private String code;
 
-  @Column(name = "username", nullable = false, length = 255)
+  @Column(name = "username", nullable = false, length = 255, unique = true)
   private String userName;
 
-  @Column(name = "password", nullable = false, length = 255)
-  private String password;
-
-  @Column(name = "email", length = 255)
+  @Column(name = "email", length = 255, unique = true)
   private String email;
 
-  @Column(name = "phone_number", length = 20)
+  @Column(name = "phone_number", length = 20, unique = true)
   private String phoneNumber;
+  @Column(name = "password", nullable = false, length = 255)
+  private String password;
 
   @Column(name = "full_name", length = 255)
   private String fullName;
@@ -143,12 +136,4 @@ public class User extends Auditable implements UserDetails, Serializable {
   public int hashCode() {
     return Objects.hash(id);
   }
-
-  @Override
-  public String toString() {
-    return "User{" +
-        "id=" + id +
-        '}';
-  }
 }
-

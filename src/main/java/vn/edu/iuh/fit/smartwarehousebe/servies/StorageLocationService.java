@@ -49,7 +49,7 @@ public class StorageLocationService {
   public StorageLocationResponse create(Long shelfId, CreateStorageLocationRequest request) {
     WarehouseShelf shelf = warehouseShelfRepository.findById(shelfId)
         .orElseThrow(() -> new NotFoundException("Shelf not found"));
-    System.out.println(request);
+
     StorageLocation storageLocation;
     if (request.getId() == null) {
       storageLocation = StorageLocation.builder()

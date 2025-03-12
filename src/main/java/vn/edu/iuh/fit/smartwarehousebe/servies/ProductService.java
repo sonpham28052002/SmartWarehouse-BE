@@ -40,7 +40,6 @@ public class ProductService extends CommonService<Product> {
 
   private final ConversionUnitService conversionUnitService;
 
-
   public ProductService(ProductRepository productRepository, SupplierService supplierService,
       SupplierMapper supplierMapper, UnitService unitService,
       ConversionUnitService conversionUnitService) {
