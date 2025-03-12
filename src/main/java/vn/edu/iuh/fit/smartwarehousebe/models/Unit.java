@@ -28,4 +28,8 @@ public class Unit extends Auditable{
     @OneToMany(mappedBy = "unit")
     @JsonIgnore
     private List<Product> product;
+
+    @OneToMany(mappedBy = "unit")
+    @JsonIgnore
+    private List<Inventory> inventories;
 }
