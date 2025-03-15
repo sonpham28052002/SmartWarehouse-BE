@@ -46,6 +46,12 @@ public class Warehouse extends Auditable implements Serializable {
   @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
   private List<WarehouseShelf> warehouseShelves;
 
+  @OneToMany(mappedBy = "warehouse")
+  private Set<Transaction> transactions;
+
+  @OneToOne(mappedBy = "transfer")
+  private Transaction transferTransaction;
+
   @Override
   public String toString() {
     return "Warehouse{" +

@@ -1,0 +1,54 @@
+package vn.edu.iuh.fit.smartwarehousebe.specifications;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
+import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
+
+import java.util.Optional;
+
+/**
+ * @description
+ * @author: vie
+ * @date: 3/3/25
+ */
+@Slf4j
+public class TransactionSpecification {
+    TransactionSpecification() {
+    }
+
+    public static Specification<Transaction> hasTransactionType(String transactionType) {
+        return Optional.ofNullable(transactionType)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("transactionType"), c))
+                .orElse(null);
+    }
+
+    public static Specification<Transaction> hasTransactionDate(String transactionDate) {
+        return Optional.ofNullable(transactionDate)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("transactionDate"), c))
+                .orElse(null);
+    }
+
+    public static Specification<Transaction> hasTransactionExecutor(Long executor) {
+        return Optional.ofNullable(executor)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("executor").get("id"), c))
+                .orElse(null);
+    }
+
+    public static Specification<Transaction> hasTransactionWarehouse(Long warehouse) {
+        return Optional.ofNullable(warehouse)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("warehouse").get("id"), c))
+                .orElse(null);
+    }
+
+    public static Specification<Transaction> hasTransactionTransfer(Long transfer) {
+        return Optional.ofNullable(transfer)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("transfer").get("id"), c))
+                .orElse(null);
+    }
+
+    public static Specification<Transaction> hasTransactionSupplier(Long supplier) {
+        return Optional.ofNullable(supplier)
+                .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("supplier").get("id"), c))
+                .orElse(null);
+    }
+}

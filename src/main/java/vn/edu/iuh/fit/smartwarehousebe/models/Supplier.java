@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLDelete;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,4 +44,6 @@ public class Supplier extends  Auditable{
     @JsonIgnore
     private List<Product> products;
 
+    @OneToMany(mappedBy = "supplier")
+    private Set<Transaction> transactions;
 }

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "user")
@@ -73,6 +74,9 @@ public class User extends Auditable implements UserDetails, Serializable {
 
   @OneToOne(mappedBy = "manager")
   private Warehouse warehouseManager;
+
+  @OneToMany(mappedBy = "executor")
+  private Set<Transaction> transactions;
 
   @Override
   public String getPassword() {
