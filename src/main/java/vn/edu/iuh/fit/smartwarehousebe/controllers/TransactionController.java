@@ -1,12 +1,15 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 
 /**
@@ -36,7 +39,12 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponse> getTransactionById(@PathVariable Long id) {
+    public ResponseEntity<TransactionWithDetailResponse> getTransactionById(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getTransaction(id));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<TransactionResponse> createTransaction(@Valid @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(transactionService.createTransaction(request));
     }
 }

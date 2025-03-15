@@ -9,7 +9,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface StorageLocationMapper {
 
   StorageLocationMapper INSTANCE = Mappers.getMapper(StorageLocationMapper.class);

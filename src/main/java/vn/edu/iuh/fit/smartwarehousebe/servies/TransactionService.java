@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,12 +9,20 @@ import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.StorageLocationMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
+import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @description
@@ -24,43 +33,50 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
+    private final WarehouseService warehouseService;
+    private final SupplierService supplierService;
+    private final SupplierMapper supplierMapper;
+    private final UserService userService;
+    private final ProductService productService;
+    private final ProductMapper productMapper;
+    private final StorageLocationService storageLocationService;
+    private final StorageLocationMapper storageLocationMapper;
 
     public TransactionService(TransactionRepository transactionRepository,
-                              TransactionMapper transactionMapper) {
+                              TransactionMapper transactionMapper, WarehouseService warehouseService, SupplierService supplierService,
+                              SupplierMapper supplierMapper, UserService userService, ProductService productService,
+                              ProductMapper productMapper, StorageLocationService storageLocationService,
+                              StorageLocationMapper storageLocationMapper) {
+        this.warehouseService = warehouseService;
         this.transactionRepository = transactionRepository;
         this.transactionMapper = transactionMapper;
+        this.supplierService = supplierService;
+        this.supplierMapper = supplierMapper;
+        this.userService = userService;
+        this.productService = productService;
+        this.productMapper = productMapper;
+        this.storageLocationService = storageLocationService;
+        this.storageLocationMapper = storageLocationMapper;
     }
 
     /**
-         * Retrieves a transaction by its ID.
-         *
-         * @param id the ID of the transaction
-         * @return the transaction response
-         * @throws TransactionNotFoundException if the transaction is not found
-         */
+     * Retrieves a transaction by its ID.
+     *
+     * @param id the ID of the transaction
+     * @return the transaction response
+     * @throws TransactionNotFoundException if the transaction is not found
+     */
     @Cacheable(value = "transactions", key = "#id")
-    public TransactionResponse getTransaction(Long id) {
-        return transactionRepository.findById(id).map(transactionMapper::toDto)
+    public TransactionWithDetailResponse getTransaction(Long id) {
+        return transactionRepository.findById(id).map(transactionMapper::toDtoWithDetail)
                 .orElseThrow(TransactionNotFoundException::new);
-    }
-
-    /**
-         * Creates a new transaction.
-         *
-         * @param request the transaction request
-         * @return the transaction response
-         */
-    @Cacheable(value = "transactions", key = "#request.transactionType + '_' + #request.transactionDate")
-    public TransactionResponse create(TransactionRequest request) {
-        Transaction transaction = transactionMapper.toEntity(request);
-        return transactionMapper.toDto(transactionRepository.save(transaction));
     }
 
     /**
      * Retrieves a paginated list of transactions based on the provided criteria.
      *
      * @param pageRequest the pagination information
-     * @param quest the criteria for filtering transactions
+     * @param quest       the criteria for filtering transactions
      * @return a paginated list of transaction responses
      */
     public Page<TransactionResponse> getTransactions(PageRequest pageRequest, GetTransactionQuest quest) {
@@ -75,5 +91,39 @@ public class TransactionService {
 
         return transactionRepository.findAll(specification, pageRequest)
                 .map(transactionMapper::toDto);
+    }
+
+    /**
+     * Creates a new transaction with detailed information.
+     *
+     * @param request the transaction request containing details
+     * @return the transaction response
+     */
+    @CacheEvict(value = "transactions", allEntries = true)
+    public TransactionResponse createTransaction(TransactionRequest request) {
+        Transaction transaction = transactionMapper.toEntity(request);
+        // Set the warehouse, transfer, supplier, and executor based on the request
+        transaction.setWarehouse(warehouseService.getById(request.getWarehouseId()));
+        if (request.getTransferId() != null) {
+            transaction.setTransfer(warehouseService.getById(request.getTransferId()));
+        }
+        if (request.getSupplierId() != null) {
+            transaction.setSupplier(supplierMapper.toEntity(supplierService.getById(request.getSupplierId())));
+        }
+        if (request.getExecutorId() != null) {
+            transaction.setExecutor(userService.getUserById(request.getExecutorId()));
+        }
+        Set<TransactionDetail> details = request.getDetails().stream()
+                .map(d -> {
+                    TransactionDetail detail = transactionMapper.toEntity(d);
+                    detail.setProduct(productMapper.toEntity(productService.getById(d.getProductId())));
+                    detail.setStorageLocation(storageLocationMapper.toEntity(storageLocationService.getById(d.getStorageId())));
+                    detail.setTransaction(transaction);
+                    return detail;
+                })
+                .collect(Collectors.toSet());
+        transaction.setDetails(details);
+
+        return transactionMapper.toDto(transactionRepository.save(transaction));
     }
 }

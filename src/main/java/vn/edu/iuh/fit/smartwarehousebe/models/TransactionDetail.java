@@ -31,6 +31,6 @@ public class TransactionDetail {
 
     @ManyToOne
     @JoinColumn(name = "transaction_id", nullable = false)
-    private Transaction transactions;
+    private Transaction transaction;
 
 }
