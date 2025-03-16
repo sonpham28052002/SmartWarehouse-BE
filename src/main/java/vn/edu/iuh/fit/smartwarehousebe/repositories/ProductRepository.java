@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.repositories;
 
+import io.lettuce.core.ScanIterator;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,6 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
   List<Product> findByIdInAndDeletedFalse(Collection<Long> ids);
+
+  List<Product> findByIdIn(Collection<Long> ids);
 }
