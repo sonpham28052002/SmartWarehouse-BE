@@ -40,6 +40,8 @@ public class WarehouseService extends CommonService<Warehouse> {
 
   @Autowired
   private UserService userService;
+  @Autowired
+  private WarehouseMapper warehouseMapper;
 
   @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
   public Page<Warehouse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
@@ -84,6 +86,12 @@ public class WarehouseService extends CommonService<Warehouse> {
   @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
   public Warehouse getById(Long id) {
     return warehouseRepository.findById(id)
+        .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
+  }
+
+  @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
+  public WarehouseResponse getByIdV2(Long id) {
+    return warehouseRepository.findById(id).map(warehouseMapper::toDtoV2)
         .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
   }
 
