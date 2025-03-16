@@ -39,16 +39,18 @@ public class ProductService extends CommonService<Product> {
   private final UnitService unitService;
 
   private final ConversionUnitService conversionUnitService;
+  private final ProductMapper productMapper;
 
   public ProductService(ProductRepository productRepository, SupplierService supplierService,
-      SupplierMapper supplierMapper, UnitService unitService,
-      ConversionUnitService conversionUnitService) {
+                        SupplierMapper supplierMapper, UnitService unitService,
+                        ConversionUnitService conversionUnitService, ProductMapper productMapper) {
     super();
     this.productRepository = productRepository;
     this.supplierService = supplierService;
     this.supplierMapper = supplierMapper;
     this.unitService = unitService;
     this.conversionUnitService = conversionUnitService;
+    this.productMapper = productMapper;
   }
 
   @Cacheable(value = "products", key = "#productQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
@@ -149,4 +151,8 @@ public class ProductService extends CommonService<Product> {
     }).orElseThrow(ProductNotFoundException::new);
   }
 
+  public List<ProductResponse> getByIds(List<Long> productIds) {
+    return productRepository.findByIdInAndDeletedFalse(productIds).stream()
+        .map(productMapper::toDto).toList();
+  }
 }

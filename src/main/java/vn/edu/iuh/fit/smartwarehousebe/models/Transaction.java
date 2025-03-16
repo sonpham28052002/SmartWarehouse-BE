@@ -38,7 +38,7 @@ public class Transaction {
     @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "transfer_id")
     private Warehouse transfer;
 

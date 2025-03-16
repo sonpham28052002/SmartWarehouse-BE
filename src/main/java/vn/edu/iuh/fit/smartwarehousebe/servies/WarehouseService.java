@@ -1,7 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -12,18 +11,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.CreateWarehouseRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.GetWarehouseQuest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.UpdateWarehouseRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.WarehouseSpecification;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -42,9 +39,11 @@ public class WarehouseService extends CommonService<Warehouse> {
   private UserService userService;
   @Autowired
   private WarehouseMapper warehouseMapper;
+  @Autowired
+  private StorageService storageService;
 
   @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
-  public Page<Warehouse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
+  public Page<WarehouseResponse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
     Specification<Warehouse> spec = Specification.where(null);
     if (request.getName() != null) {
       spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
@@ -60,11 +59,11 @@ public class WarehouseService extends CommonService<Warehouse> {
     }
     Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
     Pageable pageable = PageRequest.of(page, size, sort);
-    return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable);
+    return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable).map(warehouseMapper::toDto);
   }
 
   @Cacheable(value = "warehouse", key = "#request", unless = "#result == null")
-  public List<Warehouse> getAll(GetWarehouseQuest request) {
+  public List<WarehouseResponse> getAll(GetWarehouseQuest request) {
     Specification<Warehouse> spec = Specification.where(null);
     if (request.getName() != null) {
       spec = spec.and(WarehouseSpecification.nameLike(request.getName()));
@@ -80,24 +79,18 @@ public class WarehouseService extends CommonService<Warehouse> {
     }
 
     spec = spec.and(WarehouseSpecification.hasDeleted(false));
-    return warehouseRepository.findAll(spec);
+    return warehouseRepository.findAll(spec).stream().map(warehouseMapper::toDto).toList();
   }
 
   @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
-  public Warehouse getById(Long id) {
-    return warehouseRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
-  }
-
-  @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
-  public WarehouseResponse getByIdV2(Long id) {
-    return warehouseRepository.findById(id).map(warehouseMapper::toDtoV2)
+  public WarehouseResponse getById(Long id) {
+    return warehouseRepository.findById(id).map(warehouseMapper::toDto)
         .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
   }
 
   @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
   @Transactional
-  public Warehouse create(Warehouse createWarehouse) {
+  public WarehouseResponse create(Warehouse createWarehouse) {
     Long managerId = createWarehouse.getManager().getId();
     Set<User> staffs = createWarehouse.getStaffs();
     Warehouse temp = createWarehouse;
@@ -114,12 +107,12 @@ public class WarehouseService extends CommonService<Warehouse> {
       userService.updateUser(staff);
     }
 
-    return warehouseRepository.save(newWarehouse);
+    return warehouseMapper.toDto(warehouseRepository.save(newWarehouse));
   }
 
   @CacheEvict(value = "warehouse", allEntries = true)
   @Transactional
-  public Warehouse update(Long id, Warehouse updateWarehouse) {
+  public WarehouseResponse update(Long id, Warehouse updateWarehouse) {
     Warehouse oldWarehouse = warehouseRepository.findById(id).orElseThrow(null);
 
     oldWarehouse.setAddress(updateWarehouse.getAddress());
@@ -160,7 +153,7 @@ public class WarehouseService extends CommonService<Warehouse> {
       }
     }
 
-    return warehouseRepository.save(oldWarehouse);
+    return warehouseMapper.toDto(warehouseRepository.save(oldWarehouse));
   }
 
   @CacheEvict(value = {"warehouse", "users"}, allEntries = true)

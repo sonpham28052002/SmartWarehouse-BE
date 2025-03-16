@@ -1,6 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
-import com.opencsv.exceptions.CsvValidationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -9,12 +9,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.WarehouseReceiptRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
-import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserCodeNotValid;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.*;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
@@ -22,7 +23,7 @@ import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
 
-import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @author: vie
  * @date: 15/3/25
  */
+@Slf4j
 @Service
 public class TransactionService {
   private final TransactionRepository transactionRepository;
@@ -46,13 +48,15 @@ public class TransactionService {
   private final StorageLocationMapper storageLocationMapper;
   private final CsvService csvService;
   private final WarehouseMapper warehouseMapper;
+  private final WarehouseReceiptPdfService warehouseReceiptPdfService;
+  private final StorageService storageService;
 
   public TransactionService(TransactionRepository transactionRepository,
                             TransactionMapper transactionMapper, WarehouseService warehouseService, SupplierService supplierService,
                             SupplierMapper supplierMapper, UserService userService, ProductService productService,
                             ProductMapper productMapper, StorageLocationService storageLocationService,
                             StorageLocationMapper storageLocationMapper, CsvService csvService,
-                            WarehouseMapper warehouseMapper) {
+                            WarehouseMapper warehouseMapper, WarehouseReceiptPdfService warehouseReceiptPdfService, StorageService storageService) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
@@ -65,6 +69,8 @@ public class TransactionService {
     this.storageLocationMapper = storageLocationMapper;
     this.csvService = csvService;
     this.warehouseMapper = warehouseMapper;
+    this.warehouseReceiptPdfService = warehouseReceiptPdfService;
+    this.storageService = storageService;
   }
 
   /**
@@ -108,12 +114,12 @@ public class TransactionService {
    * @return the transaction response
    */
   @CacheEvict(value = "transactions", allEntries = true)
-  public TransactionResponse createTransaction(TransactionRequest request) {
+  public TransactionWithDetailResponse createTransaction(TransactionRequest request) {
     Transaction transaction = transactionMapper.toEntity(request);
     // Set the warehouse, transfer, supplier, and executor based on the request
-    transaction.setWarehouse(warehouseMapper.toEntity(warehouseService.getByIdV2(request.getWarehouseId())));
+    transaction.setWarehouse(warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
     if (request.getTransferId() != null) {
-      transaction.setTransfer(warehouseMapper.toEntity(warehouseService.getByIdV2(request.getTransferId())));
+      transaction.setTransfer(warehouseMapper.toEntity(warehouseService.getById(request.getTransferId())));
     }
     if (request.getSupplierId() != null) {
       transaction.setSupplier(supplierMapper.toEntity(supplierService.getById(request.getSupplierId())));
@@ -132,20 +138,47 @@ public class TransactionService {
         .collect(Collectors.toSet());
     transaction.setDetails(details);
 
-    return transactionMapper.toDto(transactionRepository.save(transaction));
+    return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
   }
 
-  @Transactional
-  public Integer importTransaction(MultipartFile file) {
+  /**
+   * Retrieves a paginated list of transactions that occurred between the specified start and end dates.
+   *
+   * @param pageRequest the pagination information
+   * @param request     the request containing the start and end dates
+   * @return a paginated list of transaction responses
+   */
+  public Page<TransactionResponse> getTransactionBetween(PageRequest pageRequest, GetTransactionBetweenRequest request) {
+    LocalDateTime from = request.getStartDate().atStartOfDay();
+    LocalDateTime to = request.getEndDate().atTime(23, 59, 59);
+    return transactionRepository.findTransactionsByTransactionDateBetween(from, to, pageRequest)
+        .map(transactionMapper::toDto);
+  }
+
+  public TransactionWithDetailResponse importWarehouseTransaction(MultipartFile file) {
     try {
       List<TransactionRequest> requests = csvService.parseCsv(file.getInputStream(), TransactionRequest.class);
       if (requests.isEmpty()) {
         throw new IllegalArgumentException("CSV file is empty");
       }
-      requests.forEach(this::createTransaction);
-      return requests.size();
+      TransactionRequest transaction = requests.get(0);
+      WarehouseReceiptRequest request = WarehouseReceiptRequest.builder()
+          .toWarehouseId(transaction.getWarehouseId())
+          .supplierId(transaction.getSupplierId())
+          .userId(transaction.getExecutorId())
+          .products(transaction.getDetails().stream().map(detail -> WarehouseReceiptRequest.Item.builder()
+              .productId(detail.getProductId())
+              .quantity(detail.getQuantity())
+              .build()).toList())
+          .build();
+      MultipartFile pdfContent = warehouseReceiptPdfService.generatePdf(request);
+      String url = "";
+//      String url = storageService.uploadFile(pdfContent);
+      transaction.setTransactionFile(url);
+      return createTransaction(transaction);
     } catch (Exception e) {
-      throw new IllegalArgumentException(e);
+      throw new RuntimeException(e);
     }
+
   }
 }

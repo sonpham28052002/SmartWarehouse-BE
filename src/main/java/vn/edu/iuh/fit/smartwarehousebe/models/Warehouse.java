@@ -1,6 +1,5 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +9,6 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
@@ -34,7 +32,7 @@ public class Warehouse extends Auditable implements Serializable {
 
   private String name;
 
-  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "warehouse")
   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
   private Set<User> staffs = new HashSet<>();
 
@@ -43,14 +41,14 @@ public class Warehouse extends Auditable implements Serializable {
   @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
   private User manager;
 
-  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "warehouse")
   private List<WarehouseShelf> warehouseShelves;
 
   @OneToMany(mappedBy = "warehouse")
   private Set<Transaction> transactions;
 
-  @OneToOne(mappedBy = "transfer")
-  private Transaction transferTransaction;
+  @OneToMany(mappedBy = "transfer")
+  private Set<Transaction> transferTransactions;
 
   @Override
   public String toString() {

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Phiếu Nhập Kho</title>
+  <style>
+    body {
+      font-family: "Times New Roman", sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      margin: 0;
+      color: #2c3e50;
+      font-size: 24px;
+    }
+    .info-section {
+      margin-bottom: 20px;
+    }
+    .info-section .row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .info-section .col {
+      flex: 1;
+    }
+    .info-section h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    .info-section p {
+      margin: 0;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .total-row {
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .signature-section {
+      text-align: center;
+      flex: 1;
+    }
+    .signature-section p {
+      margin-top: 50px;
+    }
+    .note-section {
+      margin-top: 20px;
+    }
+    .note-section h3 {
+      font-size: 16px;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <h1>PHIẾU NHẬP KHO</h1>
+  <p>Mã phiếu: ${warehouseReceipt.code}</p>
+  <p>Ngày lập: <#assign dateTime = warehouseReceipt.createdDate?datetime("iso")>${dateTime?string("dd/MM/yyyy HH:mm:ss")}</p>
+</div>
+
+<div class="info-section">
+  <div class="row">
+    <div class="col">
+      <h3>Thông tin nhà cung cấp:</h3>
+      <p>Mã: ${warehouseReceipt.supplierCode}</p>
+      <p>Tên: ${warehouseReceipt.supplierName}</p>
+      <p>Địa chỉ: ${warehouseReceipt.supplierAddress}</p>
+      <p>Số điện thoại: ${warehouseReceipt.supplierPhone}</p>
+    </div>
+    <div class="col">
+      <h3>Thông tin kho:</h3>
+      <p>Mã kho: ${warehouseReceipt.warehouseCode}</p>
+      <p>Tên kho: ${warehouseReceipt.warehouseName}</p>
+      <p>Địa chỉ: ${warehouseReceipt.warehouseAddress}</p>
+      <p>Người lập phiếu: ${warehouseReceipt.createdBy}</p>
+    </div>
+  </div>
+</div>
+
+<table>
+  <thead>
+  <tr>
+    <th>STT</th>
+    <th>Mã sản phẩm</th>
+    <th>SKU</th>
+    <th>Tên sản phẩm</th>
+    <th>Đơn vị</th>
+    <th>Số lượng</th>
+  </tr>
+  </thead>
+  <tbody>
+  <#list warehouseReceipt.items as item>
+  <tr>
+    <td>${item?index + 1}</td>
+    <td>${item.productCode}</td>
+    <td>${item.sku}</td>
+    <td>${item.productName}</td>
+    <td>${item.unit}</td>
+    <td>${item.quantity}</td>
+  </tr>
+  </#list>
+  <tr class="total-row">
+    <td colspan="5" style="text-align: right;">Tổng số lượng:</td>
+    <td>
+      <#assign total = 0>
+      <#list warehouseReceipt.items as item>
+      <#assign total = total + item.quantity>
+    </#list>
+    ${total}
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <div class="signature-section">
+    <h3>Người giao hàng</h3>
+    <p>(Ký và ghi rõ họ tên)</p>
+  </div>
+  <div class="signature-section">
+    <h3>Thủ kho</h3>
+    <p>(Ký và ghi rõ họ tên)</p>
+  </div>
+  <div class="signature-section">
+    <h3>Người quản lý</h3>
+    <p>(Ký và ghi rõ họ tên)</p>
+  </div>
+</div>
+</body>
+</html>

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
@@ -21,36 +22,48 @@ import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 @RestController
 @RequestMapping("/transactions")
 public class TransactionController {
-    private final TransactionService transactionService;
+  private final TransactionService transactionService;
 
-    public TransactionController(TransactionService transactionService) {
-        this.transactionService = transactionService;
-    }
+  public TransactionController(TransactionService transactionService) {
+    this.transactionService = transactionService;
+  }
 
-    @GetMapping()
-    public ResponseEntity<Page<TransactionResponse>> getPageTransaction(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            GetTransactionQuest quest
-    ) {
-        Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
-        PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
-        return ResponseEntity.ok(transactionService.getTransactions(pageRequest, quest));
-    }
+  @GetMapping()
+  public ResponseEntity<Page<TransactionResponse>> getPageTransaction(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sortBy,
+      GetTransactionQuest quest
+  ) {
+    Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+    PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
+    return ResponseEntity.ok(transactionService.getTransactions(pageRequest, quest));
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TransactionWithDetailResponse> getTransactionById(@PathVariable Long id) {
-        return ResponseEntity.ok(transactionService.getTransaction(id));
-    }
+  @GetMapping("/{id}")
+  public ResponseEntity<TransactionWithDetailResponse> getTransactionById(@PathVariable Long id) {
+    return ResponseEntity.ok(transactionService.getTransaction(id));
+  }
 
-    @PostMapping("/create")
-    public ResponseEntity<TransactionResponse> createTransaction(@Valid @RequestBody TransactionRequest request) {
-        return ResponseEntity.ok(transactionService.createTransaction(request));
-    }
+  @PostMapping("/create")
+  public ResponseEntity<TransactionWithDetailResponse> createTransaction(@Valid @RequestBody TransactionRequest request) {
+    return ResponseEntity.ok(transactionService.createTransaction(request));
+  }
 
-    @PostMapping(value = "/import", consumes = {"multipart/form-data"})
-    public Integer importTransaction(@RequestParam("file") MultipartFile file) {
-        return transactionService.importTransaction(file);
-    }
+  @GetMapping("/between")
+  public ResponseEntity<Page<TransactionResponse>> getTransactionBetween(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sortBy,
+      GetTransactionBetweenRequest request
+  ) {
+    Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+    PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
+    return ResponseEntity.ok(transactionService.getTransactionBetween(pageRequest, request));
+  }
+
+  @PostMapping(value = "/import", consumes = {"multipart/form-data"})
+  public TransactionWithDetailResponse importTransaction(@RequestParam("file") MultipartFile file) {
+    return transactionService.importWarehouseTransaction(file);
+  }
 }
