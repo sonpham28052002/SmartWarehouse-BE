@@ -172,8 +172,7 @@ public class TransactionService {
               .build()).toList())
           .build();
       MultipartFile pdfContent = warehouseReceiptPdfService.generatePdf(request);
-      String url = "";
-//      String url = storageService.uploadFile(pdfContent);
+      String url = storageService.uploadFile(pdfContent);
       transaction.setTransactionFile(url);
       return createTransaction(transaction);
     } catch (Exception e) {
