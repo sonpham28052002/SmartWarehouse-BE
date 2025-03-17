@@ -7,7 +7,6 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
 import java.time.LocalDateTime;
 
-@Data
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,30 +14,31 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 public class UserRequest {
-    private Long id;
 
-    @NonNull
-    private String code;
-    @NonNull
-    private String userName;
-    @NonNull
-    private String email;
-    @NonNull
-    private String phoneNumber;
-    @NonNull
-    private String fullName;
-    @NonNull
-    private String address;
-    @NonNull
-    private boolean sex;
+  private Long id;
 
-    @NonNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime dateOfBirth;
+  @NonNull
+  private String code;
+  @NonNull
+  private String userName;
+  @NonNull
+  private String email;
+  @NonNull
+  private String phoneNumber;
+  @NonNull
+  private String fullName;
+  @NonNull
+  private String address;
+  @NonNull
+  private boolean sex;
 
-    private String profilePicture;
+  @NonNull
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  private LocalDateTime dateOfBirth;
 
-    private UserStatus status;
-    @NonNull
-    private Role role;
+  private String profilePicture;
+
+  private UserStatus status;
+  @NonNull
+  private Role role;
 }
