@@ -13,15 +13,19 @@ import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 
 @Repository
-public interface WarehouseRepository extends JpaRepository<Warehouse, Long>, JpaSpecificationExecutor<Warehouse> {
-    @EntityGraph(attributePaths = {"staffs", "manager"})
-    default Page<Warehouse> findWareHouseAll(boolean excluded, @NonNull Specification<Warehouse> specification, Pageable pageable ) {
-        Specification<Warehouse> finalSpecification = specification;
+public interface WarehouseRepository extends JpaRepository<Warehouse, Long>,
+    JpaSpecificationExecutor<Warehouse> {
 
-        if (excluded) {
-            finalSpecification = finalSpecification.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
-        }
+  @EntityGraph(attributePaths = {"staffs", "manager", "stockTakes", "warehouseShelves"})
+  default Page<Warehouse> findWareHouseAll(boolean excluded,
+      @NonNull Specification<Warehouse> specification, Pageable pageable) {
+    Specification<Warehouse> finalSpecification = specification;
 
-        return findAll(finalSpecification, pageable);
+    if (excluded) {
+      finalSpecification = finalSpecification.and(
+          (root, query, cb) -> cb.equal(root.get("deleted"), false));
     }
+
+    return findAll(finalSpecification, pageable);
+  }
 }

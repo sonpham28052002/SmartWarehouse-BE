@@ -1,16 +1,16 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
@@ -24,37 +24,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Warehouse extends Auditable implements Serializable {
 
   @Id
-  @Column(name = "id")
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String address;
 
   private String code;
-
   private String name;
 
   @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
-  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+  @JsonIgnore
   private Set<User> staffs = new HashSet<>();
 
-  @OneToOne
+  @OneToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "manager_id", referencedColumnName = "id", nullable = true)
-  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
+  @JsonBackReference
   private User manager;
 
-  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "warehouse", fetch = FetchType.LAZY)
   private List<WarehouseShelf> warehouseShelves;
 
-  @Override
-  public String toString() {
-    return "Warehouse{" +
-        "id=" + id +
-        ", address='" + address + '\'' +
-        ", code='" + code + '\'' +
-        ", name='" + name + '\'' +
-        ", staffs=" + staffs +
-        ", manager=" + manager +
-        '}';
-  }
+
 }
