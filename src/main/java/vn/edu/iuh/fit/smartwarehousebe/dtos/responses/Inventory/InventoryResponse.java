@@ -22,4 +22,5 @@ public class InventoryResponse implements Serializable {
   private ProductResponse product;
   private Long quantity;
   private UnitResponse unit;
+  private String location;
 }

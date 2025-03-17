@@ -16,5 +16,6 @@ import lombok.ToString;
 public class GetStockTakeDetailRequest {
 
   private String productCode;
+  private String productName;
 
 }

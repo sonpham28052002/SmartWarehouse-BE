@@ -20,7 +20,6 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
 @Builder
 @SQLDelete(sql = "UPDATE stock_take_detail SET deleted = true, status = 5 WHERE inventory_id = ? AND stock_take_id = ?  ")
 @JsonIgnoreProperties({"stockTake", "inventory"})
-@Where(clause = "deleted = false")
 public class StockTakeDetail extends Auditable implements Serializable {
 
   @EmbeddedId

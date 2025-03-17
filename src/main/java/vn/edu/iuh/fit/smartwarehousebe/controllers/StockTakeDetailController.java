@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +30,13 @@ public class StockTakeDetailController {
       GetStockTakeDetailRequest request) {
     return ResponseEntity.ok(stockTakeDetailService.getAll(stockTakeId,
         PageRequest.of(currentPage - 1, perPage, Sort.by(Sort.Direction.DESC, "id")), request));
+  }
+
+  @DeleteMapping("{stockTakeId}/{inventoryId}")
+  public ResponseEntity<Boolean> getAll(@PathVariable Long stockTakeId,
+      @PathVariable Long inventoryId) {
+    System.out.println(stockTakeId);
+    System.out.println(inventoryId);
+    return ResponseEntity.ok(stockTakeDetailService.deleteStockTake(inventoryId, stockTakeId));
   }
 }
