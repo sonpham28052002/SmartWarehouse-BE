@@ -232,4 +232,9 @@ public class UserService extends CommonService<User> implements UserDetailsServi
       throw new UserNotFoundException();
     }
   }
+
+  public UserResponse getUserByCode(String userCode) {
+    return userMapper.toDto(userRepository.findByCode(userCode)
+        .orElseThrow(UserNotFoundException::new));
+  }
 }

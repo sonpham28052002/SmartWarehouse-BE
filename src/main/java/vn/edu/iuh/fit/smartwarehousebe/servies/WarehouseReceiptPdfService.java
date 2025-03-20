@@ -36,13 +36,13 @@ public class WarehouseReceiptPdfService {
     this.productService = productService;
   }
 
-  /**
-   * Generates a PDF document for a warehouse receipt
-   *
-   * @param request The request containing the details of the warehouse receipt
-   * @return A byte array containing the generated PDF
-   */
-  public MultipartFile generatePdf(WarehouseReceiptRequest request) {
+ /**
+    * Generates a PDF for the given warehouse receipt request.
+    *
+    * @param request the warehouse receipt request containing the necessary data
+    * @return a byte array representing the generated PDF
+    */
+  public byte[] generatePdf(WarehouseReceiptRequest request) {
     SupplierResponse supplier = supplierService.getById(request.getSupplierId());
     WarehouseResponse warehouse = warehouseService.getById(request.getToWarehouseId());
     User user = userService.getUserById(request.getUserId());

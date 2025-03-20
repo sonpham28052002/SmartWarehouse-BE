@@ -180,6 +180,12 @@ public class TransactionService {
           .warehouseId(warehouse.getId())
           .build();
       if (transactionCSVRequest.get(0).getTransferCode() != null) {
+        if (transactionCSVRequest.get(0).getSupplierCode() != null) {
+          throw new RuntimeException("Cannot import transaction with both transfer and supplier");
+        }
+        if (transactionCSVRequest.get(0).getTransferCode().equals(transactionCSVRequest.get(0).getWarehouseCode())) {
+          throw new RuntimeException("Cannot import transaction with transfer code equals to warehouse code");
+        }
         WarehouseResponse transfer = warehouseService.getByCode(transactionCSVRequest.get(0).getTransferCode());
         request.setTransferId(transfer.getId());
       } else {

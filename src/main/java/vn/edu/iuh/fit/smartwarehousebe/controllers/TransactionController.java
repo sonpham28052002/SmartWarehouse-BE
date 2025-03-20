@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +15,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQ
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 
 /**
@@ -23,9 +27,11 @@ import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 @RequestMapping("/transactions")
 public class TransactionController {
   private final TransactionService transactionService;
+  private final DeliveryNotePdfService deliveryNotePdfService;
 
-  public TransactionController(TransactionService transactionService) {
+  public TransactionController(TransactionService transactionService, DeliveryNotePdfService deliveryNotePdfService) {
     this.transactionService = transactionService;
+    this.deliveryNotePdfService = deliveryNotePdfService;
   }
 
   @GetMapping()
@@ -91,5 +97,16 @@ public class TransactionController {
   @PostMapping(value = "/import", consumes = {"multipart/form-data"})
   public TransactionWithDetailResponse importTransaction(@RequestParam("file") MultipartFile file) {
     return transactionService.importWarehouseTransaction(file);
+  }
+
+  @PostMapping("/get-warehouse-report/{transactionId}")
+  public ResponseEntity<byte[]> exportPdf(@PathVariable Long transactionId) {
+    byte[] pdfContent = deliveryNotePdfService.generatePdf(transactionId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDispositionFormData("attachment", "phieu-nhap-kho-" + transactionId + ".pdf");
+    headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+    return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
   }
 }

@@ -1,12 +1,12 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.DeliveryNote;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.DeliveryNoteRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
-import vn.edu.iuh.fit.smartwarehousebe.models.User;
-import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,41 +26,56 @@ public class DeliveryNotePdfService {
   private final WarehouseService warehouseService;
   private final UserService userService;
   private final ProductService productService;
+  private final TransactionService transactionService;
+  private final SupplierService supplierService;
 
-  public DeliveryNotePdfService(PdfGenerationService pdfGenerationService, WarehouseService warehouseService, UserService userService, ProductService productService) {
+  public DeliveryNotePdfService(PdfGenerationService pdfGenerationService, WarehouseService warehouseService, UserService userService, ProductService productService, TransactionService transactionService, SupplierService supplierService) {
     this.pdfGenerationService = pdfGenerationService;
     this.warehouseService = warehouseService;
     this.userService = userService;
     this.productService = productService;
+    this.transactionService = transactionService;
+    this.supplierService = supplierService;
   }
 
   /**
-   * Generates a PDF for the given delivery note request.
+   * Generates a PDF for the delivery note of a given transaction.
    *
-   * @param request the delivery note request containing the details for the PDF
-   * @return the generated PDF as a MultipartFile
+   * @param transactionId the ID of the transaction
+   * @return a byte array representing the generated PDF
    */
-  public MultipartFile generatePdf(DeliveryNoteRequest request) {
-    WarehouseResponse fromWarehouse = warehouseService.getById(request.getFromWarehouseId());
-    WarehouseResponse toWarehouse = warehouseService.getById(request.getToWarehouseId());
-    User user = userService.getUserById(request.getUserId());
+  public byte[] generatePdf(Long transactionId) {
+    TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
+    WarehouseResponse fromWarehouse = null;
+    SupplierResponse fromSupplier = null;
+    if (transaction.getTransferCode() != null) {
+      fromWarehouse = warehouseService.getByCode(transaction.getTransferCode());
+    } else {
+      fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
+    }
+    WarehouseResponse toWarehouse = warehouseService.getByCode(transaction.getWarehouseCode());
+    UserResponse user = userService.getUserByCode(transaction.getExecutorCode());
+
     List<DeliveryNote.DeliveryNoteItem> noteItems =
-        productService.getByIds(request.getProducts().stream().map(DeliveryNoteRequest.Item::getProductId).toList())
+        transaction.getDetails()
             .stream()
-            .map(product -> DeliveryNote.DeliveryNoteItem.builder()
-                .productCode(product.getCode())
-                .sku(product.getSku())
-                .productName(product.getName())
-                .unit(product.getUnit().getName())
-                .quantity(request.getProducts().stream().filter(p -> p.getProductId().equals(product.getId())).findFirst().get().getQuantity())
-                .build())
+            .map(item -> {
+              ProductResponse product = productService.getByCode(item.getProductCode());
+              return DeliveryNote.DeliveryNoteItem.builder()
+                  .productCode(item.getProductCode())
+                  .sku(product.getSku())
+                  .productName(product.getName())
+                  .unit(product.getUnit().getName())
+                  .quantity(item.getQuantity())
+                  .build();
+            })
             .toList();
 
     DeliveryNote deliveryNote = DeliveryNote.builder()
         .code(generateDeliveryNoteCode())
-        .fromWarehouseCode(fromWarehouse.getCode())
-        .fromWarehouseName(fromWarehouse.getName())
-        .fromWarehouseAddress(fromWarehouse.getAddress())
+        .fromWarehouseCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
+        .fromWarehouseName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
+        .fromWarehouseAddress(fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
         .toWarehouseCode(toWarehouse.getCode())
         .toWarehouseName(toWarehouse.getName())
         .toWarehouseAddress(toWarehouse.getAddress())

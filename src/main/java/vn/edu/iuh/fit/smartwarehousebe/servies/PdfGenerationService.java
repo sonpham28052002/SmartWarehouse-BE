@@ -35,7 +35,7 @@ public class PdfGenerationService {
    * @param model        The data model to be used for template processing
    * @return A byte array containing the generated PDF
    */
-  public MultipartFile generatePdfFromHtmlTemplate(String templateName, Map<String, Object> model) {
+  public byte[] generatePdfFromHtmlTemplate(String templateName, Map<String, Object> model) {
     try {
       // Process the HTML template with the provided data model
       Template template = freemarkerConfig.getTemplate(templateName + ".html");
@@ -48,11 +48,7 @@ public class PdfGenerationService {
       // Convert HTML to PDF
       HtmlConverter.convertToPdf(htmlContent, outputStream, converterProperties);
 
-      return MultipartFileUtil.createMultipartFile(
-          outputStream,
-          templateName + ".pdf",
-          "application/pdf"
-      );
+      return outputStream.toByteArray();
     } catch (IOException | TemplateException e) {
       throw new RuntimeException("Error generating PDF from HTML template", e);
     }

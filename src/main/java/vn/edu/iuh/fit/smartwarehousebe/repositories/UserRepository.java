@@ -51,13 +51,15 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     List<User> findUsersByCodeIn(Collection<String> codes);
 
     List<User> findUsersByUserNameIn(Collection<String> userNames);
-    
+
     /**
      * Find the first user with the specified role
-     * 
+     *
      * @param role the role to search for
      * @return an Optional containing the first user with the specified role, or empty if none found
      */
     @Query("SELECT u FROM User u WHERE u.role = :role AND u.deleted = false ORDER BY u.id ASC")
     Optional<User> findFirstByRole(Integer role);
+
+    Optional<User> findByCode(String userCode);
 }
