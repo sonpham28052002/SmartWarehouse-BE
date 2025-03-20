@@ -1,27 +1,30 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserCodeNotValid;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.UserSpecification;
 import vn.edu.iuh.fit.smartwarehousebe.utils.helpers.UserCsvHelper;
 
@@ -30,9 +33,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService extends CommonService<User> implements UserDetailsService {
+  @Autowired
+  private UserMapper userMapper;
 
   @Autowired
   private UserRepository userRepository;
@@ -68,7 +74,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
+  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
   public User createUser(User user) {
     user.setPassword(passwordEncoder.encode("11111"));
     return userRepository.save(user);
@@ -80,7 +86,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
+  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
   public User updateUser(User user) {
     User userOld = userRepository.findById(user.getId())
         .orElseThrow(() -> new NoSuchElementException());
@@ -206,4 +212,24 @@ public class UserService extends CommonService<User> implements UserDetailsServi
     return code.matches(regex);
   }
 
+  /**
+   * Get the current authenticated user's ID or a default admin ID if no user is authenticated
+   *
+   * @return the ID of the current authenticated user or a default admin ID
+   */
+  public Long getCurrentUserId() {
+    try {
+      // Try to get the current authenticated user
+      Authentication authentication =
+          SecurityContextHolder.getContext().getAuthentication();
+
+      if (authentication != null && authentication.isAuthenticated() &&
+          authentication.getPrincipal() instanceof User user) {
+        return user.getId();
+      }
+      throw new UserNotFoundException();
+    } catch (Exception e) {
+      throw new UserNotFoundException();
+    }
+  }
 }

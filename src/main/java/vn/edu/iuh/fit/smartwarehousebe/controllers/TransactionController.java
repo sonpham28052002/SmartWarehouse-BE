@@ -62,6 +62,32 @@ public class TransactionController {
     return ResponseEntity.ok(transactionService.getTransactionBetween(pageRequest, request));
   }
 
+  /**
+   * Import transactions from a CSV file.
+   * <p>
+   * The CSV file should have the following header format:
+   * description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
+   * <p>
+   * Where:
+   * <p>
+   * - description: A brief description of the transaction
+   * - warehouse_code: The code of the warehouse where the transaction takes place
+   * - transfer_code: (Optional) The code of the transfer warehouse if applicable
+   * - supplier_code: (Optional) The code of the supplier if applicable
+   * - product_code: The code of the product
+   * - quantity: The quantity of the product
+   * - unit_code: The code of the unit of measurement
+   * <p>
+   * Multiple products can be included as separate rows with the same warehouse, transfer, and supplier codes.
+   * <p>
+   * Example:
+   * description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
+   * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-01351,100,UNIT-18590
+   * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-39508,200,UNIT-06567
+   *
+   * @param file the CSV file to import
+   * @return the imported transaction
+   */
   @PostMapping(value = "/import", consumes = {"multipart/form-data"})
   public TransactionWithDetailResponse importTransaction(@RequestParam("file") MultipartFile file) {
     return transactionService.importWarehouseTransaction(file);

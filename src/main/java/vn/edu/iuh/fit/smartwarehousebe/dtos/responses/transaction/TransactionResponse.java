@@ -16,8 +16,8 @@ public class TransactionResponse implements Serializable {
     LocalDateTime transactionDate;
     String transactionFile;
     String description;
-    Long executorId;
-    Long warehouseId;
-    Long transferId;
-    Long supplierId;
+    String executorCode;
+    String warehouseCode;
+    String transferCode;
+    String supplierCode;
 }

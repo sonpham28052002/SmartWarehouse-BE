@@ -182,4 +182,10 @@ public class WarehouseService extends CommonService<Warehouse> {
     return false;
 
   }
+
+  public WarehouseResponse getByCode(String warehouseCode) {
+    return warehouseRepository.findByCode(warehouseCode)
+        .map(warehouseMapper::toDto)
+        .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
+  }
 }

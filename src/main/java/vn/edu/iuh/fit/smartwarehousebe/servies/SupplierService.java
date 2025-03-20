@@ -12,7 +12,6 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.SupplierNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
-import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.SupplierRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SupplierSpecification;
@@ -90,6 +89,12 @@ public class SupplierService extends CommonService<Supplier>{
                     supplierRepository.delete(supplier);
                     return true;
                 })
+                .orElseThrow(SupplierNotFoundException::new);
+    }
+
+    public SupplierResponse getByCode(String supplierCode) {
+        return supplierRepository.findByCode(supplierCode)
+                .map(supplierMapper::toDto)
                 .orElseThrow(SupplierNotFoundException::new);
     }
 }

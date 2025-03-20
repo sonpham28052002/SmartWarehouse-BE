@@ -15,21 +15,25 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @SQLDelete(sql = "UPDATE unit SET deleted = true WHERE id = ?")
-public class Unit extends Auditable{
+public class Unit extends Auditable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String code;
+  private String code;
 
-    private String name;
+  private String name;
 
-    @OneToMany(mappedBy = "unit")
-    @JsonIgnore
-    private List<Product> product;
+  @OneToMany(mappedBy = "unit")
+  @JsonIgnore
+  private List<Product> product;
 
-    @OneToMany(mappedBy = "unit")
-    @JsonIgnore
-    private List<Inventory> inventories;
+  @OneToMany(mappedBy = "unit")
+  @JsonIgnore
+  private List<Inventory> inventories;
+
+  @OneToMany(mappedBy = "unit")
+  @JsonIgnore
+  private List<TransactionDetail> transactionDetails;
 }

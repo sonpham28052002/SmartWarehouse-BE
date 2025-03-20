@@ -7,15 +7,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionImportCsvRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.WarehouseReceiptRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.UnitOfProductNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.*;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
@@ -25,6 +30,7 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,41 +42,38 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TransactionService {
+  private final UnitMapper unitMapper;
   private final TransactionRepository transactionRepository;
   private final TransactionMapper transactionMapper;
   private final WarehouseService warehouseService;
   private final SupplierService supplierService;
   private final SupplierMapper supplierMapper;
   private final UserService userService;
-  private final ProductService productService;
   private final ProductMapper productMapper;
-  private final StorageLocationService storageLocationService;
-  private final StorageLocationMapper storageLocationMapper;
   private final CsvService csvService;
   private final WarehouseMapper warehouseMapper;
-  private final WarehouseReceiptPdfService warehouseReceiptPdfService;
-  private final StorageService storageService;
+  private final UnitService unitService;
+  private final ProductService productService;
 
   public TransactionService(TransactionRepository transactionRepository,
                             TransactionMapper transactionMapper, WarehouseService warehouseService, SupplierService supplierService,
-                            SupplierMapper supplierMapper, UserService userService, ProductService productService,
-                            ProductMapper productMapper, StorageLocationService storageLocationService,
-                            StorageLocationMapper storageLocationMapper, CsvService csvService,
-                            WarehouseMapper warehouseMapper, WarehouseReceiptPdfService warehouseReceiptPdfService, StorageService storageService) {
+                            SupplierMapper supplierMapper, UserService userService,
+                            ProductMapper productMapper,
+                            CsvService csvService,
+                            WarehouseMapper warehouseMapper, UnitService unitService,
+                            UnitMapper unitMapper, ProductService productService) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
     this.supplierService = supplierService;
     this.supplierMapper = supplierMapper;
     this.userService = userService;
-    this.productService = productService;
     this.productMapper = productMapper;
-    this.storageLocationService = storageLocationService;
-    this.storageLocationMapper = storageLocationMapper;
     this.csvService = csvService;
     this.warehouseMapper = warehouseMapper;
-    this.warehouseReceiptPdfService = warehouseReceiptPdfService;
-    this.storageService = storageService;
+    this.unitService = unitService;
+    this.unitMapper = unitMapper;
+    this.productService = productService;
   }
 
   /**
@@ -120,18 +123,26 @@ public class TransactionService {
     transaction.setWarehouse(warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
     if (request.getTransferId() != null) {
       transaction.setTransfer(warehouseMapper.toEntity(warehouseService.getById(request.getTransferId())));
+      transaction.setTransactionType(TransactionType.IMPORT_FROM_WAREHOUSE);
     }
     if (request.getSupplierId() != null) {
       transaction.setSupplier(supplierMapper.toEntity(supplierService.getById(request.getSupplierId())));
+      transaction.setTransactionType(TransactionType.IMPORT_FROM_SUPPLIER);
     }
-    if (request.getExecutorId() != null) {
-      transaction.setExecutor(userService.getUserById(request.getExecutorId()));
-    }
+    transaction.setExecutor(userService.getUserById(userService.getCurrentUserId()));
     Set<TransactionDetail> details = request.getDetails().stream()
         .map(d -> {
           TransactionDetail detail = transactionMapper.toEntity(d);
-          detail.setProduct(productMapper.toEntity(productService.getById(d.getProductId())));
-          detail.setStorageLocation(storageLocationMapper.toEntity(storageLocationService.getById(d.getStorageId())));
+          ProductResponse product = productService.getById(d.getProductId());
+          if (!(Objects.equals(product.getUnit().getId(), d.getUnitId()) || product.getConversionUnits().stream().anyMatch(
+              convertUnit -> Objects.equals(convertUnit.getToUnit().getId(), d.getUnitId())
+          ))) {
+            throw new UnitOfProductNotFoundException();
+          }
+
+          detail.setProduct(productMapper.toEntity(product));
+          detail.setTransactionType(transaction.getTransactionType());
+          detail.setUnit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId())));
           detail.setTransaction(transaction);
           return detail;
         })
@@ -142,7 +153,7 @@ public class TransactionService {
   }
 
   /**
-   * Retrieves a paginated list of transactions that occurred between the specified start and end dates.
+   * Retrieves a paginated list of transactions between the specified start and end dates.
    *
    * @param pageRequest the pagination information
    * @param request     the request containing the start and end dates
@@ -155,29 +166,43 @@ public class TransactionService {
         .map(transactionMapper::toDto);
   }
 
+  /**
+   * Imports warehouse transactions from a CSV file.
+   *
+   * @param file the CSV file containing transaction data
+   * @return the transaction response with details
+   */
   public TransactionWithDetailResponse importWarehouseTransaction(MultipartFile file) {
     try {
-      List<TransactionRequest> requests = csvService.parseCsv(file.getInputStream(), TransactionRequest.class);
-      if (requests.isEmpty()) {
-        throw new IllegalArgumentException("CSV file is empty");
-      }
-      TransactionRequest transaction = requests.get(0);
-      WarehouseReceiptRequest request = WarehouseReceiptRequest.builder()
-          .toWarehouseId(transaction.getWarehouseId())
-          .supplierId(transaction.getSupplierId())
-          .userId(transaction.getExecutorId())
-          .products(transaction.getDetails().stream().map(detail -> WarehouseReceiptRequest.Item.builder()
-              .productId(detail.getProductId())
-              .quantity(detail.getQuantity())
-              .build()).toList())
+      List<TransactionImportCsvRequest> transactionCSVRequest = csvService.parseCsv(file.getInputStream(), TransactionImportCsvRequest.class);
+      WarehouseResponse warehouse = warehouseService.getByCode(transactionCSVRequest.get(0).getWarehouseCode());
+      TransactionRequest request = TransactionRequest.builder()
+          .warehouseId(warehouse.getId())
           .build();
-      MultipartFile pdfContent = warehouseReceiptPdfService.generatePdf(request);
-      String url = storageService.uploadFile(pdfContent);
-      transaction.setTransactionFile(url);
-      return createTransaction(transaction);
+      if (transactionCSVRequest.get(0).getTransferCode() != null) {
+        WarehouseResponse transfer = warehouseService.getByCode(transactionCSVRequest.get(0).getTransferCode());
+        request.setTransferId(transfer.getId());
+      } else {
+        SupplierResponse supplier = supplierService.getByCode(transactionCSVRequest.get(0).getSupplierCode());
+        request.setSupplierId(supplier.getId());
+      }
+      List<TransactionRequest.TransactionDetailRequest> details = transactionCSVRequest.stream()
+          .map(t -> {
+            ProductResponse product = productService.getByCode(t.getProductCode());
+            UnitResponse unit = unitService.getUnitByCode(t.getUnitCode());
+
+            return TransactionRequest.TransactionDetailRequest.builder()
+                .productId(product.getId())
+                .unitId(unit.getId())
+                .quantity(t.getQuantity())
+                .build();
+          })
+          .toList();
+      request.setDetails(details);
+
+      return createTransaction(request);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-
   }
 }

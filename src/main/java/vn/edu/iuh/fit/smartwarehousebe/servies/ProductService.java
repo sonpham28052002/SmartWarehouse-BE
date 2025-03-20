@@ -156,4 +156,9 @@ public class ProductService extends CommonService<Product> {
     return productRepository.findByIdIn(productIds).stream()
         .map(productMapper::toDto).toList();
   }
+
+  public ProductResponse getByCode(String productCode) {
+    return productRepository.findByCode(productCode).map(productMapper::toDto)
+        .orElseThrow(ProductNotFoundException::new);
+  }
 }

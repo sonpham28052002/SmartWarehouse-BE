@@ -11,22 +11,24 @@ import vn.edu.iuh.fit.smartwarehousebe.annotations.CsvField;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CsvService {
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+  public CsvService() {
+  }
 
   public String[][] readCsv(MultipartFile file) throws IOException, CsvValidationException {
     List<String[]> dataList = new ArrayList<>();
 
-    try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream(), "UTF-8"))) {
+    try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
       String[] line;
       while ((line = csvReader.readNext()) != null) {
         dataList.add(line);
@@ -43,7 +45,10 @@ public class CsvService {
     List<T> resultList = new ArrayList<>();
 
     try (Reader reader = new BufferedReader(new InputStreamReader(csvInputStream, StandardCharsets.UTF_8))) {
-      CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
+      CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder()
+          .setHeader()
+          .setSkipHeaderRecord(true)
+          .build());
       for (CSVRecord record : csvParser) {
         resultList.add(mapCsvToObject(record, clazz));
       }
@@ -60,48 +65,29 @@ public class CsvService {
         String csvColumn = csvField.value();
 
         field.setAccessible(true);
-        if (List.class.isAssignableFrom(field.getType())) {
-          List<?> details = parseListField(record, field);
-          field.set(instance, details);
-        } else {
-          Object value = convertValue(record.get(csvColumn), field.getType());
-          field.set(instance, value);
-        }
+        Object value = convertValue(record.get(csvColumn), field.getType());
+        field.set(instance, value);
       }
     }
     return instance;
   }
 
-  private List<?> parseListField(CSVRecord record, Field field) throws Exception {
-    Type genericType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-    Class<?> elementType = (Class<?>) genericType;
-
-    List<Object> list = new ArrayList<>();
-    int index = 1;
-    while (record.isMapped("detail" + index + "_productId")) {
-      Object detailInstance = elementType.getDeclaredConstructor().newInstance();
-      for (Field subField : elementType.getDeclaredFields()) {
-        if (subField.isAnnotationPresent(CsvField.class)) {
-          CsvField csvField = subField.getAnnotation(CsvField.class);
-          String column = "detail" + index + "_" + csvField.value();
-          subField.setAccessible(true);
-          subField.set(detailInstance, convertValue(record.get(column), subField.getType()));
-        }
-      }
-      list.add(detailInstance);
-      index++;
-    }
-    return list;
-  }
-
-  private Object convertValue(String value, Class<?> type) {
+  public Object convertValue(String value, Class<?> type) {
     if (value == null || value.isBlank()) return null;
     if (type == String.class) return value;
     if (type == Integer.class || type == int.class) return Integer.parseInt(value);
     if (type == Long.class || type == long.class) return Long.parseLong(value);
     if (type == Double.class || type == double.class) return Double.parseDouble(value);
-    if (type.isEnum()) return Enum.valueOf((Class<Enum>) type, value);
+    if (type.isEnum()) {
+      try {
+        Method valueOfMethod = type.getMethod("valueOf", String.class);
+        return valueOfMethod.invoke(null, value);
+      } catch (Exception e) {
+        throw new RuntimeException("Error converting to enum: " + e.getMessage(), e);
+      }
+    }
     if (type == LocalDateTime.class) return LocalDateTime.parse(value, DATE_TIME_FORMATTER);
     return value;
   }
 }
+

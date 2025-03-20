@@ -20,7 +20,7 @@ public class TransactionDetail {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "storage_localtion_id", nullable = false)
+    @JoinColumn(name = "storage_localtion_id")
     private StorageLocation storageLocation;
 
     private int quantity;
@@ -32,5 +32,9 @@ public class TransactionDetail {
     @ManyToOne
     @JoinColumn(name = "transaction_id", nullable = false)
     private Transaction transaction;
+
+    @ManyToOne
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
 
 }
