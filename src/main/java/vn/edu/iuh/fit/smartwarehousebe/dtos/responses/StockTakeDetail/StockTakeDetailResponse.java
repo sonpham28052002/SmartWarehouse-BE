@@ -17,12 +17,9 @@ public class StockTakeDetailResponse implements Serializable {
 
   @JsonManagedReference
   private InventoryResponse inventory;
-
   private Long expectedQuantity;
-
   private Long actualQuantity;
-
+  private Long damagedQuantity;
   private String description;
-
   private StockTakeDetailStatus status;
 }
