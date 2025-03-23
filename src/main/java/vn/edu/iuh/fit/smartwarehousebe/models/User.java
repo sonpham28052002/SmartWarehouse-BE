@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -69,9 +70,11 @@ public class User extends Auditable implements UserDetails, Serializable {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "warehouse_id")
+  @JsonIgnore
   private Warehouse warehouse;
 
-  @OneToOne(mappedBy = "manager")
+  @OneToOne(mappedBy = "manager", fetch = FetchType.LAZY)
+  @JsonIgnore
   private Warehouse warehouseManager;
 
   @Override

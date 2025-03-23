@@ -9,8 +9,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class ErrorResponse {
-    private String message;
-    private List<String> details;
+
+  private String message;
+  private List<String> details;
 }

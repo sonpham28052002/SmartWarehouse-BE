@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -147,6 +148,14 @@ public class ProductService extends CommonService<Product> {
       productRepository.delete(product);
       return true;
     }).orElseThrow(ProductNotFoundException::new);
+  }
+
+  @Transactional
+  @CacheEvict(value = "products", allEntries = true)
+  public List<ProductResponse> findAllByWarehouseId(Long warehouseId) {
+    return productRepository.findAllByWarehouseId(warehouseId).stream()
+        .map((i) -> ProductMapper.INSTANCE.toDto(i)).collect(
+            Collectors.toList());
   }
 
 }

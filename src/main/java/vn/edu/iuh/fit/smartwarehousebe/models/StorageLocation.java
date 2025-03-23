@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -36,7 +37,7 @@ public class StorageLocation extends Auditable implements Serializable {
   @Column(name = "max_capacity", nullable = false)
   private Double maxCapacity;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "warehouse_shelf_id")
   private WarehouseShelf warehouseShelf;
 

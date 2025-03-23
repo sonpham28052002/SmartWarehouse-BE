@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit;
 
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,14 +12,14 @@ import lombok.Value;
 
 import java.time.LocalDateTime;
 
-@Data
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
-public class UnitResponse {
+public class UnitResponse implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   Long id;
   String code;
