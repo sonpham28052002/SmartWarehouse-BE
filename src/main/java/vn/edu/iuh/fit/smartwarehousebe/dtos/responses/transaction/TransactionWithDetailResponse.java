@@ -21,7 +21,7 @@ public class TransactionWithDetailResponse implements Serializable {
   String warehouseCode;
   String transferCode;
   String supplierCode;
-  transient List<TransactionDetailResponse> details;
+  List<TransactionDetailResponse> details;
 
   @Value
   public static class TransactionDetailResponse implements Serializable {

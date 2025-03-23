@@ -16,7 +16,7 @@ public class AuthResponse {
   private String refreshToken;
   private Long exp;
   @JsonIgnoreProperties({"authorities", "accountNonExpired", "credentialsNonExpired",
-      "accountNonLocked", "warehouseManager", "warehouse"})
+      "accountNonLocked", "warehouseManager", "warehouse", "transactions"})
   private User user;
   private String message;
   private int code;
