@@ -42,6 +42,7 @@ public class WarehouseService extends CommonService<Warehouse> {
   @Autowired
   private StorageService storageService;
 
+  @Transactional
   @Cacheable(value = "warehouse", key = "#request + '_' + #page + '_' + #size + '_' + #sortBy", unless = "#result == null")
   public Page<WarehouseResponse> getAll(int page, int size, String sortBy, GetWarehouseQuest request) {
     Specification<Warehouse> spec = Specification.where(null);
@@ -62,6 +63,7 @@ public class WarehouseService extends CommonService<Warehouse> {
     return warehouseRepository.findWareHouseAll(request.isDeleted(), spec, pageable).map(warehouseMapper::toDto);
   }
 
+  @Transactional
   @Cacheable(value = "warehouse", key = "#request", unless = "#result == null")
   public List<WarehouseResponse> getAll(GetWarehouseQuest request) {
     Specification<Warehouse> spec = Specification.where(null);
@@ -82,6 +84,7 @@ public class WarehouseService extends CommonService<Warehouse> {
     return warehouseRepository.findAll(spec).stream().map(warehouseMapper::toDto).toList();
   }
 
+  @Transactional
   @Cacheable(value = "warehouse", key = "#id", unless = "#result == null")
   public WarehouseResponse getById(Long id) {
     return warehouseRepository.findById(id).map(warehouseMapper::toDto)

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.io.Serializable;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @SQLDelete(sql = "UPDATE product SET deleted = true WHERE id = ?")
-public class Product extends Auditable {
+public class Product extends Auditable implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

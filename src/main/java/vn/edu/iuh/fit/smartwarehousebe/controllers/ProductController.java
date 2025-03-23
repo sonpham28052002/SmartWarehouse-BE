@@ -80,4 +80,10 @@ public class ProductController {
   public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
     return ResponseEntity.ok(productService.checkCodeIsExist(Product.class, code));
   }
+
+  @GetMapping("/{warehouseId}/findAllByWarehouseId")
+  public ResponseEntity<List<ProductResponse>> findAllByWarehouseId(
+      @PathVariable Long warehouseId) {
+    return ResponseEntity.ok(productService.findAllByWarehouseId(warehouseId));
+  }
 }

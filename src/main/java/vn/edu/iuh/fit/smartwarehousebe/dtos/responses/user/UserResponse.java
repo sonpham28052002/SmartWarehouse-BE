@@ -8,13 +8,11 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
 import java.time.LocalDateTime;
 
-@Data
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 public class UserResponse implements Serializable {
 
   private Long id;

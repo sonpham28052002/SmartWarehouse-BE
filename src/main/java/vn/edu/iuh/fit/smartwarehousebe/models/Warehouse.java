@@ -1,5 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,16 +51,4 @@ public class Warehouse extends Auditable implements Serializable {
 
   @OneToMany(mappedBy = "transfer")
   private Set<Transaction> transferTransactions;
-
-  @Override
-  public String toString() {
-    return "Warehouse{" +
-        "id=" + id +
-        ", address='" + address + '\'' +
-        ", code='" + code + '\'' +
-        ", name='" + name + '\'' +
-        ", staffs=" + staffs +
-        ", manager=" + manager +
-        '}';
-  }
 }
