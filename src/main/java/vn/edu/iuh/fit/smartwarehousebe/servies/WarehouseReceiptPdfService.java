@@ -1,12 +1,14 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.WarehouseReceipt;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.WarehouseReceiptRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
-import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,46 +29,67 @@ public class WarehouseReceiptPdfService {
   private final WarehouseService warehouseService;
   private final UserService userService;
   private final ProductService productService;
+  private final TransactionService transactionService;
+  private final UnitService unitService;
 
-  public WarehouseReceiptPdfService(PdfGenerationService pdfGenerationService, SupplierService supplierService, WarehouseService warehouseService, UserService userService, ProductService productService) {
+  public WarehouseReceiptPdfService(PdfGenerationService pdfGenerationService, SupplierService supplierService, WarehouseService warehouseService, UserService userService, ProductService productService, TransactionService transactionService, UnitService unitService) {
     this.pdfGenerationService = pdfGenerationService;
     this.supplierService = supplierService;
     this.warehouseService = warehouseService;
     this.userService = userService;
     this.productService = productService;
+    this.transactionService = transactionService;
+    this.unitService = unitService;
   }
 
- /**
-    * Generates a PDF for the given warehouse receipt request.
-    *
-    * @param request the warehouse receipt request containing the necessary data
-    * @return a byte array representing the generated PDF
-    */
-  public byte[] generatePdf(WarehouseReceiptRequest request) {
-    SupplierResponse supplier = supplierService.getById(request.getSupplierId());
-    WarehouseResponse warehouse = warehouseService.getById(request.getToWarehouseId());
-    User user = userService.getUserById(request.getUserId());
+  /**
+   * Generates a PDF for a warehouse receipt based on the given transaction ID.
+   *
+   * @param transactionId the ID of the transaction to generate the PDF for
+   * @return a byte array representing the generated PDF
+   */
+  public byte[] generatePdf(Long transactionId) {
+    TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
+    if (transaction.getTransactionType() != TransactionType.IMPORT_FROM_SUPPLIER &&
+        transaction.getTransactionType() != TransactionType.IMPORT_FROM_WAREHOUSE) {
+      throw new IllegalArgumentException("Transaction type is not import from supplier or warehouse");
+    }
+
+    WarehouseResponse fromWarehouse = null;
+    SupplierResponse fromSupplier = null;
+    if (transaction.getTransferCode() != null) {
+      fromWarehouse = warehouseService.getByCode(transaction.getTransferCode());
+    } else {
+      fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
+    }
+    WarehouseResponse toWarehouse = warehouseService.getByCode(transaction.getWarehouseCode());
+    UserResponse user = userService.getUserByCode(transaction.getExecutorCode());
     List<WarehouseReceipt.WarehouseReceiptItem> receiptItems =
-        productService.getByIds(request.getProducts().stream().map(WarehouseReceiptRequest.Item::getProductId).toList())
+        transaction.getDetails()
             .stream()
-            .map(product -> WarehouseReceipt.WarehouseReceiptItem.builder()
-                .productCode(product.getCode())
-                .sku(product.getSku())
-                .productName(product.getName())
-                .unit(product.getUnit().getName())
-                .quantity(request.getProducts().stream().filter(p -> p.getProductId().equals(product.getId())).findFirst().get().getQuantity())
-                .build())
+            .map(
+                item -> {
+                  ProductResponse product = productService.getByCode(item.getProductCode());
+                  UnitResponse unit = unitService.getUnitByCode(item.getUnitCode());
+                  return WarehouseReceipt.WarehouseReceiptItem.builder()
+                      .productCode(product.getCode())
+                      .productName(product.getName())
+                      .sku(product.getSku())
+                      .quantity(item.getQuantity())
+                      .unit(unit.getName())
+                      .build();
+                })
             .toList();
 
     WarehouseReceipt receipt = WarehouseReceipt.builder()
         .code(generateWarehouseReceiptCode())
-        .supplierCode(supplier.getCode())
-        .supplierName(supplier.getName())
-        .supplierAddress(supplier.getAddress())
-        .supplierPhone(supplier.getPhone())
-        .warehouseCode(warehouse.getCode())
-        .warehouseName(warehouse.getName())
-        .warehouseAddress(warehouse.getAddress())
+        .supplierCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
+        .supplierName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
+        .supplierAddress(fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
+        .supplierPhone(fromWarehouse != null ? "" : fromSupplier.getPhone())
+        .warehouseCode(toWarehouse.getCode())
+        .warehouseName(toWarehouse.getName())
+        .warehouseAddress(toWarehouse.getAddress())
         .createdBy(user.getFullName())
         .createdDate(LocalDateTime.now())
         .items(receiptItems)

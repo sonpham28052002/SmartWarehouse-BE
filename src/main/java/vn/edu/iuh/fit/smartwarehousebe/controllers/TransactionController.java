@@ -17,6 +17,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionRes
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
+import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
 
 /**
  * @description
@@ -28,10 +29,12 @@ import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 public class TransactionController {
   private final TransactionService transactionService;
   private final DeliveryNotePdfService deliveryNotePdfService;
+  private final WarehouseReceiptPdfService warehouseReceiptPdfService;
 
-  public TransactionController(TransactionService transactionService, DeliveryNotePdfService deliveryNotePdfService) {
+  public TransactionController(TransactionService transactionService, DeliveryNotePdfService deliveryNotePdfService, WarehouseReceiptPdfService warehouseReceiptPdfService) {
     this.transactionService = transactionService;
     this.deliveryNotePdfService = deliveryNotePdfService;
+    this.warehouseReceiptPdfService = warehouseReceiptPdfService;
   }
 
   @GetMapping()
@@ -130,12 +133,23 @@ public class TransactionController {
   }
 
 
-  @PostMapping("/get-warehouse-report/{transactionId}")
+  @GetMapping("/get-warehouse-receipt-report/{transactionId}")
   public ResponseEntity<byte[]> exportPdf(@PathVariable Long transactionId) {
-    byte[] pdfContent = deliveryNotePdfService.generatePdf(transactionId);
+    byte[] pdfContent = warehouseReceiptPdfService.generatePdf(transactionId);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDispositionFormData("attachment", "phieu-nhap-kho-" + transactionId + ".pdf");
+    headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+    return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+  }
+
+  @GetMapping("/get-delivery-note-report/{transactionId}")
+  public ResponseEntity<byte[]> exportReceiptPdf(@PathVariable Long transactionId) {
+    byte[] pdfContent = deliveryNotePdfService.generatePdf(transactionId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDispositionFormData("attachment", "phieu-xuat-kho-" + transactionId + ".pdf");
     headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
     return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);

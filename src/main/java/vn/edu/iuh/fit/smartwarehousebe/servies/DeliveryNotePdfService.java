@@ -7,6 +7,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +47,9 @@ public class DeliveryNotePdfService {
    */
   public byte[] generatePdf(Long transactionId) {
     TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
+    if (transaction.getTransactionType() != TransactionType.EXPORT_TO_WAREHOUSE) {
+      throw new IllegalArgumentException("Transaction type is not export to warehouse");
+    }
     WarehouseResponse fromWarehouse = null;
     SupplierResponse fromSupplier = null;
     if (transaction.getTransferCode() != null) {
