@@ -8,10 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionImportCsvRequest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
@@ -123,11 +120,9 @@ public class TransactionService {
     transaction.setWarehouse(warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
     if (request.getTransferId() != null) {
       transaction.setTransfer(warehouseMapper.toEntity(warehouseService.getById(request.getTransferId())));
-      transaction.setTransactionType(TransactionType.IMPORT_FROM_WAREHOUSE);
     }
     if (request.getSupplierId() != null) {
       transaction.setSupplier(supplierMapper.toEntity(supplierService.getById(request.getSupplierId())));
-      transaction.setTransactionType(TransactionType.IMPORT_FROM_SUPPLIER);
     }
     transaction.setExecutor(userService.getUserById(userService.getCurrentUserId()));
     Set<TransactionDetail> details = request.getDetails().stream()
@@ -178,6 +173,7 @@ public class TransactionService {
       WarehouseResponse warehouse = warehouseService.getByCode(transactionCSVRequest.get(0).getWarehouseCode());
       TransactionRequest request = TransactionRequest.builder()
           .warehouseId(warehouse.getId())
+          .description(transactionCSVRequest.get(0).getDescription())
           .build();
       if (transactionCSVRequest.get(0).getTransferCode() != null) {
         if (transactionCSVRequest.get(0).getSupplierCode() != null) {
@@ -188,9 +184,11 @@ public class TransactionService {
         }
         WarehouseResponse transfer = warehouseService.getByCode(transactionCSVRequest.get(0).getTransferCode());
         request.setTransferId(transfer.getId());
+        request.setTransactionType(TransactionType.IMPORT_FROM_WAREHOUSE);
       } else {
         SupplierResponse supplier = supplierService.getByCode(transactionCSVRequest.get(0).getSupplierCode());
         request.setSupplierId(supplier.getId());
+        request.setTransactionType(TransactionType.IMPORT_FROM_SUPPLIER);
       }
       List<TransactionRequest.TransactionDetailRequest> details = transactionCSVRequest.stream()
           .map(t -> {
@@ -201,6 +199,40 @@ public class TransactionService {
                 .productId(product.getId())
                 .unitId(unit.getId())
                 .quantity(t.getQuantity())
+                .build();
+          })
+          .toList();
+      request.setDetails(details);
+
+      return createTransaction(request);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public TransactionWithDetailResponse exportWarehouseTransaction(MultipartFile file) {
+    try {
+      List<TransactionExportCsvRequest> transactionCSVRequest = csvService.parseCsv(file.getInputStream(), TransactionExportCsvRequest.class);
+      WarehouseResponse warehouse = warehouseService.getByCode(transactionCSVRequest.get(0).getWarehouseCode());
+      TransactionRequest request = TransactionRequest.builder()
+          .warehouseId(warehouse.getId())
+          .description(transactionCSVRequest.get(0).getDescription())
+          .transactionType(TransactionType.EXPORT_TO_WAREHOUSE)
+          .build();
+      if (transactionCSVRequest.get(0).getTransferCode().equals(transactionCSVRequest.get(0).getWarehouseCode())) {
+        throw new RuntimeException("Cannot import transaction with transfer code equals to warehouse code");
+      }
+      WarehouseResponse transfer = warehouseService.getByCode(transactionCSVRequest.get(0).getTransferCode());
+      request.setTransferId(transfer.getId());
+      List<TransactionRequest.TransactionDetailRequest> details = transactionCSVRequest.stream()
+          .map(t -> {
+            ProductResponse product = productService.getByCode(t.getProductCode());
+            UnitResponse unit = unitService.getUnitByCode(t.getUnitCode());
+
+            return TransactionRequest.TransactionDetailRequest.builder()
+                .productId(product.getId())
+                .unitId(unit.getId())
+                .quantity(t.getQuantity() * -1) // Export to warehouse, so quantity is negative
                 .build();
           })
           .toList();

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -25,6 +26,8 @@ public class TransactionRequest implements Serializable {
   Long transferId;
 
   Long supplierId;
+
+  TransactionType transactionType;
 
   transient List<TransactionDetailRequest> details;
 

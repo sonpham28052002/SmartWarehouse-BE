@@ -99,6 +99,37 @@ public class TransactionController {
     return transactionService.importWarehouseTransaction(file);
   }
 
+  /**
+   * Export transactions to a CSV file.
+   * <p>
+   * The CSV file should have the following header format:
+   * description,warehouse_code,transfer_code,product_code,quantity,unit_code
+   * <p>
+   * Where:
+   * <p>
+   * - description: A brief description of the transaction
+   * - warehouse_code: The code of the warehouse where the transaction takes place
+   * - transfer_code: (Optional) The code of the transfer warehouse if applicable
+   * - product_code: The code of the product
+   * - quantity: The quantity of the product
+   * - unit_code: The code of the unit of measurement
+   * <p>
+   * Multiple products can be included as separate rows with the same warehouse, transfer
+   * <p>
+   * Example:
+   * description,warehouse_code,transfer_code,product_code,quantity,unit_code
+   * "Xuất hàng về kho ABC",WH-94636,WH-9437,PROD-01351,100,UNIT-18590
+   * "Xuất hàng về kho ABC",WH-9436,WH-9437,PROD-39508,200,UNIT-06567
+   *
+   * @param file the CSV file to export
+   * @return the exported transaction
+   */
+  @PostMapping(value = "/export", consumes = {"multipart/form-data"})
+  public TransactionWithDetailResponse exportTransaction(@RequestParam("file") MultipartFile file) {
+    return transactionService.exportWarehouseTransaction(file);
+  }
+
+
   @PostMapping("/get-warehouse-report/{transactionId}")
   public ResponseEntity<byte[]> exportPdf(@PathVariable Long transactionId) {
     byte[] pdfContent = deliveryNotePdfService.generatePdf(transactionId);

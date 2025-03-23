@@ -24,6 +24,7 @@ public interface TransactionMapper {
   @Mapping(target = "supplier", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "executor", ignore = true)
+  @Mapping(target = "transactionType", source = "transactionType")
   Transaction toEntity(TransactionRequest transactionResponse);
 
   @Mapping(target = "warehouseCode", source = "warehouse.code")
