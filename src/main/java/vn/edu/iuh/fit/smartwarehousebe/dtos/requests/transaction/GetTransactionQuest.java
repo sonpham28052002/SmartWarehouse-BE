@@ -1,6 +1,9 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction;
 
+import java.time.LocalDateTime;
 import lombok.Value;
+import org.springframework.format.annotation.DateTimeFormat;
+
 /**
  * @description
  * @author: vie
@@ -8,10 +11,14 @@ import lombok.Value;
  */
 @Value
 public class GetTransactionQuest {
-    String transactionType;
-    String transactionDate;
-    Long executor;
-    Long warehouse;
-    Long transfer;
-    Long supplier;
+
+  String transactionType;
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime startDate;
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime endDate;
+  Long executor;
+  Long warehouse;
+  Long transfer;
+  Long supplier;
 }

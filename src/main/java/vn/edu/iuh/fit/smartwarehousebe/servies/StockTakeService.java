@@ -15,8 +15,10 @@ import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
@@ -117,4 +119,53 @@ public class StockTakeService {
     stockTake.setStockTakeDetails(stockTakeDetails);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
   }
+
+  @Transactional
+  public StockTakeResponse startStockTake(Long stockTakeId) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.IN_PROGRESS);
+    StockTake newStockTake = stockTakeRepository.save(stockTake);
+    List<StockTakeDetail> stockTakeDetails = new ArrayList<>();
+    for (StockTakeDetail detail : stockTake.getStockTakeDetails()) {
+      if (detail.getStatus() == StockTakeDetailStatus.UNVERIFIED) {
+        detail.setExpectedQuantity(detail.getInventory().getQuantity());
+        stockTakeDetails.add(stockTakeDetailRepository.save(detail));
+      } else {
+        stockTakeDetails.add(detail);
+      }
+    }
+    newStockTake.setStockTakeDetails(stockTakeDetails);
+    return StockTakeMapper.INSTANCE.toDto(newStockTake);
+  }
+
+  @Transactional
+  public StockTakeResponse saveStockTake(Long stockTakeId, StockTakeResponse response) {
+    List<StockTakeDetailResponse> stockTakeDetailResponses = new ArrayList<>();
+    for (StockTakeDetailResponse detail : response.getStockTakeDetails()) {
+      StockTakeDetail stockTakeDetail = stockTakeDetailRepository.findById(
+              StockTakeDetailId.builder()
+                  .inventoryId(detail.getInventory().getId())
+                  .stockTakeId(stockTakeId).build())
+          .orElseThrow(() -> new NotFoundException("stoke take detail not found"));
+      stockTakeDetail.setActualQuantity(detail.getActualQuantity());
+      stockTakeDetail.setDamagedQuantity(detail.getDamagedQuantity());
+      stockTakeDetail.setStatus(detail.getStatus());
+      stockTakeDetail.setDescription(detail.getDescription());
+      stockTakeDetailResponses.add(
+          StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail)));
+    }
+    response.setStockTakeDetails(stockTakeDetailResponses);
+    return response;
+  }
+
+  @Transactional
+  public StockTakeResponse completeStockTake(Long stockTakeId) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.COMPLETED);
+    stockTakeRepository.save(stockTake);
+    return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
 }

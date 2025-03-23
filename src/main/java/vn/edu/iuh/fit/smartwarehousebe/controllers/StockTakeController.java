@@ -53,4 +53,20 @@ public class StockTakeController {
       @RequestBody CreateStockTakeRequest request) {
     return ResponseEntity.ok(stockTakeService.createStockTake(request));
   }
+
+  @GetMapping("/{stockTakeId}/startStockTake")
+  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId) {
+    return ResponseEntity.ok(stockTakeService.startStockTake(stockTakeId));
+  }
+
+  @PostMapping("/{stockTakeId}/saveStockTake")
+  public ResponseEntity<StockTakeResponse> saveStockTake(@PathVariable Long stockTakeId,
+      @RequestBody StockTakeResponse request) {
+    return ResponseEntity.ok(stockTakeService.saveStockTake(stockTakeId, request));
+  }
+
+  @PostMapping("/{stockTakeId}/completeStockTake")
+  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId) {
+    return ResponseEntity.ok(stockTakeService.completeStockTake(stockTakeId));
+  }
 }
