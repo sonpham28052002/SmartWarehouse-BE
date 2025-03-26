@@ -29,7 +29,7 @@ public class TransactionRequest implements Serializable {
 
   TransactionType transactionType;
 
-  transient List<TransactionDetailRequest> details;
+  List<TransactionDetailRequest> details;
 
   @Data
   @NoArgsConstructor
@@ -44,5 +44,7 @@ public class TransactionRequest implements Serializable {
 
     @NotNull(message = "Quantity cannot be null")
     int quantity;
+
+    Long storageLocationId;
   }
 }

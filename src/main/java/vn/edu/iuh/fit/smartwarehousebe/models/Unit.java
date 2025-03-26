@@ -35,8 +35,4 @@ public class Unit extends Auditable implements Serializable {
   @OneToMany(mappedBy = "unit")
   @JsonIgnore
   private List<Inventory> inventories;
-
-  @OneToMany(mappedBy = "unit")
-  @JsonIgnore
-  private List<TransactionDetail> transactionDetails;
 }

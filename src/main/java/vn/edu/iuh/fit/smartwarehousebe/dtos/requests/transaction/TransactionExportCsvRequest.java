@@ -32,4 +32,7 @@ public class TransactionExportCsvRequest {
     
     @CsvField("unit_code")
     private String unitCode;
+
+    @CsvField("storage_location_id")
+    private Long storageLocationId;
 }

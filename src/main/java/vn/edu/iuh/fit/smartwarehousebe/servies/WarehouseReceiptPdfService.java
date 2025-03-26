@@ -70,7 +70,7 @@ public class WarehouseReceiptPdfService {
             .map(
                 item -> {
                   ProductResponse product = productService.getByCode(item.getProductCode());
-                  UnitResponse unit = unitService.getUnitByCode(item.getUnitCode());
+                  UnitResponse unit = item.getInventory().getUnit();
                   return WarehouseReceipt.WarehouseReceiptItem.builder()
                       .productCode(product.getCode())
                       .productName(product.getName())
