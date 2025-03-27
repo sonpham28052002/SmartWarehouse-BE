@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction;
 
 import lombok.Value;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
@@ -27,9 +28,8 @@ public class TransactionWithDetailResponse implements Serializable {
   public static class TransactionDetailResponse implements Serializable {
     Long id;
     String productCode;
-    String storageLocationId;
+    InventoryResponse inventory;
     int quantity;
     TransactionType transactionType;
-    String unitCode;
   }
 }

@@ -1,5 +1,11 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -8,7 +14,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.*;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionExportCsvRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionImportCsvRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
@@ -18,18 +28,18 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseRespons
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UnitOfProductNotFoundException;
-import vn.edu.iuh.fit.smartwarehousebe.mappers.*;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @description
@@ -52,6 +62,7 @@ public class TransactionService {
   private final WarehouseMapper warehouseMapper;
   private final UnitService unitService;
   private final ProductService productService;
+  private final InventoryRepository inventoryRepository;
 
   public TransactionService(TransactionRepository transactionRepository,
       TransactionMapper transactionMapper, WarehouseService warehouseService,
@@ -60,7 +71,8 @@ public class TransactionService {
       ProductMapper productMapper,
       CsvService csvService,
       WarehouseMapper warehouseMapper, UnitService unitService,
-      UnitMapper unitMapper, ProductService productService) {
+      UnitMapper unitMapper, ProductService productService,
+      InventoryRepository inventoryRepository) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
@@ -73,6 +85,7 @@ public class TransactionService {
     this.unitService = unitService;
     this.unitMapper = unitMapper;
     this.productService = productService;
+    this.inventoryRepository = inventoryRepository;
   }
 
   /**
@@ -143,10 +156,30 @@ public class TransactionService {
             throw new UnitOfProductNotFoundException();
           }
 
+          Inventory inventory = null;
+          if (d.getStorageLocationId() == null) {
+            inventory = Inventory.builder()
+                .product(productMapper.toEntity(product))
+                .quantity((long) d.getQuantity())
+                .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId())))
+                .build();
+          } else {
+            inventory = inventoryRepository
+                .findByProduct_IdAndStorageLocation_Id(product.getId(), d.getStorageLocationId())
+                .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
+            if (inventory.getQuantity() < -1 * d.getQuantity()) {
+              throw new IllegalArgumentException("Insufficient stock");
+            }
+            inventory.setQuantity(inventory.getQuantity() + d.getQuantity());
+
+          }
+
           detail.setProduct(productMapper.toEntity(product));
           detail.setTransactionType(transaction.getTransactionType());
-          detail.setUnit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId())));
           detail.setTransaction(transaction);
+          detail.setInventory(inventory);
+
+          inventoryRepository.save(inventory);
           return detail;
         })
         .collect(Collectors.toSet());
@@ -253,6 +286,7 @@ public class TransactionService {
                 .productId(product.getId())
                 .unitId(unit.getId())
                 .quantity(t.getQuantity() * -1) // Export to warehouse, so quantity is negative
+                .storageLocationId(t.getStorageLocationId())
                 .build();
           })
           .toList();

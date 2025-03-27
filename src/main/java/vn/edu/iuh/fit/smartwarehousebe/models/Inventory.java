@@ -36,5 +36,9 @@ public class Inventory extends Auditable {
   @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
   @JsonManagedReference
   private List<StockTakeDetail> stockTakeDetails;
+
+  @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonManagedReference
+  private List<TransactionDetail> transactionDetails;
 }
 

@@ -13,7 +13,7 @@ import java.util.Set;
 @Mapper(componentModel = "spring")
 public interface TransactionMapper {
   @Mapping(target = "transaction", ignore = true)
-  @Mapping(target = "storageLocation", ignore = true)
+  @Mapping(target = "inventory", ignore = true)
   @Mapping(target = "product", ignore = true)
   @Mapping(target = "id", ignore = true)
   TransactionDetail toEntity(TransactionRequest.TransactionDetailRequest detailRequest);
@@ -41,10 +41,8 @@ public interface TransactionMapper {
   TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
 
   @Mapping(target = "productCode", source = "product.code")
-  @Mapping(target = "storageLocationId", source = "storageLocation.id")
   @Mapping(target = "transactionType", source = "transactionType")
   @Mapping(target = "quantity", source = "quantity")
-  @Mapping(target = "unitCode", source = "unit.code")
   TransactionWithDetailResponse.TransactionDetailResponse toDetailResponse(TransactionDetail transactionDetail);
 
   default List<TransactionWithDetailResponse.TransactionDetailResponse> mapDetails(Set<TransactionDetail> details) {
