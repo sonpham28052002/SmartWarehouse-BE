@@ -12,40 +12,41 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "transactions")
-public class Transaction {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class Transaction extends Auditable {
 
-    @Column(name = "transaction_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id", nullable = false)
+  private Long id;
 
-    @Column(name = "transaction_date", nullable = false)
-    private LocalDateTime transactionDate;
+  @Column(name = "transaction_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private TransactionType transactionType;
 
-    @Column(name = "transaction_file")
-    private String transactionFile;
+  @Column(name = "transaction_date", nullable = false)
+  private LocalDateTime transactionDate;
 
-    private String description;
+  @Column(name = "transaction_file")
+  private String transactionFile;
 
-    @ManyToOne
-    @JoinColumn(name = "executor", nullable = false)
-    private User executor;
+  private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "warehouse_id")
-    private Warehouse warehouse;
+  @ManyToOne
+  @JoinColumn(name = "executor", nullable = false)
+  private User executor;
 
-    @ManyToOne
-    @JoinColumn(name = "transfer_id")
-    private Warehouse transfer;
+  @ManyToOne
+  @JoinColumn(name = "warehouse_id")
+  private Warehouse warehouse;
 
-    @ManyToOne
-    @JoinColumn(name = "supplier_id")
-    private Supplier supplier;
+  @ManyToOne
+  @JoinColumn(name = "transfer_id")
+  private Warehouse transfer;
 
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<TransactionDetail> details;
+  @ManyToOne
+  @JoinColumn(name = "supplier_id")
+  private Supplier supplier;
+
+  @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private Set<TransactionDetail> details;
 }

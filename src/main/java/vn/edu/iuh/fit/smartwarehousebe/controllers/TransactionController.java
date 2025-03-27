@@ -27,11 +27,14 @@ import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
 @RestController
 @RequestMapping("/transactions")
 public class TransactionController {
+
   private final TransactionService transactionService;
   private final DeliveryNotePdfService deliveryNotePdfService;
   private final WarehouseReceiptPdfService warehouseReceiptPdfService;
 
-  public TransactionController(TransactionService transactionService, DeliveryNotePdfService deliveryNotePdfService, WarehouseReceiptPdfService warehouseReceiptPdfService) {
+  public TransactionController(TransactionService transactionService,
+      DeliveryNotePdfService deliveryNotePdfService,
+      WarehouseReceiptPdfService warehouseReceiptPdfService) {
     this.transactionService = transactionService;
     this.deliveryNotePdfService = deliveryNotePdfService;
     this.warehouseReceiptPdfService = warehouseReceiptPdfService;
@@ -39,13 +42,13 @@ public class TransactionController {
 
   @GetMapping()
   public ResponseEntity<Page<TransactionResponse>> getPageTransaction(
-      @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "1") int current_page,
+      @RequestParam(defaultValue = "10") int per_page,
       @RequestParam(defaultValue = "id") String sortBy,
       GetTransactionQuest quest
   ) {
     Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
-    PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
+    PageRequest pageRequest = PageRequest.of(current_page - 1, per_page, sort);
     return ResponseEntity.ok(transactionService.getTransactions(pageRequest, quest));
   }
 
@@ -55,7 +58,8 @@ public class TransactionController {
   }
 
   @PostMapping("/create")
-  public ResponseEntity<TransactionWithDetailResponse> createTransaction(@Valid @RequestBody TransactionRequest request) {
+  public ResponseEntity<TransactionWithDetailResponse> createTransaction(
+      @Valid @RequestBody TransactionRequest request) {
     return ResponseEntity.ok(transactionService.createTransaction(request));
   }
 
@@ -79,20 +83,18 @@ public class TransactionController {
    * <p>
    * Where:
    * <p>
-   * - description: A brief description of the transaction
-   * - warehouse_code: The code of the warehouse where the transaction takes place
-   * - transfer_code: (Optional) The code of the transfer warehouse if applicable
-   * - supplier_code: (Optional) The code of the supplier if applicable
-   * - product_code: The code of the product
-   * - quantity: The quantity of the product
-   * - unit_code: The code of the unit of measurement
+   * - description: A brief description of the transaction - warehouse_code: The code of the
+   * warehouse where the transaction takes place - transfer_code: (Optional) The code of the
+   * transfer warehouse if applicable - supplier_code: (Optional) The code of the supplier if
+   * applicable - product_code: The code of the product - quantity: The quantity of the product -
+   * unit_code: The code of the unit of measurement
    * <p>
-   * Multiple products can be included as separate rows with the same warehouse, transfer, and supplier codes.
+   * Multiple products can be included as separate rows with the same warehouse, transfer, and
+   * supplier codes.
    * <p>
-   * Example:
-   * description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
-   * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-01351,100,UNIT-18590
-   * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-39508,200,UNIT-06567
+   * Example: description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
+   * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-01351,100,UNIT-18590 "Nhập hàng từ
+   * Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-39508,200,UNIT-06567
    *
    * @param file the CSV file to import
    * @return the imported transaction
@@ -110,19 +112,16 @@ public class TransactionController {
    * <p>
    * Where:
    * <p>
-   * - description: A brief description of the transaction
-   * - warehouse_code: The code of the warehouse where the transaction takes place
-   * - transfer_code: (Optional) The code of the transfer warehouse if applicable
-   * - product_code: The code of the product
-   * - quantity: The quantity of the product
-   * - unit_code: The code of the unit of measurement
+   * - description: A brief description of the transaction - warehouse_code: The code of the
+   * warehouse where the transaction takes place - transfer_code: (Optional) The code of the
+   * transfer warehouse if applicable - product_code: The code of the product - quantity: The
+   * quantity of the product - unit_code: The code of the unit of measurement
    * <p>
    * Multiple products can be included as separate rows with the same warehouse, transfer
    * <p>
-   * Example:
-   * description,warehouse_code,transfer_code,product_code,quantity,unit_code
-   * "Xuất hàng về kho ABC",WH-94636,WH-9437,PROD-01351,100,UNIT-18590
-   * "Xuất hàng về kho ABC",WH-9436,WH-9437,PROD-39508,200,UNIT-06567
+   * Example: description,warehouse_code,transfer_code,product_code,quantity,unit_code "Xuất hàng về
+   * kho ABC",WH-94636,WH-9437,PROD-01351,100,UNIT-18590 "Xuất hàng về kho
+   * ABC",WH-9436,WH-9437,PROD-39508,200,UNIT-06567
    *
    * @param file the CSV file to export
    * @return the exported transaction

@@ -11,15 +11,15 @@ import java.io.Serializable;
  */
 @Value
 public class CreateSupplierRequest implements Serializable {
-   @NotBlank(message = "Code must not be blank")
-   String code;
-   @NotBlank(message = "Name must not be blank")
-   String name;
-   @NotBlank(message = "Phone must not be blank")
-   String phone;
-   @NotBlank(message = "Email must not be blank")
-   @Email(message = "Email should be valid")
-   String email;
-   @NotBlank(message = "Address must not be blank")
-   String address;
+
+  @NotBlank(message = "Code must not be blank")
+  String code;
+  @NotBlank(message = "Name must not be blank")
+  String name;
+  @NotBlank(message = "Phone must not be blank")
+  String phone;
+  @NotBlank(message = "Email must not be blank")
+  String email;
+  @NotBlank(message = "Address must not be blank")
+  String address;
 }

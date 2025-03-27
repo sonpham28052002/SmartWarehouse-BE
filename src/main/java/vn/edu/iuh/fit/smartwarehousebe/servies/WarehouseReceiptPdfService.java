@@ -32,7 +32,10 @@ public class WarehouseReceiptPdfService {
   private final TransactionService transactionService;
   private final UnitService unitService;
 
-  public WarehouseReceiptPdfService(PdfGenerationService pdfGenerationService, SupplierService supplierService, WarehouseService warehouseService, UserService userService, ProductService productService, TransactionService transactionService, UnitService unitService) {
+  public WarehouseReceiptPdfService(PdfGenerationService pdfGenerationService,
+      SupplierService supplierService, WarehouseService warehouseService, UserService userService,
+      ProductService productService, TransactionService transactionService,
+      UnitService unitService) {
     this.pdfGenerationService = pdfGenerationService;
     this.supplierService = supplierService;
     this.warehouseService = warehouseService;
@@ -52,7 +55,8 @@ public class WarehouseReceiptPdfService {
     TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
     if (transaction.getTransactionType() != TransactionType.IMPORT_FROM_SUPPLIER &&
         transaction.getTransactionType() != TransactionType.IMPORT_FROM_WAREHOUSE) {
-      throw new IllegalArgumentException("Transaction type is not import from supplier or warehouse");
+      throw new IllegalArgumentException(
+          "Transaction type is not import from supplier or warehouse");
     }
 
     WarehouseResponse fromWarehouse = null;
@@ -62,7 +66,8 @@ public class WarehouseReceiptPdfService {
     } else {
       fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
     }
-    WarehouseResponse toWarehouse = warehouseService.getByCode(transaction.getWarehouseCode());
+    WarehouseResponse toWarehouse = warehouseService.getByCode(
+        transaction.getWarehouse().getCode());
     UserResponse user = userService.getUserByCode(transaction.getExecutorCode());
     List<WarehouseReceipt.WarehouseReceiptItem> receiptItems =
         transaction.getDetails()
@@ -85,7 +90,8 @@ public class WarehouseReceiptPdfService {
         .code(generateWarehouseReceiptCode())
         .supplierCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
         .supplierName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
-        .supplierAddress(fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
+        .supplierAddress(
+            fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
         .supplierPhone(fromWarehouse != null ? "" : fromSupplier.getPhone())
         .warehouseCode(toWarehouse.getCode())
         .warehouseName(toWarehouse.getName())

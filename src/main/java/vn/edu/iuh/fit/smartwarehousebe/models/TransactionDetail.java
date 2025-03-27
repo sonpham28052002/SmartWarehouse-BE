@@ -9,27 +9,28 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 @Setter
 @Entity
 @Table(name = "transaction_detail")
-public class TransactionDetail {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class TransactionDetail extends Auditable {
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id", nullable = false)
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "inventory_id", nullable = false)
-    private Inventory inventory;
+  @ManyToOne
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
 
-    private int quantity;
+  @ManyToOne
+  @JoinColumn(name = "inventory_id", nullable = false)
+  private Inventory inventory;
 
-    @Column(name = "transaction_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+  private int quantity;
 
-    @ManyToOne
-    @JoinColumn(name = "transaction_id", nullable = false)
-    private Transaction transaction;
+  @Column(name = "transaction_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private TransactionType transactionType;
+
+  @ManyToOne
+  @JoinColumn(name = "transaction_id", nullable = false)
+  private Transaction transaction;
 }

@@ -151,7 +151,7 @@ public class TransactionService {
           ProductResponse product = productService.getById(d.getProductId());
           if (!(Objects.equals(product.getUnit().getId(), d.getUnitId())
               || product.getConversionUnits().stream().anyMatch(
-              convertUnit -> Objects.equals(convertUnit.getToUnit().getId(), d.getUnitId())
+              convertUnit -> Objects.equals(convertUnit.getFromUnit().getId(), d.getUnitId())
           ))) {
             throw new UnitOfProductNotFoundException();
           }

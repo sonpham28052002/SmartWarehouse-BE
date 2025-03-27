@@ -12,6 +12,7 @@ import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface TransactionMapper {
+
   @Mapping(target = "transaction", ignore = true)
   @Mapping(target = "inventory", ignore = true)
   @Mapping(target = "product", ignore = true)
@@ -27,13 +28,14 @@ public interface TransactionMapper {
   @Mapping(target = "transactionType", source = "transactionType")
   Transaction toEntity(TransactionRequest transactionResponse);
 
-  @Mapping(target = "warehouseCode", source = "warehouse.code")
-  @Mapping(target = "transferCode", source = "transfer.code")
-  @Mapping(target = "supplierCode", source = "supplier.code")
-  @Mapping(target = "executorCode", source = "executor.code")
+  @Mapping(target = "warehouse", source = "warehouse")
+  @Mapping(target = "transfer", source = "transfer")
+  @Mapping(target = "supplier", source = "supplier")
+  @Mapping(target = "executor", source = "executor")
+  @Mapping(target = "createdDate", source = "createdDate")
   TransactionResponse toDto(Transaction transaction);
 
-  @Mapping(target = "warehouseCode", source = "warehouse.code")
+  @Mapping(target = "warehouse.code", source = "warehouse.code")
   @Mapping(target = "transferCode", source = "transfer.code")
   @Mapping(target = "supplierCode", source = "supplier.code")
   @Mapping(target = "executorCode", source = "executor.code")
@@ -43,12 +45,15 @@ public interface TransactionMapper {
   @Mapping(target = "productCode", source = "product.code")
   @Mapping(target = "transactionType", source = "transactionType")
   @Mapping(target = "quantity", source = "quantity")
-  TransactionWithDetailResponse.TransactionDetailResponse toDetailResponse(TransactionDetail transactionDetail);
+  TransactionWithDetailResponse.TransactionDetailResponse toDetailResponse(
+      TransactionDetail transactionDetail);
 
-  default List<TransactionWithDetailResponse.TransactionDetailResponse> mapDetails(Set<TransactionDetail> details) {
+  default List<TransactionWithDetailResponse.TransactionDetailResponse> mapDetails(
+      Set<TransactionDetail> details) {
     return details.stream().map(this::toDetailResponse).toList();
   }
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  Transaction partialUpdate(TransactionResponse transactionResponse, @MappingTarget Transaction transaction);
+  Transaction partialUpdate(TransactionResponse transactionResponse,
+      @MappingTarget Transaction transaction);
 }

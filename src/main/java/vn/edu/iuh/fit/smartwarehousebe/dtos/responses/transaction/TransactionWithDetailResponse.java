@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction;
 
 import lombok.Value;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
@@ -13,19 +14,21 @@ import java.util.List;
  */
 @Value
 public class TransactionWithDetailResponse implements Serializable {
+
   Long id;
   TransactionType transactionType;
   LocalDateTime transactionDate;
   String transactionFile;
   String description;
   String executorCode;
-  String warehouseCode;
+  WarehouseResponse warehouse;
   String transferCode;
   String supplierCode;
   List<TransactionDetailResponse> details;
 
   @Value
   public static class TransactionDetailResponse implements Serializable {
+
     Long id;
     String productCode;
     InventoryResponse inventory;

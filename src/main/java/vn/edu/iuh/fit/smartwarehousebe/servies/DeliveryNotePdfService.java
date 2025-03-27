@@ -30,7 +30,9 @@ public class DeliveryNotePdfService {
   private final TransactionService transactionService;
   private final SupplierService supplierService;
 
-  public DeliveryNotePdfService(PdfGenerationService pdfGenerationService, WarehouseService warehouseService, UserService userService, ProductService productService, TransactionService transactionService, SupplierService supplierService) {
+  public DeliveryNotePdfService(PdfGenerationService pdfGenerationService,
+      WarehouseService warehouseService, UserService userService, ProductService productService,
+      TransactionService transactionService, SupplierService supplierService) {
     this.pdfGenerationService = pdfGenerationService;
     this.warehouseService = warehouseService;
     this.userService = userService;
@@ -57,7 +59,8 @@ public class DeliveryNotePdfService {
     } else {
       fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
     }
-    WarehouseResponse toWarehouse = warehouseService.getByCode(transaction.getWarehouseCode());
+    WarehouseResponse toWarehouse = warehouseService.getByCode(
+        transaction.getWarehouse().getCode());
     UserResponse user = userService.getUserByCode(transaction.getExecutorCode());
 
     List<DeliveryNote.DeliveryNoteItem> noteItems =
@@ -79,7 +82,8 @@ public class DeliveryNotePdfService {
         .code(generateDeliveryNoteCode())
         .fromWarehouseCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
         .fromWarehouseName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
-        .fromWarehouseAddress(fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
+        .fromWarehouseAddress(
+            fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
         .toWarehouseCode(toWarehouse.getCode())
         .toWarehouseName(toWarehouse.getName())
         .toWarehouseAddress(toWarehouse.getAddress())
