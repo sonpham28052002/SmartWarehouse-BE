@@ -13,7 +13,7 @@ services:
       - mysql
       - redis
     environment:
-      - MYSQL_URL=jdbc:mysql://mysql:3306/cineticket_db?createDatabaseIfNotExist=true
+      - MYSQL_URL=jdbc:mysql://mysql:3306/smartwarehouse_db?createDatabaseIfNotExist=true
       - MYSQL_USERNAME=root
       - MYSQL_PASSWORD=rootpassword
       - REDIS_HOST=redis

@@ -1,36 +1,61 @@
-import sys
-import json
-import numpy as np
 import pandas as pd
+import numpy as np
+from pmdarima import auto_arima
 from statsmodels.tsa.arima.model import ARIMA
-from sklearn.cluster import KMeans
+import json
+import sys
+import warnings
 
-# Đọc dữ liệu từ stdin (Java truyền vào)
-input_data = sys.stdin.read()
-data = json.loads(input_data)
+# Tắt tất cả cảnh báo
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
-sales_data = data["sales_data"]
-df = pd.DataFrame(sales_data).T
-df.columns = [f"Month-{i+1}" for i in range(df.shape[1])]
+# Đọc dữ liệu từ file CSV
+file_path = "data_csv.csv"
+try:
+  df = pd.read_csv(file_path, parse_dates=['date'], index_col='date')
+except Exception as e:
+  print(json.dumps({"error": f"Lỗi khi đọc file CSV: {str(e)}"}))
+  sys.exit(1)
 
-# Phân cụm bằng KMeans
-num_clusters = min(3, len(df))  # Số cụm không thể lớn hơn số sản phẩm
-kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-clusters = kmeans.fit_predict(df)
-df["Cluster"] = clusters
+# Đọc danh sách sản phẩm từ stdin
+try:
+  input_data = json.load(sys.stdin)
+  selected_products = input_data.get("selected_products", [])
+  n_periods = input_data.get("n_periods", 1)
+except Exception as e:
+  print(json.dumps({"error": f"Không thể đọc dữ liệu từ Java: {str(e)}"}))
+  sys.exit(1)
 
-# Chọn nhóm bán chạy nhất
-best_cluster = df.groupby("Cluster").sum().sum(axis=1).idxmax()
-best_selling_products = df[df["Cluster"] == best_cluster].index.tolist()
+# Kiểm tra danh sách sản phẩm hợp lệ
+valid_products = [p for p in selected_products if p in df.columns]
 
-# Dự báo bằng ARIMA
+if not valid_products:
+  print(json.dumps({"error": "Không có sản phẩm hợp lệ để dự báo"}))
+  sys.exit(1)
+
+# Dự báo cho các sản phẩm được chọn
 forecast_results = {}
-for product in best_selling_products:
-    sales = df.loc[product, df.columns[:-1]].values
-    model = ARIMA(sales, order=(2, 1, 2))
-    model_fit = model.fit()
-    forecast = model_fit.forecast(steps=3)
-    forecast_results[product] = forecast.astype(int).tolist()
 
-# Xuất JSON cho Java
+for product in valid_products:  # 🔥 Chỉ chạy trên sản phẩm được chọn
+  try:
+    # Xác định tham số tự động
+    model_auto = auto_arima(df[product], seasonal=False, trace=False,
+                            suppress_warnings=True)
+    p, d, q = model_auto.order
+
+    # Huấn luyện mô hình ARIMA
+    model = ARIMA(df[product], order=(p, d, q))
+    model_fit = model.fit()
+
+    # Dự báo n tháng tiếp theo
+    future_forecast = model_fit.forecast(steps=n_periods)
+    forecast_results[product] = np.ceil(future_forecast).astype(int).tolist()
+
+  except Exception as e:
+    forecast_results[product] = f"Error: {str(e)}"
+
+# Xuất kết quả JSON
 print(json.dumps(forecast_results))
+sys.stdout.flush()
