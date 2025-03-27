@@ -16,50 +16,55 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    Optional<User> findUserByUserName(String name);
 
-    @Query("SELECT u FROM User u JOIN Warehouse w ON u.id = w.manager.id")
-    List<User> findUsersWithManagerInWarehouse();
+  Optional<User> findUserByUserName(String name);
 
-    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT w.manager.id FROM Warehouse w WHERE w.manager IS NOT NULL) and u.role = 3")
-    List<User> findUsersManagerNotInWarehouse();
+  @Query("SELECT u FROM User u JOIN Warehouse w ON u.id = w.manager.id")
+  List<User> findUsersWithManagerInWarehouse();
 
-    public Page<User> findUserByDeleted(@NonNull Class<User> entityClass, Specification<User> specification, Pageable pageable, boolean includeDeleted);
+  @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT w.manager.id FROM Warehouse w WHERE w.manager IS NOT NULL) and u.role = 2")
+  List<User> findUsersManagerNotInWarehouse();
 
-    default Page<User> findAllUsers(@NonNull Specification<User> specification, Pageable pageable, boolean includeDeleted) {
-        Specification<User> finalSpecification = specification;
+  public Page<User> findUserByDeleted(@NonNull Class<User> entityClass,
+      Specification<User> specification, Pageable pageable, boolean includeDeleted);
 
-        // Add a condition to include or exclude deleted users
-        if (!includeDeleted) {
-            finalSpecification = finalSpecification.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
-        }
+  default Page<User> findAllUsers(@NonNull Specification<User> specification, Pageable pageable,
+      boolean includeDeleted) {
+    Specification<User> finalSpecification = specification;
 
-        // Use the findAll method with the modified specification
-        return findAll(finalSpecification, pageable);
+    // Add a condition to include or exclude deleted users
+    if (!includeDeleted) {
+      finalSpecification = finalSpecification.and(
+          (root, query, cb) -> cb.equal(root.get("deleted"), false));
     }
 
-    default List<User> getAllUser(Specification<User> specification, boolean excluded) {
-        Specification<User> finalSpecification = specification;
+    // Use the findAll method with the modified specification
+    return findAll(finalSpecification, pageable);
+  }
 
-        if (excluded) {
-            finalSpecification = finalSpecification.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
-        }
+  default List<User> getAllUser(Specification<User> specification, boolean excluded) {
+    Specification<User> finalSpecification = specification;
 
-        return findAll(finalSpecification);
+    if (excluded) {
+      finalSpecification = finalSpecification.and(
+          (root, query, cb) -> cb.equal(root.get("deleted"), false));
     }
 
-    List<User> findUsersByCodeIn(Collection<String> codes);
+    return findAll(finalSpecification);
+  }
 
-    List<User> findUsersByUserNameIn(Collection<String> userNames);
+  List<User> findUsersByCodeIn(Collection<String> codes);
 
-    /**
-     * Find the first user with the specified role
-     *
-     * @param role the role to search for
-     * @return an Optional containing the first user with the specified role, or empty if none found
-     */
-    @Query("SELECT u FROM User u WHERE u.role = :role AND u.deleted = false ORDER BY u.id ASC")
-    Optional<User> findFirstByRole(Integer role);
+  List<User> findUsersByUserNameIn(Collection<String> userNames);
 
-    Optional<User> findByCode(String userCode);
+  /**
+   * Find the first user with the specified role
+   *
+   * @param role the role to search for
+   * @return an Optional containing the first user with the specified role, or empty if none found
+   */
+  @Query("SELECT u FROM User u WHERE u.role = :role AND u.deleted = false ORDER BY u.id ASC")
+  Optional<User> findFirstByRole(Integer role);
+
+  Optional<User> findByCode(String userCode);
 }

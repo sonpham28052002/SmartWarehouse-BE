@@ -33,7 +33,7 @@ public class SecurityConfig {
   private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
   @Autowired
   private JwtAuthenticationFilter authenticationFilter;
-  @Lazy
+
   @Autowired
   private UserDetailsService userService;
 
