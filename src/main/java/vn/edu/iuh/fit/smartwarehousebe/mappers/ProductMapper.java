@@ -9,22 +9,22 @@ import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
+  ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
 
-    Product toEntity(ProductResponse productResponse);
+  Product toEntity(ProductResponse productResponse);
 
-    @Mapping(target = "supplierId", source = "supplier.id")
-    @Mapping(source = "deleted", target = "deleted")
-    @Mapping(source = "createdDate", target = "createdDate")
-    @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
-    @Mapping(source = "unit", target = "unit")
-    @Mapping(source = "unitWeight", target = "unitWeight")
-    ProductResponse toDto(Product product);
+  @Mapping(target = "partnerId", source = "partner.id")
+  @Mapping(source = "deleted", target = "deleted")
+  @Mapping(source = "createdDate", target = "createdDate")
+  @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
+  @Mapping(source = "unit", target = "unit")
+  @Mapping(source = "unitWeight", target = "unitWeight")
+  ProductResponse toDto(Product product);
 
-    @Mapping(target = "supplier", ignore = true)
-    Product toEntity(CreateProductRequest createProductRequest);
+  @Mapping(target = "partner", ignore = true)
+  Product toEntity(CreateProductRequest createProductRequest);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Product partialUpdate(CreateProductRequest createProductRequest, @MappingTarget Product product);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Product partialUpdate(CreateProductRequest createProductRequest, @MappingTarget Product product);
 
 }

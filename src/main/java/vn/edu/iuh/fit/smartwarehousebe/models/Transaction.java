@@ -3,10 +3,12 @@ package vn.edu.iuh.fit.smartwarehousebe.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
 @Getter
 @Setter
@@ -44,9 +46,19 @@ public class Transaction extends Auditable {
   private Warehouse transfer;
 
   @ManyToOne
-  @JoinColumn(name = "supplier_id")
-  private Supplier supplier;
+  @JoinColumn(name = "partner_id")
+  private Partner partner;
 
   @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<TransactionDetail> details;
+
+  @Enumerated(EnumType.STRING)
+  private TransactionStatus status;
+
+  @PrePersist
+  public void setDefault() {
+    if (this.status == null) {
+      this.status = TransactionStatus.WAITING;
+    }
+  }
 }

@@ -22,7 +22,7 @@ public interface TransactionMapper {
   @Mapping(target = "transactionDate", expression = "java(java.time.LocalDateTime.now())")
   @Mapping(target = "warehouse", ignore = true)
   @Mapping(target = "transfer", ignore = true)
-  @Mapping(target = "supplier", ignore = true)
+  @Mapping(target = "partner", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "executor", ignore = true)
   @Mapping(target = "transactionType", source = "transactionType")
@@ -30,19 +30,18 @@ public interface TransactionMapper {
 
   @Mapping(target = "warehouse", source = "warehouse")
   @Mapping(target = "transfer", source = "transfer")
-  @Mapping(target = "supplier", source = "supplier")
   @Mapping(target = "executor", source = "executor")
   @Mapping(target = "createdDate", source = "createdDate")
   TransactionResponse toDto(Transaction transaction);
 
   @Mapping(target = "warehouse.code", source = "warehouse.code")
   @Mapping(target = "transferCode", source = "transfer.code")
-  @Mapping(target = "supplierCode", source = "supplier.code")
+  @Mapping(target = "partnerCode", source = "partner.code")
   @Mapping(target = "executorCode", source = "executor.code")
   @Mapping(target = "details", source = "details")
   TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
 
-  @Mapping(target = "productCode", source = "product.code")
+  @Mapping(target = "product", source = "product")
   @Mapping(target = "transactionType", source = "transactionType")
   @Mapping(target = "quantity", source = "quantity")
   TransactionWithDetailResponse.TransactionDetailResponse toDetailResponse(

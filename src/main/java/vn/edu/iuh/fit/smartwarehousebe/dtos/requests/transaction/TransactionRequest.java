@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
@@ -16,8 +18,11 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class TransactionRequest implements Serializable {
+
   String description;
 
   @NotNull(message = "Warehouse ID cannot be null")
@@ -25,7 +30,7 @@ public class TransactionRequest implements Serializable {
 
   Long transferId;
 
-  Long supplierId;
+  Long partnerId;
 
   TransactionType transactionType;
 
@@ -36,6 +41,7 @@ public class TransactionRequest implements Serializable {
   @AllArgsConstructor
   @Builder
   public static class TransactionDetailRequest implements Serializable {
+
     @NotNull(message = "Product ID cannot be null")
     Long productId;
 

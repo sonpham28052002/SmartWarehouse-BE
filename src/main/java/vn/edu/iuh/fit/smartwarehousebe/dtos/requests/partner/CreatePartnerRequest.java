@@ -1,16 +1,15 @@
-package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.supplier;
+package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Value;
 
 import java.io.Serializable;
 
 /**
- * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Supplier}
+ * DTO for {@link vn.edu.iuh.fit.smartwarehousebe.models.Partner}
  */
 @Value
-public class CreateSupplierRequest implements Serializable {
+public class CreatePartnerRequest implements Serializable {
 
   @NotBlank(message = "Code must not be blank")
   String code;

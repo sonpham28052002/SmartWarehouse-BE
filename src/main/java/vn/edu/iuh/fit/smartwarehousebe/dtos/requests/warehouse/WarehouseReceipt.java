@@ -19,12 +19,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WarehouseReceipt {
+
   private String code;
   private LocalDateTime createdDate;
-  private String supplierCode;
-  private String supplierName;
-  private String supplierAddress;
-  private String supplierPhone;
+  private String partnerCode;
+  private String partnerName;
+  private String partnerAddress;
+  private String partnerPhone;
   private String warehouseName;
   private String warehouseAddress;
   private String warehouseCode;
@@ -36,6 +37,7 @@ public class WarehouseReceipt {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class WarehouseReceiptItem {
+
     private String productCode;
     private String sku;
     private String productName;

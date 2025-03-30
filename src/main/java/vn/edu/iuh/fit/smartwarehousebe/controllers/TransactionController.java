@@ -11,10 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionDetailRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
@@ -79,20 +81,20 @@ public class TransactionController {
    * Import transactions from a CSV file.
    * <p>
    * The CSV file should have the following header format:
-   * description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
+   * description,warehouse_code,transfer_code,partner_code,product_code,quantity,unit_code
    * <p>
    * Where:
    * <p>
    * - description: A brief description of the transaction - warehouse_code: The code of the
    * warehouse where the transaction takes place - transfer_code: (Optional) The code of the
-   * transfer warehouse if applicable - supplier_code: (Optional) The code of the supplier if
+   * transfer warehouse if applicable - partner_code: (Optional) The code of the partner if
    * applicable - product_code: The code of the product - quantity: The quantity of the product -
    * unit_code: The code of the unit of measurement
    * <p>
    * Multiple products can be included as separate rows with the same warehouse, transfer, and
-   * supplier codes.
+   * partner codes.
    * <p>
-   * Example: description,warehouse_code,transfer_code,supplier_code,product_code,quantity,unit_code
+   * Example: description,warehouse_code,transfer_code,partner_code,product_code,quantity,unit_code
    * "Nhập hàng từ Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-01351,100,UNIT-18590 "Nhập hàng từ
    * Công ty TNHH ABC",WH-94636,,SUP-64173,PROD-39508,200,UNIT-06567
    *
@@ -152,5 +154,19 @@ public class TransactionController {
     headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
     return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+  }
+
+  @GetMapping("/getTransactionDetailByTransactionId/{transactionId}")
+  public ResponseEntity<Page<TransactionDetailResponse>> getTransactionDetailByTransactionId(
+      @PathVariable Long transactionId,
+      @RequestParam(defaultValue = "1") int current_page,
+      @RequestParam(defaultValue = "10") int per_page,
+      @RequestParam(defaultValue = "id") String sortBy,
+      GetTransactionDetailRequest request) {
+    Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+    PageRequest pageRequest = PageRequest.of(current_page - 1, per_page, sort);
+    return ResponseEntity.ok(
+        transactionService.getTransactionDetailByTransactionId(transactionId, request,
+            pageRequest));
   }
 }

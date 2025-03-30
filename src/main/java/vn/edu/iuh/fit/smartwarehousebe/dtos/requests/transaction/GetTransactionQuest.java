@@ -20,5 +20,5 @@ public class GetTransactionQuest {
   Long executor;
   Long warehouse;
   Long transfer;
-  Long supplier;
+  Long partner;
 }

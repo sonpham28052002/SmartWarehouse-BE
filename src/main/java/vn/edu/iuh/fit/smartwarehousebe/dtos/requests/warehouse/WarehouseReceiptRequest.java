@@ -18,10 +18,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WarehouseReceiptRequest {
-  @NotNull(message = "Supplier ID cannot be null")
-  private Long supplierId;
+
+  @NotNull(message = "Partner ID cannot be null")
+  private Long partnerId;
   @NotNull(message = "Warehouse ID cannot be null")
   private Long toWarehouseId;
+  @NotNull(message = "User ID cannot be null")
   @NotNull(message = "User ID cannot be null")
   private Long userId;
   @NotNull(message = "Products cannot be null")
@@ -32,6 +34,7 @@ public class WarehouseReceiptRequest {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Item {
+
     @NotNull(message = "Product ID cannot be null")
     private Long productId;
     @NotNull(message = "Product code cannot be null")

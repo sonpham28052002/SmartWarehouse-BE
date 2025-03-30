@@ -58,11 +58,11 @@ public class TransactionSpecification {
         .orElse(null);
   }
 
-  public static Specification<Transaction> hasTransactionSupplier(Long supplier) {
-    return Optional.ofNullable(supplier)
+  public static Specification<Transaction> hasTransactionPartner(Long partner) {
+    return Optional.ofNullable(partner)
         .map(
             c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                root.get("supplier").get("id"), c))
+                root.get("partner").get("id"), c))
         .orElse(null);
   }
 

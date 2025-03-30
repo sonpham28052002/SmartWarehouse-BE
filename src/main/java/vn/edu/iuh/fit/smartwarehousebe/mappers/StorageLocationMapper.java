@@ -1,22 +1,21 @@
 package vn.edu.iuh.fit.smartwarehousebe.mappers;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.supplier.CreateSupplierRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner.CreatePartnerRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.storage_location.StorageLocationResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.Partner;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
-import vn.edu.iuh.fit.smartwarehousebe.models.Supplier;
 
 @Mapper(componentModel = "spring")
 public interface StorageLocationMapper {
 
   StorageLocationMapper INSTANCE = Mappers.getMapper(StorageLocationMapper.class);
 
-  StorageLocation toEntity(StorageLocationResponse supplierResponse);
+
+  StorageLocation toEntity(StorageLocationResponse storageLocationResponse);
 
   StorageLocationResponse toDto(StorageLocation location);
 
-  Supplier toEntity(CreateSupplierRequest createSupplierRequest);
+  Partner toEntity(CreatePartnerRequest createPartnerRequest);
 }

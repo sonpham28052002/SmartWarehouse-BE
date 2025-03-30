@@ -26,9 +26,10 @@ public class ProductResponse implements Serializable {
   String name;
   String description;
   String image;
-  Long supplierId;
+  Long partnerId;
   LocalDateTime createdDate;
   LocalDateTime lastModifiedDate;
+  List<Integer> quantityForecasts;
   Double unitWeight;
   boolean deleted;
   @JsonIgnoreProperties({"product"})

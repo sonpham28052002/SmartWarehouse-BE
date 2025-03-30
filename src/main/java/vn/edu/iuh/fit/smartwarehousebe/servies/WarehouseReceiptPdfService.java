@@ -3,7 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.WarehouseReceipt;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class WarehouseReceiptPdfService {
 
   private final PdfGenerationService pdfGenerationService;
-  private final SupplierService supplierService;
+  private final PartnerService partnerService;
   private final WarehouseService warehouseService;
   private final UserService userService;
   private final ProductService productService;
@@ -33,11 +33,11 @@ public class WarehouseReceiptPdfService {
   private final UnitService unitService;
 
   public WarehouseReceiptPdfService(PdfGenerationService pdfGenerationService,
-      SupplierService supplierService, WarehouseService warehouseService, UserService userService,
+      PartnerService partnerService, WarehouseService warehouseService, UserService userService,
       ProductService productService, TransactionService transactionService,
       UnitService unitService) {
     this.pdfGenerationService = pdfGenerationService;
-    this.supplierService = supplierService;
+    this.partnerService = partnerService;
     this.warehouseService = warehouseService;
     this.userService = userService;
     this.productService = productService;
@@ -56,15 +56,15 @@ public class WarehouseReceiptPdfService {
     if (transaction.getTransactionType() != TransactionType.IMPORT_FROM_SUPPLIER &&
         transaction.getTransactionType() != TransactionType.IMPORT_FROM_WAREHOUSE) {
       throw new IllegalArgumentException(
-          "Transaction type is not import from supplier or warehouse");
+          "Transaction type is not import from partner or warehouse");
     }
 
     WarehouseResponse fromWarehouse = null;
-    SupplierResponse fromSupplier = null;
+    PartnerResponse fromPartner = null;
     if (transaction.getTransferCode() != null) {
       fromWarehouse = warehouseService.getByCode(transaction.getTransferCode());
     } else {
-      fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
+      fromPartner = partnerService.getByCode(transaction.getPartnerCode());
     }
     WarehouseResponse toWarehouse = warehouseService.getByCode(
         transaction.getWarehouse().getCode());
@@ -74,7 +74,7 @@ public class WarehouseReceiptPdfService {
             .stream()
             .map(
                 item -> {
-                  ProductResponse product = productService.getByCode(item.getProductCode());
+                  ProductResponse product = productService.getByCode(item.getProduct().getCode());
                   UnitResponse unit = item.getInventory().getUnit();
                   return WarehouseReceipt.WarehouseReceiptItem.builder()
                       .productCode(product.getCode())
@@ -88,11 +88,11 @@ public class WarehouseReceiptPdfService {
 
     WarehouseReceipt receipt = WarehouseReceipt.builder()
         .code(generateWarehouseReceiptCode())
-        .supplierCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
-        .supplierName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
-        .supplierAddress(
-            fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
-        .supplierPhone(fromWarehouse != null ? "" : fromSupplier.getPhone())
+        .partnerCode(fromWarehouse != null ? fromWarehouse.getCode() : fromPartner.getCode())
+        .partnerName(fromWarehouse != null ? fromWarehouse.getName() : fromPartner.getName())
+        .partnerAddress(
+            fromWarehouse != null ? fromWarehouse.getAddress() : fromPartner.getAddress())
+        .partnerPhone(fromWarehouse != null ? "" : fromPartner.getPhone())
         .warehouseCode(toWarehouse.getCode())
         .warehouseName(toWarehouse.getName())
         .warehouseAddress(toWarehouse.getAddress())

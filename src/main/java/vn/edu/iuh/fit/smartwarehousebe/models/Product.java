@@ -44,9 +44,9 @@ public class Product extends Auditable implements Serializable {
   private Double unitWeight;
 
   @ManyToOne
-  @JoinColumn(name = "supplier_id")
+  @JoinColumn(name = "partner_id")
   @JsonIgnore
-  private Supplier supplier;
+  private Partner partner;
 
   @OneToMany(mappedBy = "product")
   private List<Inventory> inventories;
@@ -64,12 +64,12 @@ public class Product extends Auditable implements Serializable {
           name != null ? removeVietnameseAccents(name).replaceAll("\\s+", "").toUpperCase()
               : "NO_NAME";
 
-      String supplierCode =
-          supplier != null && supplier.getCode() != null ? supplier.getCode().toString()
+      String partnerCode =
+          partner != null && partner.getCode() != null ? partner.getCode().toString()
               : "NO_CODE";
-      String supplierName =
-          supplier != null && supplier.getName() != null ? removeVietnameseAccents(
-              supplier.getName()).replaceAll("\\s+", "").toUpperCase() : "NO_SUPP";
+      String partnerName =
+          partner != null && partner.getName() != null ? removeVietnameseAccents(
+              partner.getName()).replaceAll("\\s+", "").toUpperCase() : "NO_SUPP";
 
       String unitCode = unit != null && unit.getCode() != null ? unit.getCode() : "NO_CODE";
       String unitName = unit != null && unit.getName() != null ? removeVietnameseAccents(
@@ -78,7 +78,7 @@ public class Product extends Auditable implements Serializable {
       String weight = unitWeight != null ? String.format("%.2f", unitWeight) : "0";
 
       this.sku = String.format("%s-%s-%s-%s-%s-%s-%s",
-          productCode, productName, supplierCode, supplierName, unitCode, unitName, weight);
+          productCode, productName, partnerCode, partnerName, unitCode, unitName, weight);
     }
   }
 

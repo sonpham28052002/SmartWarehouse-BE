@@ -3,7 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.warehouse.DeliveryNote;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
@@ -28,17 +28,17 @@ public class DeliveryNotePdfService {
   private final UserService userService;
   private final ProductService productService;
   private final TransactionService transactionService;
-  private final SupplierService supplierService;
+  private final PartnerService partnerService;
 
   public DeliveryNotePdfService(PdfGenerationService pdfGenerationService,
       WarehouseService warehouseService, UserService userService, ProductService productService,
-      TransactionService transactionService, SupplierService supplierService) {
+      TransactionService transactionService, PartnerService partnerService) {
     this.pdfGenerationService = pdfGenerationService;
     this.warehouseService = warehouseService;
     this.userService = userService;
     this.productService = productService;
     this.transactionService = transactionService;
-    this.supplierService = supplierService;
+    this.partnerService = partnerService;
   }
 
   /**
@@ -53,11 +53,11 @@ public class DeliveryNotePdfService {
       throw new IllegalArgumentException("Transaction type is not export to warehouse");
     }
     WarehouseResponse fromWarehouse = null;
-    SupplierResponse fromSupplier = null;
+    PartnerResponse fromPartner = null;
     if (transaction.getTransferCode() != null) {
       fromWarehouse = warehouseService.getByCode(transaction.getTransferCode());
     } else {
-      fromSupplier = supplierService.getByCode(transaction.getSupplierCode());
+      fromPartner = partnerService.getByCode(transaction.getPartnerCode());
     }
     WarehouseResponse toWarehouse = warehouseService.getByCode(
         transaction.getWarehouse().getCode());
@@ -67,9 +67,9 @@ public class DeliveryNotePdfService {
         transaction.getDetails()
             .stream()
             .map(item -> {
-              ProductResponse product = productService.getByCode(item.getProductCode());
+              ProductResponse product = productService.getByCode(item.getProduct().getCode());
               return DeliveryNote.DeliveryNoteItem.builder()
-                  .productCode(item.getProductCode())
+                  .productCode(item.getProduct().getCode())
                   .sku(product.getSku())
                   .productName(product.getName())
                   .unit(product.getUnit().getName())
@@ -80,10 +80,10 @@ public class DeliveryNotePdfService {
 
     DeliveryNote deliveryNote = DeliveryNote.builder()
         .code(generateDeliveryNoteCode())
-        .fromWarehouseCode(fromWarehouse != null ? fromWarehouse.getCode() : fromSupplier.getCode())
-        .fromWarehouseName(fromWarehouse != null ? fromWarehouse.getName() : fromSupplier.getName())
+        .fromWarehouseCode(fromWarehouse != null ? fromWarehouse.getCode() : fromPartner.getCode())
+        .fromWarehouseName(fromWarehouse != null ? fromWarehouse.getName() : fromPartner.getName())
         .fromWarehouseAddress(
-            fromWarehouse != null ? fromWarehouse.getAddress() : fromSupplier.getAddress())
+            fromWarehouse != null ? fromWarehouse.getAddress() : fromPartner.getAddress())
         .toWarehouseCode(toWarehouse.getCode())
         .toWarehouseName(toWarehouse.getName())
         .toWarehouseAddress(toWarehouse.getAddress())

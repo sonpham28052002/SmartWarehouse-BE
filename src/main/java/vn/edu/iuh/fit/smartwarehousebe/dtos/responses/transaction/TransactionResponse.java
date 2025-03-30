@@ -2,9 +2,10 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction;
 
 import lombok.Value;
 import org.springframework.format.annotation.DateTimeFormat;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ public class TransactionResponse implements Serializable {
   UserResponse executor;
   WarehouseResponse warehouse;
   WarehouseResponse transfer;
-  SupplierResponse supplier;
+  PartnerResponse partner;
   LocalDateTime createdDate;
+  TransactionStatus status;
 }
