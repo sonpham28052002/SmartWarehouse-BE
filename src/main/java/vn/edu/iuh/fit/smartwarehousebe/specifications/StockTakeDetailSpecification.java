@@ -25,4 +25,11 @@ public class StockTakeDetailSpecification {
         root.get("stockTake").get("id"), id);
   }
 
+  public static Specification<StockTakeDetail> hasStorageLocation() {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(
+        root.get("inventory").get("storageLocation").get("id")
+    );
+  }
+
+
 }

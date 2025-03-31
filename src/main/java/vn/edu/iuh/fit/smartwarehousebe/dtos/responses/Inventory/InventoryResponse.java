@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,4 +24,5 @@ public class InventoryResponse implements Serializable {
   private Long quantity;
   private UnitResponse unit;
   private String location;
+  private InventoryStatus status;
 }

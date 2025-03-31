@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 
 @Entity
 @Table(name = "inventory")
@@ -40,5 +42,15 @@ public class Inventory extends Auditable {
   @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
   @JsonManagedReference
   private List<TransactionDetail> transactionDetails;
+
+  @Enumerated(EnumType.STRING)
+  private InventoryStatus status;
+
+  @PrePersist
+  public void setDefault() {
+    if (this.status == null) {
+      this.status = InventoryStatus.INACTIVE;
+    }
+  }
 }
 

@@ -32,6 +32,7 @@ public interface StockTakeDetailMapper {
         .product(ProductMapper.INSTANCE.toDto(inventory.getProduct()))
         .unit(UnitMapper.INSTANCE.toDto(inventory.getUnit()))
         .quantity(inventory.getQuantity())
+        .status(inventory.getStatus())
         .build();
   }
 

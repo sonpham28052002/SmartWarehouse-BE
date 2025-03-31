@@ -16,6 +16,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRe
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
@@ -108,13 +109,15 @@ public class StockTakeService {
     List<StockTakeDetail> stockTakeDetails = new ArrayList<>();
 
     for (Inventory inventory : inventories) {
-      stockTakeDetails.add(stockTakeDetailRepository.save(
-          StockTakeDetail.builder()
-              .id(StockTakeDetailId.builder().stockTakeId(stockTake.getId())
-                  .inventoryId(inventory.getId()).build())
-              .stockTake(stockTake).status(StockTakeDetailStatus.UNVERIFIED)
-              .actualQuantity(0L).expectedQuantity(0L).damagedQuantity(0L).inventory(inventory)
-              .description(null).build()));
+      if (inventory.getStatus() == InventoryStatus.ACTIVE) {
+        stockTakeDetails.add(stockTakeDetailRepository.save(
+            StockTakeDetail.builder()
+                .id(StockTakeDetailId.builder().stockTakeId(stockTake.getId())
+                    .inventoryId(inventory.getId()).build())
+                .stockTake(stockTake).status(StockTakeDetailStatus.UNVERIFIED)
+                .actualQuantity(0L).expectedQuantity(0L).damagedQuantity(0L).inventory(inventory)
+                .description(null).build()));
+      }
     }
     stockTake.setStockTakeDetails(stockTakeDetails);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
