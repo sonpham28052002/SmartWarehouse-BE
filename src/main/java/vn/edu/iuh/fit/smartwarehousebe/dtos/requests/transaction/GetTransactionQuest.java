@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction;
 import java.time.LocalDateTime;
 import lombok.Value;
 import org.springframework.format.annotation.DateTimeFormat;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 
 /**
  * @description
@@ -21,4 +22,5 @@ public class GetTransactionQuest {
   Long warehouse;
   Long transfer;
   Long partner;
+  TransactionStatus status;
 }

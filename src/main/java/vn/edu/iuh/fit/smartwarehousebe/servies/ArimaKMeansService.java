@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
@@ -16,7 +17,7 @@ public class ArimaKMeansService {
   @Autowired
   private ProductRepository productRepository;
 
-  public List<ProductResponse> forecastSales(List<String> selectedProducts) {
+  public Map<String, Object> forecastSales(List<String> selectedProducts) {
     try {
 
       ObjectMapper objectMapper = new ObjectMapper();
@@ -42,22 +43,12 @@ public class ArimaKMeansService {
       reader.close();
 
       Map<String, Object> result = objectMapper.readValue(output.toString(), Map.class);
-      List<ProductResponse> responses = new ArrayList<>();
-      for (Map.Entry<String, Object> entry : result.entrySet()) {
-        System.out.println(output.toString());
-        System.out.println(entry.getKey());
-        System.out.println(entry.getValue());
 
-        ProductResponse response = ProductMapper.INSTANCE.toDto(
-            productRepository.findByCode(entry.getKey()).get());
-        response.setQuantityForecasts((List<Integer>) entry.getValue());
-        responses.add(response);
-      }
-      return responses;
+      return result;
 
     } catch (Exception e) {
       e.printStackTrace();
-      return List.of();
+      return null;
     }
   }
 }

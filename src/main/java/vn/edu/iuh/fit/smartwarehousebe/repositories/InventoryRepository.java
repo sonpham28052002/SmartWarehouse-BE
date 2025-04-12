@@ -13,7 +13,11 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
   List<Inventory> findByProduct_Id(Long productId);
 
-  Optional<Inventory> findByProduct_IdAndStorageLocation_Id(Long productId, Long storageLocationId);
+  Optional<Inventory> findByProduct_IdAndStorageLocation_IdAndUnitId(Long productId,
+      Long storageLocationId, Long unitId);
+
+  Optional<Inventory> findByProduct_IdAndStorageLocation_Id(Long productId,
+      Long storageLocationId);
 
   List<Inventory> findByStorageLocationWarehouseShelfIdIn(List<Long> warehouseShelfIds);
 

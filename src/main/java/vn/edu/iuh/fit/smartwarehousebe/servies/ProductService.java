@@ -160,6 +160,14 @@ public class ProductService extends CommonService<Product> {
             Collectors.toList());
   }
 
+  @Transactional
+  @CacheEvict(value = "products", allEntries = true)
+  public List<ProductResponse> findAllByWarehouseIdAndPartnerId(Long warehouseId, Long partnerId) {
+    return productRepository.findAllByWarehouseIdAAndPartnerId(warehouseId, partnerId).stream()
+        .map((i) -> ProductMapper.INSTANCE.toDto(i)).collect(
+            Collectors.toList());
+  }
+
   public List<ProductResponse> getByIds(List<Long> productIds) {
     return productRepository.findByIdIn(productIds).stream()
         .map(productMapper::toDto).toList();

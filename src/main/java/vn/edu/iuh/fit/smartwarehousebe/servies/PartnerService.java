@@ -76,6 +76,7 @@ public class PartnerService extends CommonService<Partner> {
   @CacheEvict(value = "partners", allEntries = true)
   public PartnerResponse create(CreatePartnerRequest partnerRequest) {
     Partner partner = partnerMapper.toEntity(partnerRequest);
+    partner.setType(partnerRequest.getType());
     return partnerMapper.toDto(partnerRepository.save(partner));
   }
 
@@ -83,6 +84,7 @@ public class PartnerService extends CommonService<Partner> {
   public PartnerResponse update(Long id, CreatePartnerRequest partnerRequest) {
     Partner partner = partnerRepository.findById(id).orElseThrow(PartnerNotFoundException::new);
     partnerMapper.partialUpdate(partnerRequest, partner);
+    partner.setType(partnerRequest.getType());
     return partnerMapper.toDto(partnerRepository.save(partner));
   }
 

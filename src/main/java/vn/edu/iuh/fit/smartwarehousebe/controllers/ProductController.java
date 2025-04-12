@@ -86,4 +86,11 @@ public class ProductController {
       @PathVariable Long warehouseId) {
     return ResponseEntity.ok(productService.findAllByWarehouseId(warehouseId));
   }
+
+  @GetMapping("/{warehouseId}/{partnerId}/findAllByWarehouseIdAndPartnerId")
+  public ResponseEntity<List<ProductResponse>> findAllByWarehouseIdAndPartnerId(
+      @PathVariable Long warehouseId, @PathVariable Long partnerId) {
+    return ResponseEntity.ok(
+        productService.findAllByWarehouseIdAndPartnerId(warehouseId, partnerId));
+  }
 }

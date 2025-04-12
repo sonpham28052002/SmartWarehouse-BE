@@ -68,7 +68,7 @@ public class WarehouseReceiptPdfService {
     }
     WarehouseResponse toWarehouse = warehouseService.getByCode(
         transaction.getWarehouse().getCode());
-    UserResponse user = userService.getUserByCode(transaction.getExecutorCode());
+    UserResponse user = userService.getUserByCode(transaction.getExecutor().getCode());
     List<WarehouseReceipt.WarehouseReceiptItem> receiptItems =
         transaction.getDetails()
             .stream()

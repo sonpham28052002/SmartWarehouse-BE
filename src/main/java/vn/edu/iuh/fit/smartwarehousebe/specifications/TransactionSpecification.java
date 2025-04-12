@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.specifications;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 
 import java.util.Optional;
@@ -55,6 +56,14 @@ public class TransactionSpecification {
         .map(
             c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
                 root.get("transfer").get("id"), c))
+        .orElse(null);
+  }
+
+  public static Specification<Transaction> hasStatus(TransactionStatus status) {
+    return Optional.ofNullable(status)
+        .map(
+            c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                root.get("status"), c))
         .orElse(null);
   }
 

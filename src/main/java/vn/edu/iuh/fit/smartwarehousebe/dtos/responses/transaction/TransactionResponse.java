@@ -24,6 +24,8 @@ public class TransactionResponse implements Serializable {
   String transactionFile;
   String description;
   UserResponse executor;
+  UserResponse creator;
+  UserResponse approver;
   WarehouseResponse warehouse;
   WarehouseResponse transfer;
   PartnerResponse partner;

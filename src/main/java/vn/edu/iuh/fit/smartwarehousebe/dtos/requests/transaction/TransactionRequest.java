@@ -49,8 +49,10 @@ public class TransactionRequest implements Serializable {
     Long unitId;
 
     @NotNull(message = "Quantity cannot be null")
-    int quantity;
+    Long quantity;
 
     Long storageLocationId;
+    String storageLocation;
+
   }
 }

@@ -34,8 +34,16 @@ public class Transaction extends Auditable {
   private String description;
 
   @ManyToOne
-  @JoinColumn(name = "executor", nullable = false)
+  @JoinColumn(name = "executor", nullable = true)
   private User executor;
+
+  @ManyToOne
+  @JoinColumn(name = "creator", nullable = false)
+  private User creator;
+
+  @ManyToOne
+  @JoinColumn(name = "approver", nullable = true)
+  private User approver;
 
   @ManyToOne
   @JoinColumn(name = "warehouse_id")

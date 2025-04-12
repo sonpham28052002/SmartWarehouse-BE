@@ -23,6 +23,14 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
       "WHERE s.warehouseShelf.warehouse.id = :warehouseId")
   List<Product> findAllByWarehouseId(@Param("warehouseId") Long warehouseId);
 
+
+  @Query("SELECT DISTINCT p FROM Product p " +
+      "JOIN Inventory i ON i.product.id = p.id " +
+      "JOIN StorageLocation s ON i.storageLocation.id = s.id " +
+      "WHERE s.warehouseShelf.warehouse.id = :warehouseId and p.partner.id = :partnerId")
+  List<Product> findAllByWarehouseIdAAndPartnerId(@Param("warehouseId") Long warehouseId,
+      @Param("partnerId") Long partnerId);
+
   List<Product> findByIdInAndDeletedFalse(Collection<Long> ids);
 
   List<Product> findByIdIn(Collection<Long> ids);

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionDetailRequest;
@@ -20,26 +22,30 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQ
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionExportCsvRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionImportCsvRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UnitOfProductNotFoundException;
-import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.PartnerMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
+import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
+import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
@@ -70,12 +76,14 @@ public class TransactionService {
   private final ProductService productService;
   private final InventoryRepository inventoryRepository;
 
+  private final ProductRepository productRepository;
+
   public TransactionService(TransactionRepository transactionRepository,
       TransactionMapper transactionMapper, WarehouseService warehouseService,
       PartnerService partnerService, PartnerMapper partnerMapper, UserService userService,
       ProductMapper productMapper, CsvService csvService, WarehouseMapper warehouseMapper,
       UnitService unitService, UnitMapper unitMapper, ProductService productService,
-      InventoryRepository inventoryRepository,
+      InventoryRepository inventoryRepository, ProductRepository productRepository,
       TransactionDetailRepository transactionDetailRepository) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
@@ -91,7 +99,7 @@ public class TransactionService {
     this.productService = productService;
     this.inventoryRepository = inventoryRepository;
     this.transactionDetailRepository = transactionDetailRepository;
-
+    this.productRepository = productRepository;
   }
 
   /**
@@ -123,6 +131,7 @@ public class TransactionService {
         .with(TransactionSpecification.hasTransactionExecutor(quest.getExecutor()))
         .with(TransactionSpecification.hasTransactionWarehouse(quest.getWarehouse()))
         .with(TransactionSpecification.hasTransactionTransfer(quest.getTransfer()))
+        .with(TransactionSpecification.hasStatus(quest.getStatus()))
         .with(TransactionSpecification.hasTransactionPartner(quest.getPartner())).build();
 
     return transactionRepository.findAll(specification, pageRequest).map(transactionMapper::toDto);
@@ -135,56 +144,77 @@ public class TransactionService {
    * @return the transaction response
    */
   @CacheEvict(value = "transactions", allEntries = true)
+  @Transactional
   public TransactionWithDetailResponse createTransaction(TransactionRequest request) {
-    Transaction transaction = transactionMapper.toEntity(request);
-    // Set the warehouse, transfer, partner, and executor based on the request
-    transaction.setWarehouse(
-        warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
-    if (request.getTransferId() != null) {
-      transaction.setTransfer(
-          warehouseMapper.toEntity(warehouseService.getById(request.getTransferId())));
-    }
-    if (request.getPartnerId() != null) {
-      transaction.setPartner(
-          partnerMapper.toEntity(partnerService.getById(request.getPartnerId())));
-    }
-    transaction.setExecutor(userService.getUserById(userService.getCurrentUserId()));
-    Set<TransactionDetail> details = request.getDetails().stream().map(d -> {
-      TransactionDetail detail = transactionMapper.toEntity(d);
-      ProductResponse product = productService.getById(d.getProductId());
-      if (!(Objects.equals(product.getUnit().getId(), d.getUnitId()) || product.getConversionUnits()
-          .stream().anyMatch(
-              convertUnit -> Objects.equals(convertUnit.getFromUnit().getId(), d.getUnitId())))) {
-        throw new UnitOfProductNotFoundException();
-      }
+    try {
 
-      Inventory inventory = null;
-      if (d.getStorageLocationId() == null) {
-        inventory = Inventory.builder().product(productMapper.toEntity(product))
-            .quantity((long) d.getQuantity())
-            .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
-      } else {
-        inventory = inventoryRepository.findByProduct_IdAndStorageLocation_Id(product.getId(),
-                d.getStorageLocationId())
-            .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
-        if (inventory.getQuantity() < -1 * d.getQuantity()) {
-          throw new IllegalArgumentException("Insufficient stock");
+      Transaction transaction = transactionMapper.toEntity(request);
+      transaction.setTransactionType(request.getTransactionType());
+      // Set the warehouse, transfer, partner, and executor based on the request
+      transaction.setWarehouse(
+          warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
+      if (request.getTransferId() != null) {
+        transaction.setTransfer(
+            warehouseMapper.toEntity(warehouseService.getById(request.getTransferId())));
+      }
+      if (request.getPartnerId() != null) {
+        transaction.setPartner(
+            partnerMapper.toEntity(partnerService.getById(request.getPartnerId())));
+      }
+      transaction.setCreator(userService.getUserById(userService.getCurrentUserId()));
+      Set<TransactionDetail> details = request.getDetails().stream().map(d -> {
+        TransactionDetail detail = transactionMapper.toEntity(d);
+        ProductResponse product = productService.getById(d.getProductId());
+        if (!(Objects.equals(product.getUnit().getId(), d.getUnitId())
+            || product.getConversionUnits().stream().anyMatch(
+            convertUnit -> Objects.equals(convertUnit.getFromUnit().getId(), d.getUnitId())))) {
+          throw new UnitOfProductNotFoundException();
         }
-        inventory.setQuantity(inventory.getQuantity() + d.getQuantity());
 
-      }
+        Inventory inventory = null;
+        if (d.getStorageLocationId() == null) {
+          inventory = Inventory.builder().product(productMapper.toEntity(product))
+              .quantity((long) d.getQuantity())
+              .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
+        } else {
+          if (request.getTransactionType() == TransactionType.EXPORT_TO_WAREHOUSE) {
+            inventory = inventoryRepository.findByProduct_IdAndStorageLocation_IdAndUnitId(
+                    product.getId(), d.getStorageLocationId(), d.getUnitId())
+                .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
+          } else {
+            Optional<Inventory> inventoryOp = inventoryRepository.findByProduct_IdAndStorageLocation_IdAndUnitId(
+                product.getId(), d.getStorageLocationId(), d.getUnitId());
+            if (inventoryOp.isPresent()) {
+              inventory = inventoryOp.get();
+            } else {
+              inventory = inventoryRepository.save(
+                  Inventory.builder().status(InventoryStatus.INACTIVE).quantity(d.getQuantity())
+                      .storageLocation(
+                          StorageLocation.builder().id(d.getStorageLocationId()).build())
+                      .product(productRepository.findById(d.getProductId()).get())
+                      .unit(Unit.builder().id(d.getUnitId()).build()).build());
+            }
+            if (inventory.getQuantity() < -1 * d.getQuantity()) {
+              throw new IllegalArgumentException("Insufficient stock");
+            }
+          }
+        }
 
-      detail.setProduct(productMapper.toEntity(product));
-      detail.setTransactionType(transaction.getTransactionType());
-      detail.setTransaction(transaction);
-      detail.setInventory(inventory);
+        detail.setProduct(productMapper.toEntity(product));
+        detail.setTransactionType(transaction.getTransactionType());
+        detail.setTransaction(transaction);
+        detail.setInventory(inventory);
 
-      inventoryRepository.save(inventory);
-      return detail;
-    }).collect(Collectors.toSet());
-    transaction.setDetails(details);
+        inventoryRepository.save(inventory);
+        return detail;
+      }).collect(Collectors.toSet());
+      transaction.setDetails(details);
 
-    return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
+      return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
+    return null;
   }
 
   /**
@@ -241,7 +271,7 @@ public class TransactionService {
             UnitResponse unit = unitService.getUnitByCode(t.getUnitCode());
 
             return TransactionRequest.TransactionDetailRequest.builder().productId(product.getId())
-                .unitId(unit.getId()).quantity(t.getQuantity()).build();
+                .unitId(unit.getId()).quantity(Long.valueOf(t.getQuantity())).build();
           }).toList();
       request.setDetails(details);
 
@@ -274,8 +304,8 @@ public class TransactionService {
             UnitResponse unit = unitService.getUnitByCode(t.getUnitCode());
 
             return TransactionRequest.TransactionDetailRequest.builder().productId(product.getId())
-                .unitId(unit.getId())
-                .quantity(t.getQuantity() * -1) // Export to warehouse, so quantity is negative
+                .unitId(unit.getId()).quantity(
+                    (long) (t.getQuantity() * -1)) // Export to warehouse, so quantity is negative
                 .storageLocationId(t.getStorageLocationId()).build();
           }).toList();
       request.setDetails(details);
@@ -303,6 +333,21 @@ public class TransactionService {
 
     return transactionDetailRepository.findAll(spec, pageRequest)
         .map(TransactionDetailMapper.INSTANCE::toDto);
+  }
+
+  public List<TransactionResponse> getTransactions(GetTransactionQuest quest) {
+    Specification<Transaction> specification = SpecificationBuilder.<Transaction>builder()
+        .with(TransactionSpecification.hasTransactionType(quest.getTransactionType())).with(
+            TransactionSpecification.hasTransactionDateBetween(quest.getStartDate(),
+                quest.getEndDate()))
+        .with(TransactionSpecification.hasTransactionExecutor(quest.getExecutor()))
+        .with(TransactionSpecification.hasTransactionWarehouse(quest.getWarehouse()))
+        .with(TransactionSpecification.hasTransactionTransfer(quest.getTransfer()))
+        .with(TransactionSpecification.hasStatus(quest.getStatus()))
+        .with(TransactionSpecification.hasTransactionPartner(quest.getPartner())).build();
+
+    return transactionRepository.findAll(specification).stream()
+        .map((i) -> transactionMapper.toDto(i)).toList();
   }
 
 }

@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction;
 import lombok.Value;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
@@ -22,7 +23,9 @@ public class TransactionWithDetailResponse implements Serializable {
   LocalDateTime transactionDate;
   String transactionFile;
   String description;
-  String executorCode;
+  UserResponse executor;
+  UserResponse approver;
+  UserResponse creator;
   WarehouseResponse warehouse;
   TransactionStatus status;
   String transferCode;

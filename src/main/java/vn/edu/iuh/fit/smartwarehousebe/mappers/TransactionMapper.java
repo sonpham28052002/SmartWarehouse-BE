@@ -37,7 +37,7 @@ public interface TransactionMapper {
   @Mapping(target = "warehouse.code", source = "warehouse.code")
   @Mapping(target = "transferCode", source = "transfer.code")
   @Mapping(target = "partnerCode", source = "partner.code")
-  @Mapping(target = "executorCode", source = "executor.code")
+  @Mapping(target = "executor", source = "executor")
   @Mapping(target = "details", source = "details")
   TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
 

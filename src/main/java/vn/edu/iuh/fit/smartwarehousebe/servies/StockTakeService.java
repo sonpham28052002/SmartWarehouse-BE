@@ -3,12 +3,12 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 import com.amazonaws.services.kms.model.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
@@ -63,6 +63,29 @@ public class StockTakeService {
     }
     return stockTakeRepository.findAll(specification, pageRequest)
         .map(StockTakeMapper.INSTANCE::toDto);
+  }
+
+  @Transactional(readOnly = true)
+  public List<StockTakeResponse> getAll(GetStockTakeRequest request) {
+    Specification<StockTake> specification = Specification.where(null);
+    if (request.getWarehouseCode() != null) {
+      specification = specification.and(StockTakeSpecification.hasCode(request.getWarehouseCode()));
+    }
+
+    if (request.getStatus() != null) {
+      specification = specification.and(
+          StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
+    }
+
+    if (request.getEndDate() != null && request.getStartDate() != null) {
+      specification = specification.and(
+          StockTakeSpecification.hasStockTakeDateBetween(request.getStartDate(),
+              request.getEndDate()));
+    }
+
+    return stockTakeRepository.findAll(specification)
+        .stream()
+        .map(StockTakeMapper.INSTANCE::toDto).toList();
   }
 
   @Transactional
@@ -139,7 +162,12 @@ public class StockTakeService {
       }
     }
     newStockTake.setStockTakeDetails(stockTakeDetails);
-    return StockTakeMapper.INSTANCE.toDto(newStockTake);
+    List<StockTakeDetailResponse> stockTakeDetailResponses = stockTakeDetails.stream()
+        .map((i) -> StockTakeDetailMapper.INSTANCE.toDto(i)).collect(
+            Collectors.toList());
+    StockTakeResponse response = StockTakeMapper.INSTANCE.toDto(newStockTake);
+    response.setStockTakeDetails(stockTakeDetailResponses);
+    return response;
   }
 
   @Transactional
