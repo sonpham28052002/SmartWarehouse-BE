@@ -29,63 +29,61 @@ public class ArimaKMeansService {
 
   @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + T(java.time.YearMonth).now().toString()")
   public Map<String, Object> forecastSales(List<String> selectedProducts) {
-    // Tạo ExecutorService với số thread cố định (ví dụ: 4)
-    ExecutorService executor = Executors.newFixedThreadPool(4);
-    // Lưu trữ các Future để thu thập kết quả
+    int cores = Runtime.getRuntime().availableProcessors();
+
+    ExecutorService executor = Executors.newFixedThreadPool(cores);
     List<Future<Map<String, Object>>> futures = new ArrayList<>();
-    ObjectMapper objectMapper = new ObjectMapper();
+//    ObjectMapper objectMapper = new ObjectMapper();
 
     try {
-      // Tạo task cho từng sản phẩm
       for (String product : selectedProducts) {
         Callable<Map<String, Object>> task = () -> {
-          try {
-            // Tạo JSON input cho sản phẩm cụ thể
-            String jsonString = objectMapper.writeValueAsString(
-                Map.of("selected_products", List.of(product), "n_periods", 2));
+//          try {
+//            // Tạo JSON input cho sản phẩm cụ thể
+//            String jsonString = objectMapper.writeValueAsString(
+//                Map.of("selected_products", List.of(product), "n_periods", 2));
+//
+//            // Chạy script Python
+//            ProcessBuilder pb = new ProcessBuilder(
+//                "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+//                "D:\\dockerStudy\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
+//            pb.redirectErrorStream(true);
+//            Process process = pb.start();
+//
+//            // Gửi JSON input tới script
+//            BufferedWriter writer = new BufferedWriter(
+//                new OutputStreamWriter(process.getOutputStream(), "UTF-8"));
+//            writer.write(jsonString);
+//            writer.close();
+//
+//            // Đọc output từ script
+//            BufferedReader reader = new BufferedReader(
+//                new InputStreamReader(process.getInputStream(), "UTF-8"));
+//            StringBuilder output = new StringBuilder();
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//              output.append(line);
+//            }
+//            reader.close();
+//
+//            // Parse output thành Map
+//            return objectMapper.readValue(output.toString(), Map.class);
+//          } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//          }
+          return forecast(List.of(product));
 
-            // Chạy script Python
-            ProcessBuilder pb = new ProcessBuilder(
-                "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
-                "D:\\dockerStudy\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-
-            // Gửi JSON input tới script
-            BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(process.getOutputStream(), "UTF-8"));
-            writer.write(jsonString);
-            writer.close();
-
-            // Đọc output từ script
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream(), "UTF-8"));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-              output.append(line);
-            }
-            reader.close();
-
-            // Parse output thành Map
-            return objectMapper.readValue(output.toString(), Map.class);
-          } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-          }
         };
 
-        // Gửi task vào ExecutorService
         futures.add(executor.submit(task));
       }
-
-      // Thu thập kết quả từ các task
       Map<String, Object> combinedResult = new HashMap<>();
       for (Future<Map<String, Object>> future : futures) {
         try {
-          Map<String, Object> result = future.get(); // Chờ kết quả từ thread
+          Map<String, Object> result = future.get();
           if (result != null) {
-            combinedResult.putAll(result); // Hợp nhất kết quả
+            combinedResult.putAll(result);
           }
         } catch (InterruptedException | ExecutionException e) {
           e.printStackTrace();
@@ -95,7 +93,6 @@ public class ArimaKMeansService {
       return combinedResult;
 
     } finally {
-      // Đóng ExecutorService
       executor.shutdown();
       try {
         if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
@@ -105,6 +102,42 @@ public class ArimaKMeansService {
         executor.shutdownNow();
       }
     }
+  }
+
+  @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + T(java.time.YearMonth).now().toString()")
+  public Map<String, Object> forecast(List<String> selectedProducts) throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    System.out.println(selectedProducts.toArray());
+    String jsonString = objectMapper.writeValueAsString(
+            Map.of("selected_products", selectedProducts, "n_periods", 2));
+
+    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
+    pb.redirectErrorStream(true);
+    Process process = pb.start();
+
+    try (BufferedWriter writer = new BufferedWriter(
+            new OutputStreamWriter(process.getOutputStream(), "UTF-8"))) {
+      writer.write(jsonString);
+      writer.flush();
+    }
+
+    StringBuilder output = new StringBuilder();
+    try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(process.getInputStream(), "UTF-8"))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        output.append(line);
+      }
+    }
+
+    // Đợi process kết thúc
+    int exitCode = process.waitFor();
+    if (exitCode != 0) {
+      throw new RuntimeException("Python script error. Exit code: " + exitCode);
+    }
+
+    // Parse output
+    return objectMapper.readValue(output.toString(), Map.class);
   }
 
   public Map<Integer, Map<String, Object>> clusterProducts(

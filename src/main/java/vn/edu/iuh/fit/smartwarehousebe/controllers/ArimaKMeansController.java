@@ -1,15 +1,12 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
-import java.util.concurrent.CompletableFuture;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
+
 import vn.edu.iuh.fit.smartwarehousebe.servies.ArimaKMeansService;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/forecast")
 public class ArimaKMeansController {
 
   private final ArimaKMeansService arimaKMeansService;
@@ -20,8 +17,16 @@ public class ArimaKMeansController {
 
   @PostMapping("/forecast")
   public Map<String, Object> forecast(
-      @RequestBody(required = false) List<String> selectedProducts) {
+      @RequestBody(required = false) List<String> selectedProducts)  {
+
     return arimaKMeansService.forecastSales(selectedProducts);
+
+  }
+
+  @PostMapping("/forecastv2")
+  public Map<String, Object> forecastV2(
+          @RequestBody(required = false) List<String> selectedProducts) throws Exception {
+    return arimaKMeansService.forecast(selectedProducts);
   }
 
   @PostMapping("/kmeans")
