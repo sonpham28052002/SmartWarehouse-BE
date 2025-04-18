@@ -37,7 +37,7 @@
         }
         .info-section p {
             margin: 0;
-            font-size: 14px;
+            font-size: 12px;
         }
         table {
             width: 100%;
@@ -48,7 +48,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            font-size: 14px;
+            font-size: 12px;
         }
         th {
             background-color: #f2f2f2;
@@ -93,13 +93,13 @@
 <div class="info-section">
     <div class="row">
         <div class="col">
-            <h3>Kho xuất:</h3>
+            <p style="font-weight: bold; font-size: 14px">Kho xuất:</p>
             <p>Tên kho: ${deliveryNote.fromWarehouseName}</p>
             <p>Địa chỉ: ${deliveryNote.fromWarehouseAddress}</p>
             <p>Mã kho: ${deliveryNote.fromWarehouseCode}</p>
         </div>
         <div class="col">
-            <h3>Kho nhận:</h3>
+            <p style="font-weight: bold; font-size: 14px">Kho nhận:</p>
             <p>Tên kho: ${deliveryNote.toWarehouseName}</p>
             <p>Địa chỉ: ${deliveryNote.toWarehouseAddress}</p>
             <p>Mã kho: ${deliveryNote.toWarehouseCode}</p>
@@ -116,27 +116,27 @@
     <thead>
     <tr>
         <th>STT</th>
-        <th>Mã sản phẩm</th>
-        <th>SKU</th>
-        <th>Tên sản phẩm</th>
-        <th>Đơn vị</th>
-        <th>Số lượng</th>
+        <th style="width: 150px;">Mã sản phẩm</th>
+        <th style="max-width: 300px; text-align: center">SKU</th>
+        <th style="width: 150px;">Tên sản phẩm</th>
+        <th style="width: 70px;">Đơn vị</th>
+        <th style="width: 100px;">Số lượng</th>
     </tr>
     </thead>
     <tbody>
     <#list deliveryNote.items as item>
     <tr>
-        <td>${item?index + 1}</td>
-        <td>${item.productCode}</td>
-        <td>${item.sku}</td>
-        <td>${item.productName}</td>
-        <td>${item.unit}</td>
-        <td>${item.quantity}</td>
+        <td style="text-align: center">${item?index + 1}</td>
+        <td style="text-align: center">${item.productCode}</td>
+        <td style="text-align: left">${item.sku}</td>
+        <td style="text-align: left">${item.productName}</td>
+        <td style="text-align: left">${item.unit}</td>
+        <td style="text-align: right">${item.quantity}</td>
     </tr>
     </#list>
     <tr class="total-row">
-        <td colspan="5">Tổng cộng:</td>
-        <td>
+        <td colspan="5" style="text-align: left">Tổng cộng:</td>
+        <td style="text-align: right">
             <#assign total = 0>
             <#list deliveryNote.items as item>
             <#assign total = total + item.quantity>
@@ -146,20 +146,5 @@
     </tr>
     </tbody>
 </table>
-
-<div class="footer">
-    <div class="signature-section">
-        <h3>Người nhận hàng</h3>
-        <p>(Ký và ghi rõ họ tên)</p>
-    </div>
-    <div class="signature-section">
-        <h3>Thủ kho xuất</h3>
-        <p>(Ký và ghi rõ họ tên)</p>
-    </div>
-    <div class="signature-section">
-        <h3>Người quản lý</h3>
-        <p>(Ký và ghi rõ họ tên)</p>
-    </div>
-</div>
 </body>
 </html>

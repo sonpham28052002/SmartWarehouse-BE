@@ -68,7 +68,8 @@ public class WarehouseReceiptPdfService {
     }
     WarehouseResponse toWarehouse = warehouseService.getByCode(
         transaction.getWarehouse().getCode());
-    UserResponse user = userService.getUserByCode(transaction.getExecutor().getCode());
+    UserResponse user = transaction.getCreator() != null ? userService.getUserByCode(
+        transaction.getCreator().getCode()) : null;
     List<WarehouseReceipt.WarehouseReceiptItem> receiptItems =
         transaction.getDetails()
             .stream()
@@ -96,7 +97,7 @@ public class WarehouseReceiptPdfService {
         .warehouseCode(toWarehouse.getCode())
         .warehouseName(toWarehouse.getName())
         .warehouseAddress(toWarehouse.getAddress())
-        .createdBy(user.getFullName())
+        .createdBy(user != null ? user.getFullName() : "")
         .createdDate(LocalDateTime.now())
         .items(receiptItems)
         .build();

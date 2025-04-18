@@ -49,7 +49,9 @@ public class DeliveryNotePdfService {
    */
   public byte[] generatePdf(Long transactionId) {
     TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
-    if (transaction.getTransactionType() != TransactionType.EXPORT_TO_WAREHOUSE) {
+    System.out.println(transaction.getTransactionType());
+    if (transaction.getTransactionType() != TransactionType.EXPORT_TO_WAREHOUSE
+        && transaction.getTransactionType() != TransactionType.WAREHOUSE_TRANSFER) {
       throw new IllegalArgumentException("Transaction type is not export to warehouse");
     }
     WarehouseResponse fromWarehouse = null;
@@ -61,7 +63,8 @@ public class DeliveryNotePdfService {
     }
     WarehouseResponse toWarehouse = warehouseService.getByCode(
         transaction.getWarehouse().getCode());
-    UserResponse user = userService.getUserByCode(transaction.getExecutor().getCode());
+    UserResponse user = transaction.getCreator() != null ? userService.getUserByCode(
+        transaction.getCreator().getCode()) : null;
 
     List<DeliveryNote.DeliveryNoteItem> noteItems =
         transaction.getDetails()
@@ -87,7 +90,7 @@ public class DeliveryNotePdfService {
         .toWarehouseCode(toWarehouse.getCode())
         .toWarehouseName(toWarehouse.getName())
         .toWarehouseAddress(toWarehouse.getAddress())
-        .createdBy(user.getFullName())
+        .createdBy(user != null ? user.getFullName() : "")
         .createdDate(LocalDateTime.now())
         .items(noteItems)
         .build();
