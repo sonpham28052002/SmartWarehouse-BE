@@ -37,7 +37,8 @@ public class StockTakeDetailService {
 
     specification = specification.and(
         StockTakeDetailSpecification.hasStockTakeId(stockTakeId));
-
+    specification = specification.and(
+        StockTakeDetailSpecification.hasStorageLocation());
     return stockTakeDetailRepository.findAll(specification, pageRequest)
         .map((i) -> StockTakeDetailMapper.INSTANCE.toDto(i));
   }

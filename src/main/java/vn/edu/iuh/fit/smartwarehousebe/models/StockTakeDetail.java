@@ -38,6 +38,7 @@ public class StockTakeDetail extends Auditable implements Serializable {
 
   private Long expectedQuantity;
   private Long actualQuantity;
+  private Long damagedQuantity;
   private String description;
 
   @Enumerated(EnumType.ORDINAL)

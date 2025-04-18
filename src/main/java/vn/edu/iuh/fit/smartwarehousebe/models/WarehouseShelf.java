@@ -7,8 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +43,9 @@ public class WarehouseShelf extends Auditable implements Serializable {
 
   @ManyToOne(fetch = FetchType.LAZY)
   private Warehouse warehouse;
+
+  @OneToMany(mappedBy = "warehouseShelf")
+  private List<StorageLocation> storageLocations;
 
   @Override
   public boolean equals(Object o) {

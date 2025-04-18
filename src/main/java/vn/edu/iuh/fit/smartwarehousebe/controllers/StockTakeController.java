@@ -9,9 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.unit.GetUnitRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
@@ -45,4 +48,25 @@ public class StockTakeController {
     return ResponseEntity.ok(stockTakeService.deleteStockTakeById(id));
   }
 
+  @PostMapping("/create")
+  public ResponseEntity<StockTakeResponse> createStockTakeById(
+      @RequestBody CreateStockTakeRequest request) {
+    return ResponseEntity.ok(stockTakeService.createStockTake(request));
+  }
+
+  @GetMapping("/{stockTakeId}/startStockTake")
+  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId) {
+    return ResponseEntity.ok(stockTakeService.startStockTake(stockTakeId));
+  }
+
+  @PostMapping("/{stockTakeId}/saveStockTake")
+  public ResponseEntity<StockTakeResponse> saveStockTake(@PathVariable Long stockTakeId,
+      @RequestBody StockTakeResponse request) {
+    return ResponseEntity.ok(stockTakeService.saveStockTake(stockTakeId, request));
+  }
+
+  @PostMapping("/{stockTakeId}/completeStockTake")
+  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId) {
+    return ResponseEntity.ok(stockTakeService.completeStockTake(stockTakeId));
+  }
 }

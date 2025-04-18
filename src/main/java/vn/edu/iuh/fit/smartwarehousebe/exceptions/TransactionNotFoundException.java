@@ -7,8 +7,8 @@ import java.util.NoSuchElementException;
  * @author: vie
  * @date: 3/3/25
  */
-public class SupplierNotFoundException extends NoSuchElementException {
-    public SupplierNotFoundException() {
-        super("Supplier not found");
+public class TransactionNotFoundException extends NoSuchElementException {
+    public TransactionNotFoundException() {
+        super("Transaction not found");
     }
 }

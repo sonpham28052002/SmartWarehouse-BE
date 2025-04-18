@@ -8,6 +8,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>,
     JpaSpecificationExecutor<Product> {
@@ -17,4 +22,19 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
       "JOIN StorageLocation s ON i.storageLocation.id = s.id " +
       "WHERE s.warehouseShelf.warehouse.id = :warehouseId")
   List<Product> findAllByWarehouseId(@Param("warehouseId") Long warehouseId);
+
+
+  @Query("SELECT DISTINCT p FROM Product p " +
+      "JOIN Inventory i ON i.product.id = p.id " +
+      "JOIN StorageLocation s ON i.storageLocation.id = s.id " +
+      "WHERE s.warehouseShelf.warehouse.id = :warehouseId and p.partner.id = :partnerId")
+  List<Product> findAllByWarehouseIdAAndPartnerId(@Param("warehouseId") Long warehouseId,
+      @Param("partnerId") Long partnerId);
+
+  List<Product> findByIdInAndDeletedFalse(Collection<Long> ids);
+
+  List<Product> findByIdIn(Collection<Long> ids);
+
+  Optional<Product> findByCode(String productCode);
+
 }

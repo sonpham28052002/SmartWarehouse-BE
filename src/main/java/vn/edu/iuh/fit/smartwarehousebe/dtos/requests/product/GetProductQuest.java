@@ -26,6 +26,6 @@ public class GetProductQuest implements Serializable {
   String code;
   String name;
   String sku;
-  Long supplierId;
+  Long partnerId;
   Boolean active;
 }

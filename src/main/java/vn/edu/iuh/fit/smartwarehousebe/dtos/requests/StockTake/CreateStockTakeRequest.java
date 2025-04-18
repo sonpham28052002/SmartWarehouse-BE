@@ -11,8 +11,8 @@ import lombok.*;
 @ToString
 public class CreateStockTakeRequest {
 
-  private Long warehouseShelfId;
   private List<Long> productIds;
+  private List<Long> shelfIds;
   private String description;
   private Long warehouseId;
 }

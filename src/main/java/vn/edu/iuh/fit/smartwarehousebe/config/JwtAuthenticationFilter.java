@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import vn.edu.iuh.fit.smartwarehousebe.servies.JWTService;
+import vn.edu.iuh.fit.smartwarehousebe.servies.UserAuthService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.UserService;
 
 @Component
@@ -32,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Autowired
   private JWTService jwtService;
   @Autowired
-  private UserService userService;
+  private UserAuthService userAuthService;
 
   @Override
   protected void doFilterInternal(@NonNull HttpServletRequest request, HttpServletResponse response,
@@ -51,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       userEmail = jwtService.extractUserName(jwtToken);
 
       if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-        UserDetails userDetails = userService.loadUserByUsername(userEmail);
+        UserDetails userDetails = userAuthService.loadUserByUsername(userEmail);
         if (jwtService.isTokenValid(jwtToken, userDetails)) {
           SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
           UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(

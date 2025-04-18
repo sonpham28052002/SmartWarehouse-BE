@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Map;
 import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.ConversionUnit.ConversionUnitResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
@@ -26,9 +27,10 @@ public class ProductResponse implements Serializable {
   String name;
   String description;
   String image;
-  Long supplierId;
+  Long partnerId;
   LocalDateTime createdDate;
   LocalDateTime lastModifiedDate;
+  Map<String, Object> forecast;
   Double unitWeight;
   boolean deleted;
   @JsonIgnoreProperties({"product"})

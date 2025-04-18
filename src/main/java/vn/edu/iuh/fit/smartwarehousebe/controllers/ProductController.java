@@ -39,13 +39,13 @@ public class ProductController {
 
   @GetMapping()
   public ResponseEntity<Page<ProductResponse>> getPage(
-      @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "1") int current_page,
+      @RequestParam(defaultValue = "10") int per_page,
       @RequestParam(defaultValue = "id") String sortBy,
       GetProductQuest productQuest
   ) {
     Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
-    PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
+    PageRequest pageRequest = PageRequest.of(current_page - 1, per_page, sort);
     return ResponseEntity.ok(productService.getAll(pageRequest, productQuest));
   }
 
@@ -85,5 +85,12 @@ public class ProductController {
   public ResponseEntity<List<ProductResponse>> findAllByWarehouseId(
       @PathVariable Long warehouseId) {
     return ResponseEntity.ok(productService.findAllByWarehouseId(warehouseId));
+  }
+
+  @GetMapping("/{warehouseId}/{partnerId}/findAllByWarehouseIdAndPartnerId")
+  public ResponseEntity<List<ProductResponse>> findAllByWarehouseIdAndPartnerId(
+      @PathVariable Long warehouseId, @PathVariable Long partnerId) {
+    return ResponseEntity.ok(
+        productService.findAllByWarehouseIdAndPartnerId(warehouseId, partnerId));
   }
 }

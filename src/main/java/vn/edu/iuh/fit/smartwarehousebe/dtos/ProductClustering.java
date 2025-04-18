@@ -13,19 +13,23 @@ public class ProductClustering {
   public static void main(String[] args) {
     List<TransactionDetail> transactions = generateTransactions(1000);
 
-    Map<String, Double> totalQuantities = transactions.stream()
-        .collect(Collectors.groupingBy(TransactionDetail::getProductName,
-            Collectors.summingDouble(TransactionDetail::getQuantity)));
+    Map<String, Long> totalQuantities = new HashMap<>();
+    totalQuantities.put("Product A", 502225L);
+    totalQuantities.put("Product B", 502225L);
+    totalQuantities.put("Product C", 469739L);
+    totalQuantities.put("Product D", 515149L);
+    totalQuantities.put("Product E", 492522L);
+    totalQuantities.put("Product F", 588966L);
 
     Map<Double, List<String>> productMap = new HashMap<>();
     List<DoublePoint> points = new ArrayList<>();
-    for (Map.Entry<String, Double> entry : totalQuantities.entrySet()) {
+    for (Map.Entry<String, Long> entry : totalQuantities.entrySet()) {
       double totalQuantity = entry.getValue();
       points.add(new DoublePoint(new double[]{totalQuantity}));
       productMap.computeIfAbsent(totalQuantity, v -> new ArrayList<>()).add(entry.getKey());
     }
 
-    int k = 3;
+    int k = 2;
     if (k > totalQuantities.size()) {
       throw new IllegalArgumentException("Số cụm K không thể lớn hơn số lượng sản phẩm.");
     }
@@ -53,10 +57,7 @@ public class ProductClustering {
   private static List<TransactionDetail> generateTransactions(int count) {
     List<TransactionDetail> transactions = new ArrayList<>();
     Random random = new Random();
-    String[] products = {"Product A", "Product B", "Product C", "Product D", "Product E",
-        "Product F", "Product G", "Product H", "Product I", "Product J",
-        "Product K", "Product L", "Product M", "Product N", "Product O",
-        "Product P", "Product Q", "Product R", "Product S", "Product T"};
+    String[] products = {"Product A", "Product B", "Product C", "Product D", "Product E"};
 
     for (int i = 0; i < count; i++) {
       String product = products[random.nextInt(products.length)];
