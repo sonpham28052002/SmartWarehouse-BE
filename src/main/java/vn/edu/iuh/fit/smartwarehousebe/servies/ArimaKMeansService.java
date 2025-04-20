@@ -109,21 +109,23 @@ public class ArimaKMeansService {
     ObjectMapper objectMapper = new ObjectMapper();
     System.out.println(selectedProducts.toArray());
     String jsonString = objectMapper.writeValueAsString(
-            Map.of("selected_products", selectedProducts, "n_periods", 2));
+        Map.of("selected_products", selectedProducts, "n_periods", 2));
 
-    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
+    ProcessBuilder pb = new ProcessBuilder(
+        "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "D:\\dockerStudy\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
     pb.redirectErrorStream(true);
     Process process = pb.start();
 
     try (BufferedWriter writer = new BufferedWriter(
-            new OutputStreamWriter(process.getOutputStream(), "UTF-8"))) {
+        new OutputStreamWriter(process.getOutputStream(), "UTF-8"))) {
       writer.write(jsonString);
       writer.flush();
     }
 
     StringBuilder output = new StringBuilder();
     try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(process.getInputStream(), "UTF-8"))) {
+        new InputStreamReader(process.getInputStream(), "UTF-8"))) {
       String line;
       while ((line = reader.readLine()) != null) {
         output.append(line);

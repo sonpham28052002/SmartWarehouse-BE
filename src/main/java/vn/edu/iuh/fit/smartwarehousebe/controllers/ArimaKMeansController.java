@@ -6,7 +6,7 @@ import java.util.*;
 import vn.edu.iuh.fit.smartwarehousebe.servies.ArimaKMeansService;
 
 @RestController
-@RequestMapping("/forecast")
+@RequestMapping()
 public class ArimaKMeansController {
 
   private final ArimaKMeansService arimaKMeansService;
@@ -17,7 +17,7 @@ public class ArimaKMeansController {
 
   @PostMapping("/forecast")
   public Map<String, Object> forecast(
-      @RequestBody(required = false) List<String> selectedProducts)  {
+      @RequestBody(required = false) List<String> selectedProducts) {
 
     return arimaKMeansService.forecastSales(selectedProducts);
 
@@ -25,7 +25,7 @@ public class ArimaKMeansController {
 
   @PostMapping("/forecastv2")
   public Map<String, Object> forecastV2(
-          @RequestBody(required = false) List<String> selectedProducts) throws Exception {
+      @RequestBody(required = false) List<String> selectedProducts) throws Exception {
     return arimaKMeansService.forecast(selectedProducts);
   }
 

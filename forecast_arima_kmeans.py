@@ -16,7 +16,7 @@ warnings.simplefilter(action='ignore', category=DeprecationWarning)
 sys.stdout.reconfigure(encoding='utf-8')
 
 
-# Hàm làm tròn số thực thành số nguyên (MỚI)
+# Hàm làm tròn số thực thành số nguyên
 def round_to_integer(obj):
   if isinstance(obj, float):
     return int(round(obj)) if not np.isnan(obj) and not np.isinf(obj) else obj
@@ -59,7 +59,7 @@ for product in products:
   sales = df[product].values
   mean_sales = np.mean(sales)
   std_sales = np.std(sales)
-  trend = (sales[-1] - sales[0]) / len(sales)
+  trend = (sales[-1] - sales[0]) / len(sales) if len(sales) > 1 else 0
   features.append([mean_sales, std_sales, trend])
 
 # Chuẩn hóa đặc trưng
@@ -75,15 +75,20 @@ clusters = kmeans.fit_predict(features_scaled)
 product_clusters = {product: cluster for product, cluster in
                     zip(products, clusters)}
 
-# Tính start_date: Lấy ngày cuối cùng và lùi lại 24 tháng
+# Tính start_date: Nếu dữ liệu không đủ 24 tháng, lấy từ ngày đầu tiên
 last_date = df.index[-1]
-start_date = last_date - pd.DateOffset(months=24)
+months_available = len(
+  pd.date_range(start=df.index[0], end=last_date, freq='M'))
+if months_available >= 24:
+  start_date = last_date - pd.DateOffset(months=24)
+else:
+  start_date = df.index[0]  # Lấy ngày đầu tiên nếu không đủ 24 tháng
 start_date = start_date.strftime('%Y-%m-%d')
 
 # Tính train_end_date và test_start_date động
 train_end_date = (last_date - pd.DateOffset(months=1)).strftime('%Y-%m-%d')
 test_start_date = (
-      pd.to_datetime(train_end_date) + pd.DateOffset(months=1)).replace(
+    pd.to_datetime(train_end_date) + pd.DateOffset(months=1)).replace(
   day=1).strftime('%Y-%m-%d')
 
 # Giới hạn dữ liệu từ start_date đến ngày cuối cùng + số tháng dự đoán
@@ -147,7 +152,7 @@ for product in valid_products:
       mse = mean_squared_error(actual_values, test_forecast_values)
       rmse = np.sqrt(mse)
       mape = np.mean(np.abs((
-                                  actual_values - test_forecast_values) / actual_values)) * 100 if not np.any(
+                                actual_values - test_forecast_values) / actual_values)) * 100 if not np.any(
         actual_values == 0) else float('inf')
 
     # Huấn luyện lại trên toàn bộ dữ liệu để dự đoán tương lai
@@ -184,7 +189,7 @@ for product in valid_products:
     # Tạo nhận xét chi tiết về độ chính xác và tính hợp lý của dự đoán
     product_review = []
     product_review.append(
-        f"Chỉ số đánh giá: MAE: {int(round(mae))}, RMSE: {int(round(rmse))}, MAPE: {int(round(mape))}%.")  # CẬP NHẬT: Làm tròn thành số nguyên
+        f"Chỉ số đánh giá: MAE: {int(round(mae))}, RMSE: {int(round(rmse))}, MAPE: {int(round(mape))}%.")  # Làm tròn thành số nguyên
 
     # So sánh giá trị thực tế và dự đoán cho từng tháng
     test_dates = test_data.index.strftime('%Y-%m-%d').tolist()
@@ -214,13 +219,12 @@ for product in valid_products:
 
       trend_comment = "dự đoán cao hơn thực tế" if pred > actual else "dự đoán thấp hơn thực tế"
       comparison.append(
-          f"- Tháng {date}: Thực tế: {int(round(actual))}, Dự đoán: {int(round(pred))}, Sai số: {int(round(error))} ({int(round(percentage_error))}%), {accuracy_comment}, {trend_comment}.")  # CẬP NHẬT: Làm tròn thành số nguyên
+          f"- Tháng {date}: Thực tế: {int(round(actual))}, Dự đoán: {int(round(pred))}, Sai số: {int(round(error))} ({int(round(percentage_error))}%), {accuracy_comment}, {trend_comment}.")  # Làm tròn thành số nguyên
 
     product_review.append("Đánh giá độ chính xác dự đoán:")
     product_review.extend(comparison if comparison else [
       "- Không có dữ liệu kiểm tra để đánh giá."])
 
-    # Đề xuất số lượng xuất hàng hóa
     dispatch_recommendation = []
     for date, forecast, lower, upper in zip(future_dates_str, forecast_values,
                                             ci_lower, ci_upper):
@@ -229,43 +233,36 @@ for product in valid_products:
         adjusted_forecast = forecast * 0.95
       dispatch_recommendation.append({
         "date": date,
-        "forecast": int(round(forecast)),  # CẬP NHẬT: Làm tròn thành số nguyên
+        "forecast": int(round(forecast)),
         "recommended_dispatch": int(round(adjusted_forecast)),
-        # CẬP NHẬT: Làm tròn thành số nguyên
         "confidence_interval_95": [int(round(lower)), int(round(upper))]
-        # CẬP NHẬT: Làm tròn thành số nguyên
       })
 
-    # Lưu kết quả dự báo
     forecast_results[product] = {
       "cluster": int(product_clusters[product]),
       "historical_data": {
         "dates": historical_dates,
-        "values": historical_values  # Sẽ được làm tròn trong bước cuối
+        "values": historical_values
       },
       "forecast": [
         {
           "date": date,
-          "value": int(round(value))  # CẬP NHẬT: Làm tròn thành số nguyên
+          "value": int(round(value))
         } for date, value in zip(future_dates_str, forecast_values)
       ],
       "confidence_interval_95": {
         "lower": [int(round(val)) for val in ci_lower],
-        # CẬP NHẬT: Làm tròn thành số nguyên
         "upper": [int(round(val)) for val in ci_upper]
-        # CẬP NHẬT: Làm tròn thành số nguyên
       },
       "evaluation": {
         "test_dates": test_data.index.strftime('%Y-%m-%d').tolist(),
         "actual_values": [int(round(val)) for val in test_data.tolist()],
-        # CẬP NHẬT: Làm tròn thành số nguyên
         "predicted_values": [int(round(val)) for val in test_forecast_values],
-        # CẬP NHẬT: Làm tròn thành số nguyên
         "metrics": {
-          "MAE": int(round(mae)),  # CẬP NHẬT: Làm tròn thành số nguyên
-          "MSE": int(round(mse)),  # CẬP NHẬT: Làm tròn thành số nguyên
-          "RMSE": int(round(rmse)),  # CẬP NHẬT: Làm tròn thành số nguyên
-          "MAPE": int(round(mape))  # CẬP NHẬT: Làm tròn thành số nguyên
+          "MAE": int(round(mae)),
+          "MSE": int(round(mse)),
+          "RMSE": int(round(rmse)),
+          "MAPE": int(round(mape))
         }
       },
       "review": product_review,
@@ -275,7 +272,7 @@ for product in valid_products:
   except Exception as e:
     forecast_results[product] = {"error": f"Lỗi khi dự báo: {str(e)}"}
 
-# Xuất kết quả JSON với tất cả số thực được làm tròn thành số nguyên (MỚI)
+# Xuất kết quả JSON với tất cả số thực được làm tròn thành số nguyên
 forecast_results_rounded = round_to_integer(forecast_results)
 print(json.dumps(forecast_results_rounded, ensure_ascii=False))
 sys.stdout.flush()

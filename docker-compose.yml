@@ -22,7 +22,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=
       - AWS_REGION=ap-southeast-1
       - AWS_S3_BUCKET_NAME=smartwh
-
+      - TZ=Asia/Ho_Chi_Minh
 
   nginx:
     build:
