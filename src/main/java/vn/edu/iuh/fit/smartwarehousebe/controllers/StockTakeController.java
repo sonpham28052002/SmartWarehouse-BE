@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRe
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.unit.GetUnitRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.servies.StockTakeService;
 
 @RestController
@@ -50,13 +52,13 @@ public class StockTakeController {
 
   @PostMapping("/create")
   public ResponseEntity<StockTakeResponse> createStockTakeById(
-      @RequestBody CreateStockTakeRequest request) {
-    return ResponseEntity.ok(stockTakeService.createStockTake(request));
+      @RequestBody CreateStockTakeRequest request, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(stockTakeService.createStockTake(request, user));
   }
 
   @GetMapping("/{stockTakeId}/startStockTake")
-  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId) {
-    return ResponseEntity.ok(stockTakeService.startStockTake(stockTakeId));
+  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(stockTakeService.startStockTake(stockTakeId, user));
   }
 
   @PostMapping("/{stockTakeId}/saveStockTake")
@@ -66,7 +68,12 @@ public class StockTakeController {
   }
 
   @PostMapping("/{stockTakeId}/completeStockTake")
-  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId) {
-    return ResponseEntity.ok(stockTakeService.completeStockTake(stockTakeId));
+  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(stockTakeService.completeStockTake(stockTakeId, user));
+  }
+
+  @PostMapping("/{stockTakeId}/approve")
+  public ResponseEntity<StockTakeResponse> approve(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(stockTakeService.approve(stockTakeId, user));
   }
 }

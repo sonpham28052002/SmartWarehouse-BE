@@ -49,6 +49,21 @@ public class StockTake extends Auditable {
   @Enumerated(EnumType.ORDINAL)
   private StockTakeStatus status;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "executor_id")
+  @JsonIgnore
+  private User executor;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "creator_id")
+  @JsonIgnore
+  private User creator;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "approver_id")
+  @JsonIgnore
+  private User approver;
+
   @Override
   public String toString() {
     return "StockTake{" + "id=" + id + ", stockTakeDetails=" + stockTakeDetails + ", description='"

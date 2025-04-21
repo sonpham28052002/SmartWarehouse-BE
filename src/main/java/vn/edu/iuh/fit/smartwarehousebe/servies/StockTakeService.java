@@ -1,14 +1,19 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
@@ -16,18 +21,11 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRe
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
-import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
-import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
-import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.*;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeMapper;
-import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
-import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
-import vn.edu.iuh.fit.smartwarehousebe.models.StockTakeDetail;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeDetailRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
+import vn.edu.iuh.fit.smartwarehousebe.models.*;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.*;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.StockTakeSpecification;
 
 @Service
@@ -49,6 +47,10 @@ public class StockTakeService {
   @Autowired
   @Lazy
   private WarehouseRepository warehouseRepository;
+    @Autowired
+    private TransactionDetailRepository transactionDetailRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
   @Transactional(readOnly = true)
   public Page<StockTakeResponse> getAll(PageRequest pageRequest, GetStockTakeRequest request) {
@@ -112,11 +114,12 @@ public class StockTakeService {
 
 
   @Transactional
-  public StockTakeResponse createStockTake(CreateStockTakeRequest request) {
+  public StockTakeResponse createStockTake(CreateStockTakeRequest request, User user) {
     StockTake stockTake = stockTakeRepository.save(
         StockTake.builder().description(request.getDescription()).warehouse(
                 warehouseRepository.findById(request.getWarehouseId())
                     .orElseThrow(() -> new NotFoundException("warehouse not fond")))
+                .creator(user)
             .status(StockTakeStatus.PENDING).build());
 
     List<Inventory> inventories = new ArrayList<>();
@@ -147,10 +150,11 @@ public class StockTakeService {
   }
 
   @Transactional
-  public StockTakeResponse startStockTake(Long stockTakeId) {
+  public StockTakeResponse startStockTake(Long stockTakeId, User user) {
     StockTake stockTake = stockTakeRepository.findById(stockTakeId)
         .orElseThrow(() -> new NotFoundException("stoke take not found"));
     stockTake.setStatus(StockTakeStatus.IN_PROGRESS);
+    stockTake.setExecutor(user);
     StockTake newStockTake = stockTakeRepository.save(stockTake);
     List<StockTakeDetail> stockTakeDetails = new ArrayList<>();
     for (StockTakeDetail detail : stockTake.getStockTakeDetails()) {
@@ -191,10 +195,46 @@ public class StockTakeService {
   }
 
   @Transactional
-  public StockTakeResponse completeStockTake(Long stockTakeId) {
+  public StockTakeResponse completeStockTake(Long stockTakeId, User user) {
     StockTake stockTake = stockTakeRepository.findById(stockTakeId)
         .orElseThrow(() -> new NotFoundException("stoke take not found"));
     stockTake.setStatus(StockTakeStatus.COMPLETED);
+    stockTake.setExecutor(user);
+    stockTakeRepository.save(stockTake);
+    return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
+  @Transactional
+  public StockTakeResponse approve(Long stockTakeId, User user) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+            .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.VERIFIED);
+    stockTake.setApprover(user);
+    Transaction transaction = Transaction.builder()
+            .approver(user)
+            .creator(user)
+            .executor(stockTake.getExecutor())
+            .transactionDate(LocalDateTime.now())
+            .transactionType(TransactionType.INVENTORY)
+            .status(TransactionStatus.COMPLETE)
+            .warehouse(stockTake.getWarehouse())
+            .description("kiểm kê kho "+stockTake.getWarehouse().getName()+" "+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .build();
+    Set<TransactionDetail> details = new HashSet<>();
+    for (StockTakeDetail stockTakeDetail: stockTake.getStockTakeDetails()) {
+      Inventory inventory = stockTakeDetail.getInventory();
+      Long actual = Optional.ofNullable(stockTakeDetail.getActualQuantity()).orElse(0L);
+      Long damaged = Optional.ofNullable(stockTakeDetail.getDamagedQuantity()).orElse(0L);
+      TransactionDetail transactionDetail = TransactionDetail.builder()
+              .product(stockTakeDetail.getInventory().getProduct())
+              .quantity((int) (actual - damaged))
+              .transaction(transaction)
+              .transactionType(transaction.getTransactionType())
+              .inventory(inventory)
+              .build();
+      details.add(transactionDetailRepository.save(transactionDetail));
+    }
+    transactionRepository.save(transaction);
     stockTakeRepository.save(stockTake);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
   }

@@ -1,8 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
@@ -14,6 +13,9 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
 @Setter
 @Entity
 @Table(name = "transactions")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transaction extends Auditable {
 
   @Id

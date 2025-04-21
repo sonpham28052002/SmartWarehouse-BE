@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.amazonaws.services.kms.model.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -30,6 +32,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWit
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UnitOfProductNotFoundException;
@@ -348,6 +351,18 @@ public class TransactionService {
 
     return transactionRepository.findAll(specification).stream()
         .map((i) -> transactionMapper.toDto(i)).toList();
+  }
+
+  @Transactional
+  public TransactionResponse approve(Long Transaction) {
+    Transaction transaction = transactionRepository.findById(Transaction).orElseThrow(()-> new NotFoundException("Transaction not found"));
+    for (TransactionDetail detail : transaction.getDetails()) {
+      Inventory inventory = detail.getInventory();
+      inventory.setStatus(InventoryStatus.ACTIVE);
+      inventoryRepository.save(inventory);
+    }
+    transaction.setStatus(TransactionStatus.COMPLETE);
+    return transactionMapper.toDto(transactionRepository.save(transaction));
   }
 
 }

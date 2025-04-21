@@ -169,4 +169,9 @@ public class TransactionController {
         transactionService.getTransactionDetailByTransactionId(transactionId, request,
             pageRequest));
   }
+
+  @PutMapping("{transactionId}/approve")
+  public TransactionResponse approve(Long transactionId) {
+      return transactionService.approve(transactionId);
+  }
 }
