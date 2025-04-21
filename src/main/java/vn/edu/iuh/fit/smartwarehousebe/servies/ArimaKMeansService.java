@@ -27,6 +27,9 @@ public class ArimaKMeansService {
   @Autowired
   private ProductRepository productRepository;
 
+  @Autowired
+  private ArimaKMeansService self;
+
   @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + T(java.time.YearMonth).now().toString()")
   public Map<String, Object> forecastSales(List<String> selectedProducts) {
     int cores = Runtime.getRuntime().availableProcessors();
@@ -72,7 +75,7 @@ public class ArimaKMeansService {
 //            e.printStackTrace();
 //            return null;
 //          }
-          return forecast(List.of(product));
+          return self.forecast(List.of(product));
 
         };
 
