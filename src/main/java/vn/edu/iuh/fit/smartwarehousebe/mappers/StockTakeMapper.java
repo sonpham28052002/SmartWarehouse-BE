@@ -11,6 +11,7 @@ public interface StockTakeMapper {
 
   StockTakeMapper INSTANCE = Mappers.getMapper(StockTakeMapper.class);
 
+  @Mapping(target = "code", source = "code")
   StockTakeResponse toDto(StockTake stockTake);
 
   StockTake toEntity(StockTakeResponse response);

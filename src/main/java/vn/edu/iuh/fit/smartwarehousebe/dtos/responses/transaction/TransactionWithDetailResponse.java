@@ -30,6 +30,7 @@ public class TransactionWithDetailResponse implements Serializable {
   TransactionStatus status;
   String transferCode;
   String partnerCode;
+  String code;
   List<TransactionDetailResponse> details;
 
   @Value

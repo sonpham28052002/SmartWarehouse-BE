@@ -23,6 +23,8 @@ public class Transaction extends Auditable {
   @Column(name = "id", nullable = false)
   private Long id;
 
+  private String code;
+
   @Column(name = "transaction_type", nullable = false)
   @Enumerated(EnumType.STRING)
   private TransactionType transactionType;

@@ -2,7 +2,9 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -120,6 +122,7 @@ public class StockTakeService {
                 warehouseRepository.findById(request.getWarehouseId())
                     .orElseThrow(() -> new NotFoundException("warehouse not fond")))
                 .creator(user)
+                .code(generateStockTakeCode())
             .status(StockTakeStatus.PENDING).build());
 
     List<Inventory> inventories = new ArrayList<>();
@@ -237,6 +240,16 @@ public class StockTakeService {
     transactionRepository.save(transaction);
     stockTakeRepository.save(stockTake);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
+  public String generateStockTakeCode() {
+    LocalDateTime from = LocalDate.now().atStartOfDay();
+    LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
+    int sequence = stockTakeRepository.findTodaySequence(from, to);
+    String prefix = "STK";
+    String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String number = String.format("%03d", sequence);
+    return String.format("%s-%s-%s", prefix, date, number);
   }
 
 }

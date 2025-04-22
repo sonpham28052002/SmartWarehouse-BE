@@ -32,6 +32,7 @@ public interface TransactionMapper {
   @Mapping(target = "transfer", source = "transfer")
   @Mapping(target = "executor", source = "executor")
   @Mapping(target = "createdDate", source = "createdDate")
+  @Mapping(target = "code", source = "code")
   TransactionResponse toDto(Transaction transaction);
 
   @Mapping(target = "warehouse.code", source = "warehouse.code")
@@ -39,6 +40,7 @@ public interface TransactionMapper {
   @Mapping(target = "partnerCode", source = "partner.code")
   @Mapping(target = "executor", source = "executor")
   @Mapping(target = "details", source = "details")
+  @Mapping(target = "code", source = "code")
   TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
 
   @Mapping(target = "product", source = "product")

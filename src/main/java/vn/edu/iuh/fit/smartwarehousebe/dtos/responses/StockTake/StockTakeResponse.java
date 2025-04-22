@@ -24,6 +24,7 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
 public class StockTakeResponse implements Serializable {
 
   private Long id;
+  private String code;
   private String description;
   private WarehouseResponse warehouse;
   private StockTakeStatus status;

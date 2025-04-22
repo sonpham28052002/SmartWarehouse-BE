@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
@@ -35,4 +36,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
       "ORDER BY day", nativeQuery = true)
   List<Object[]> countTransactionsByDateRangeAndStatus(String startDate, String endDate,
       String status, String type);
+
+  @Query("SELECT COUNT(trans) + 1 FROM Transaction trans WHERE trans.createdDate >= :todayStart AND trans.createdDate <= :todayEnd")
+  int findTodaySequence(@Param("todayStart") LocalDateTime start, @Param("todayEnd") LocalDateTime end);
 }

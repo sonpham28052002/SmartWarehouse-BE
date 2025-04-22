@@ -1,6 +1,8 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -153,6 +155,7 @@ public class TransactionService {
 
       Transaction transaction = transactionMapper.toEntity(request);
       transaction.setTransactionType(request.getTransactionType());
+      transaction.setCode(generateTransactionCode());
       // Set the warehouse, transfer, partner, and executor based on the request
       transaction.setWarehouse(
           warehouseMapper.toEntity(warehouseService.getById(request.getWarehouseId())));
@@ -363,6 +366,16 @@ public class TransactionService {
     }
     transaction.setStatus(TransactionStatus.COMPLETE);
     return transactionMapper.toDto(transactionRepository.save(transaction));
+  }
+
+  public String generateTransactionCode() {
+    LocalDateTime from = LocalDate.now().atStartOfDay();
+    LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
+    int sequence = transactionRepository.findTodaySequence(from, to);
+    String prefix = "TRANS";
+    String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String number = String.format("%03d", sequence);
+    return String.format("%s-%s-%s", prefix, date, number);
   }
 
 }

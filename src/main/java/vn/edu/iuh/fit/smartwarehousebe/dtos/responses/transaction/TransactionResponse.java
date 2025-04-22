@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class TransactionResponse implements Serializable {
 
   Long id;
+  String code;
   TransactionType transactionType;
   @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   LocalDateTime transactionDate;
