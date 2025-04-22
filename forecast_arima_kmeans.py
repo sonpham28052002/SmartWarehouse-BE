@@ -28,7 +28,7 @@ def round_to_integer(obj):
 
 
 # Đọc dữ liệu từ file CSV
-file_path = "data_csv.csv"
+file_path = "data/data_csv.csv"
 try:
   df = pd.read_csv(file_path, parse_dates=['date'], index_col='date')
 except Exception as e:
@@ -78,7 +78,7 @@ product_clusters = {product: cluster for product, cluster in
 # Tính start_date: Nếu dữ liệu không đủ 24 tháng, lấy từ ngày đầu tiên
 last_date = df.index[-1]
 months_available = len(
-  pd.date_range(start=df.index[0], end=last_date, freq='M'))
+    pd.date_range(start=df.index[0], end=last_date, freq='M'))
 if months_available >= 24:
   start_date = last_date - pd.DateOffset(months=24)
 else:
@@ -89,7 +89,7 @@ start_date = start_date.strftime('%Y-%m-%d')
 train_end_date = (last_date - pd.DateOffset(months=1)).strftime('%Y-%m-%d')
 test_start_date = (
     pd.to_datetime(train_end_date) + pd.DateOffset(months=1)).replace(
-  day=1).strftime('%Y-%m-%d')
+    day=1).strftime('%Y-%m-%d')
 
 # Giới hạn dữ liệu từ start_date đến ngày cuối cùng + số tháng dự đoán
 end_date = pd.date_range(start=df.index[-1], periods=n_periods + 1, freq='M')[
@@ -153,7 +153,7 @@ for product in valid_products:
       rmse = np.sqrt(mse)
       mape = np.mean(np.abs((
                                 actual_values - test_forecast_values) / actual_values)) * 100 if not np.any(
-        actual_values == 0) else float('inf')
+          actual_values == 0) else float('inf')
 
     # Huấn luyện lại trên toàn bộ dữ liệu để dự đoán tương lai
     model_full = SARIMAX(
@@ -175,7 +175,7 @@ for product in valid_products:
                                                                 fill_value=np.nan).tolist()
     historical_dates = display_dates[
                        :len(df[product].loc[start_date:])].strftime(
-      '%Y-%m-%d').tolist()
+        '%Y-%m-%d').tolist()
     historical_values = historical_data_full[:len(historical_dates)]
 
     # Dữ liệu dự đoán
@@ -196,13 +196,13 @@ for product in valid_products:
     comparison = []
     errors = [abs(actual - pred) for actual, pred in
               zip(actual_values, test_forecast_values)] if len(
-      actual_values) > 0 else []
+        actual_values) > 0 else []
     max_error_idx = errors.index(max(errors)) if errors else 0
     max_error_date = test_dates[max_error_idx] if test_dates else "N/A"
     max_error_actual = actual_values[max_error_idx] if len(
-      actual_values) > 0 else 0
+        actual_values) > 0 else 0
     max_error_pred = test_forecast_values[max_error_idx] if len(
-      test_forecast_values) > 0 else 0
+        test_forecast_values) > 0 else 0
 
     for date, actual, pred in zip(test_dates, actual_values,
                                   test_forecast_values):

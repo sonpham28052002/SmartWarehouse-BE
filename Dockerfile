@@ -24,7 +24,7 @@ COPY --from=build /app/target/SmartWarehouse-BE-0.0.1-SNAPSHOT.jar /app-be/Smart
 
 # Copy Python script vào container
 COPY forecast_arima_kmeans.py /app-be/forecast_arima_kmeans.py
-COPY data_csv.csv /app-be/data_csv.csv
+COPY data /app-be/data
 
 RUN useradd -ms /bin/bash springuser
 
