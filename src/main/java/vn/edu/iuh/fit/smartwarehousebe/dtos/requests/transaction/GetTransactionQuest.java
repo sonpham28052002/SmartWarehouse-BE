@@ -22,5 +22,6 @@ public class GetTransactionQuest {
   Long warehouse;
   Long transfer;
   Long partner;
+  String code;
   TransactionStatus status;
 }

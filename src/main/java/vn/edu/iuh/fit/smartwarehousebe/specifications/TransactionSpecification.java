@@ -75,6 +75,13 @@ public class TransactionSpecification {
         .orElse(null);
   }
 
+  public static Specification<Transaction> hasCode(String code) {
+    return Optional.ofNullable(code)
+            .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                            root.get("code"), c))
+            .orElse(null);
+  }
+
   public static Specification<Transaction> hasTransactionDateBetween(LocalDateTime startDate,
       LocalDateTime endDate) {
     return (root, query, criteriaBuilder) -> {

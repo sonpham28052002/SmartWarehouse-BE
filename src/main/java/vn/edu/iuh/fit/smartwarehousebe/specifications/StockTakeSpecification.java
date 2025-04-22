@@ -8,13 +8,17 @@ import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 
 public class StockTakeSpecification {
 
-  public static Specification<StockTake> hasCode(String code) {
+  public static Specification<StockTake> hasWarehouseCode(String code) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-        root.get("warehouse").get("code"), code);
+            root.get("warehouse").get("code"), code);
   }
 
   public static Specification<StockTake> hasStatus(int status) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
+  }
+
+  public static Specification<StockTake> hasCode(String code) {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("code"), code);
   }
 
   public static Specification<StockTake> hasStockTakeDateBetween(LocalDateTime startDate,

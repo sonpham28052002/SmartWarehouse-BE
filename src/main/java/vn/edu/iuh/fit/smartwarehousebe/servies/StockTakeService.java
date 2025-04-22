@@ -58,7 +58,11 @@ public class StockTakeService {
   public Page<StockTakeResponse> getAll(PageRequest pageRequest, GetStockTakeRequest request) {
     Specification<StockTake> specification = Specification.where(null);
     if (request.getWarehouseCode() != null) {
-      specification = specification.and(StockTakeSpecification.hasCode(request.getWarehouseCode()));
+      specification = specification.and(StockTakeSpecification.hasWarehouseCode(request.getWarehouseCode()));
+    }
+
+    if (request.getCode() != null) {
+      specification = specification.and(StockTakeSpecification.hasCode(request.getCode()));
     }
 
     if (request.getStatus() != null) {
@@ -79,6 +83,15 @@ public class StockTakeService {
     if (request.getStatus() != null) {
       specification = specification.and(
           StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
+    }
+
+    if (request.getStatus() != null) {
+      specification = specification.and(
+              StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
+    }
+
+    if (request.getCode() != null) {
+      specification = specification.and(StockTakeSpecification.hasCode(request.getCode()));
     }
 
     if (request.getEndDate() != null && request.getStartDate() != null) {

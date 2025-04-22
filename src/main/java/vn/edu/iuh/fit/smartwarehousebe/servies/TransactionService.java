@@ -137,6 +137,8 @@ public class TransactionService {
         .with(TransactionSpecification.hasTransactionWarehouse(quest.getWarehouse()))
         .with(TransactionSpecification.hasTransactionTransfer(quest.getTransfer()))
         .with(TransactionSpecification.hasStatus(quest.getStatus()))
+        .with(TransactionSpecification.hasTransactionPartner(quest.getPartner()))
+        .with(TransactionSpecification.hasCode(quest.getCode()))
         .with(TransactionSpecification.hasTransactionPartner(quest.getPartner())).build();
 
     return transactionRepository.findAll(specification, pageRequest).map(transactionMapper::toDto);
@@ -350,6 +352,7 @@ public class TransactionService {
         .with(TransactionSpecification.hasTransactionWarehouse(quest.getWarehouse()))
         .with(TransactionSpecification.hasTransactionTransfer(quest.getTransfer()))
         .with(TransactionSpecification.hasStatus(quest.getStatus()))
+        .with(TransactionSpecification.hasCode(quest.getCode()))
         .with(TransactionSpecification.hasTransactionPartner(quest.getPartner())).build();
 
     return transactionRepository.findAll(specification).stream()

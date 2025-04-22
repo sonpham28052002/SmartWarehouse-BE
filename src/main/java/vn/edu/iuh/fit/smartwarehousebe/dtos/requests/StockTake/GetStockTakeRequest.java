@@ -14,6 +14,7 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
 public class GetStockTakeRequest {
 
   private String warehouseCode;
+  private String code;
   private StockTakeStatus status;
   @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   LocalDateTime startDate;
