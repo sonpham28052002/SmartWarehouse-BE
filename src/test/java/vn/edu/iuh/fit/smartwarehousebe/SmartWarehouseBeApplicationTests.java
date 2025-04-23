@@ -21,7 +21,7 @@ class SmartWarehouseBeApplicationTests {
     void contextLoads() {
         LocalDateTime from = LocalDateTime.of(2025, 4, 1, 0, 0);
         LocalDateTime to = LocalDateTime.of(2025, 4, 1, 23, 59);
-        List<TransactionType> types = List.of(TransactionType.EXPORT_TO_WAREHOUSE);
+        List<TransactionType> types = List.of(TransactionType.EXPORT_FROM_WAREHOUSE);
         System.out.println(stockTakeRepository.findTodaySequence(from, to));
     }
 

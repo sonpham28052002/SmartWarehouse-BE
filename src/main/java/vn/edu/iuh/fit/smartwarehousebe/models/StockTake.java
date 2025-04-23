@@ -37,6 +37,9 @@ public class StockTake extends Auditable {
   @OneToMany(mappedBy = "stockTake", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
   private List<StockTakeDetail> stockTakeDetails;
 
+  @OneToMany(mappedBy = "stockTake", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+  private List<DamagedProduct> damagedProducts;
+
   private String description;
 
   @Enumerated(EnumType.ORDINAL)

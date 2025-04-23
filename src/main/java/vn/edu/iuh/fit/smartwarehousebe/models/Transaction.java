@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
@@ -61,11 +62,17 @@ public class Transaction extends Auditable {
   @JoinColumn(name = "partner_id")
   private Partner partner;
 
-  @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER)
   private Set<TransactionDetail> details;
 
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
+
+  @OneToMany(mappedBy = "transaction")
+  private List<Exchange> exchange;
+
+  @OneToMany(mappedBy = "transaction")
+  private List<DamagedProduct> damagedProducts;
 
   @PrePersist
   public void setDefault() {

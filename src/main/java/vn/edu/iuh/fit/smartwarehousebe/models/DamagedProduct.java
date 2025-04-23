@@ -40,6 +40,12 @@ public class DamagedProduct extends Auditable {
   @ManyToOne
   private Inventory inventory;
 
+  @ManyToOne
+  private StockTake stockTake;
+
+  @ManyToOne
+  private Transaction transaction;
+
   @PrePersist
   public void prePersist() {
     this.isExchange = this.exchange != null ? true : false;
