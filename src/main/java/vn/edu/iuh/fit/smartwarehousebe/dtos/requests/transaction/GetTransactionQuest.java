@@ -20,6 +20,8 @@ public class GetTransactionQuest {
   LocalDateTime endDate;
   Long executor;
   Long warehouse;
+  String warehouseCode;
+  String warehouseName;
   Long transfer;
   Long partner;
   String code;

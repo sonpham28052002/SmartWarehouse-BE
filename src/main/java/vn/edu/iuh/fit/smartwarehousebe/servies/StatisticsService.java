@@ -86,7 +86,7 @@ public class StatisticsService {
         .filter((i) -> i.getTransactionType() == TransactionType.IMPORT_FROM_SUPPLIER)
         .count();
     long exportCount = responses.stream()
-        .filter((i) -> i.getTransactionType() == TransactionType.EXPORT_TO_WAREHOUSE)
+        .filter((i) -> i.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE)
         .count();
     long waitingCount = responses.stream().filter((i) -> i.getStatus() == TransactionStatus.WAITING)
         .count();

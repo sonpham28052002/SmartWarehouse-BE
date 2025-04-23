@@ -51,6 +51,22 @@ public class TransactionSpecification {
         .orElse(null);
   }
 
+  public static Specification<Transaction> hasTransactionWarehouseCode(String code) {
+    return Optional.ofNullable(code)
+        .map(
+            c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                root.get("warehouse").get("code"), c))
+        .orElse(null);
+  }
+
+  public static Specification<Transaction> hasTransactionWarehouseName(String name) {
+    return Optional.ofNullable(name)
+        .map(
+            c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                root.get("warehouse").get("name"), c))
+        .orElse(null);
+  }
+
   public static Specification<Transaction> hasTransactionTransfer(Long transfer) {
     return Optional.ofNullable(transfer)
         .map(
@@ -77,9 +93,10 @@ public class TransactionSpecification {
 
   public static Specification<Transaction> hasCode(String code) {
     return Optional.ofNullable(code)
-            .map(c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                            root.get("code"), c))
-            .orElse(null);
+        .map(
+            c -> (Specification<Transaction>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                root.get("code"), c))
+        .orElse(null);
   }
 
   public static Specification<Transaction> hasTransactionDateBetween(LocalDateTime startDate,

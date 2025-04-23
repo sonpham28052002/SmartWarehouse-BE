@@ -85,24 +85,38 @@
 </head>
 <body>
 <div class="header">
-    <h1>PHIẾU XUẤT KHO</h1>
-    <p>Mã phiếu: ${deliveryNote.code}</p>
-    <p>Ngày lập: <#assign dateTime = deliveryNote.createdDate?datetime("iso")>${dateTime?string("dd/MM/yyyy HH:mm:ss")}</p>
+    <#if deliveryNote.type ?? && deliveryNote.type != "EXPORT_FROM_WAREHOUSE">
+        <h1>CHUYỂN KHO</h1>
+    <#else>
+        <h1>PHIẾU XUẤT KHO</h1>
+    </#if>
 </div>
 
 <div class="info-section">
+    <div class="row" style="font-size: 13px;">
+        <div class="col">
+            <div style="text-align: left">Mã phiếu: ${deliveryNote.code}</div>
+        </div>
+        <div class="col">
+            <div>Ngày lập: <#assign dateTime = deliveryNote.createdDate?datetime("iso")>${dateTime?string("dd/MM/yyyy HH:mm:ss")}</div>
+        </div>
+    </div>
     <div class="row">
         <div class="col">
             <p style="font-weight: bold; font-size: 14px">Kho xuất:</p>
-            <p>Tên kho: ${deliveryNote.fromWarehouseName}</p>
-            <p>Địa chỉ: ${deliveryNote.fromWarehouseAddress}</p>
-            <p>Mã kho: ${deliveryNote.fromWarehouseCode}</p>
+            <p style="height: 20px; font-size: 12px">Mã kho: ${deliveryNote.fromWarehouseCode}</p>
+            <p style="height: 20px; font-size: 12px">Tên kho: ${deliveryNote.fromWarehouseName}</p>
+            <p style="height: 20px; font-size: 12px">Địa chỉ: ${deliveryNote.fromWarehouseAddress}</p>
         </div>
         <div class="col">
-            <p style="font-weight: bold; font-size: 14px">Kho nhận:</p>
-            <p>Tên kho: ${deliveryNote.toWarehouseName}</p>
-            <p>Địa chỉ: ${deliveryNote.toWarehouseAddress}</p>
-            <p>Mã kho: ${deliveryNote.toWarehouseCode}</p>
+            <#if deliveryNote.type ?? && deliveryNote.type != "EXPORT_FROM_WAREHOUSE">
+                <p style="font-weight: bold; font-size: 14px">Kho nhận:</p>
+            <#else>
+                <p style="font-weight: bold; font-size: 14px">Đại lý:</p>
+            </#if>
+            <p style="height: 20px; font-size: 12px">Mã kho: ${deliveryNote.toWarehouseCode}</p>
+            <p style="height: 20px; font-size: 12px">Tên kho: ${deliveryNote.toWarehouseName}</p>
+            <p style="height: 20px; font-size: 12px">Địa chỉ: ${deliveryNote.toWarehouseAddress}</p>
         </div>
     </div>
     <div class="row">
@@ -146,5 +160,19 @@
     </tr>
     </tbody>
 </table>
+<div class="footer">
+    <div class="signature-section">
+        <h5>Người xuất hàng</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+    <div class="signature-section">
+        <h5>Thủ kho</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+    <div class="signature-section">
+        <h5>Người quản lý</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+</div>
 </body>
 </html>

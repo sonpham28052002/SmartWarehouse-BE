@@ -55,7 +55,6 @@ public class Product extends Auditable implements Serializable {
   @JsonIgnore
   private List<ConversionUnit> conversionUnits;
 
-
   @PrePersist
   public void generateSku() {
     if (sku == null || sku.isEmpty()) {
@@ -82,9 +81,7 @@ public class Product extends Auditable implements Serializable {
     }
   }
 
-  /**
-   * Loại bỏ dấu tiếng Việt khỏi chuỗi.
-   */
+
   public static String removeVietnameseAccents(String str) {
     str = Normalizer.normalize(str, Normalizer.Form.NFD);
     Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");

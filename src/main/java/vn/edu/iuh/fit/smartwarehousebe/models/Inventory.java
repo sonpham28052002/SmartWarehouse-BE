@@ -35,13 +35,17 @@ public class Inventory extends Auditable {
   @ManyToOne()
   private Unit unit;
 
-  @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "inventory", orphanRemoval = true)
   @JsonManagedReference
   private List<StockTakeDetail> stockTakeDetails;
 
-  @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "inventory", orphanRemoval = true)
   @JsonManagedReference
   private List<TransactionDetail> transactionDetails;
+
+  @OneToMany(mappedBy = "inventory", orphanRemoval = true)
+  @JsonManagedReference
+  private List<DamagedProduct> damagedProducts;
 
   @Enumerated(EnumType.STRING)
   private InventoryStatus status;

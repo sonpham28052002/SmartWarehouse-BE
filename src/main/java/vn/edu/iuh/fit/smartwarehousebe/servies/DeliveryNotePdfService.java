@@ -49,20 +49,17 @@ public class DeliveryNotePdfService {
    */
   public byte[] generatePdf(Long transactionId) {
     TransactionWithDetailResponse transaction = transactionService.getTransaction(transactionId);
-    System.out.println(transaction.getTransactionType());
-    if (transaction.getTransactionType() != TransactionType.EXPORT_TO_WAREHOUSE
+    if (transaction.getTransactionType() != TransactionType.EXPORT_FROM_WAREHOUSE
         && transaction.getTransactionType() != TransactionType.WAREHOUSE_TRANSFER) {
       throw new IllegalArgumentException("Transaction type is not export to warehouse");
     }
-    WarehouseResponse fromWarehouse = null;
-    PartnerResponse fromPartner = null;
+    WarehouseResponse toWarehouse = null;
+    PartnerResponse toPartner = null;
     if (transaction.getTransferCode() != null) {
-      fromWarehouse = warehouseService.getByCode(transaction.getTransferCode());
+      toWarehouse = warehouseService.getByCode(transaction.getWarehouse().getCode());
     } else {
-      fromPartner = partnerService.getByCode(transaction.getPartnerCode());
+      toPartner = partnerService.getByCode(transaction.getPartnerCode());
     }
-    WarehouseResponse toWarehouse = warehouseService.getByCode(
-        transaction.getWarehouse().getCode());
     UserResponse user = transaction.getCreator() != null ? userService.getUserByCode(
         transaction.getCreator().getCode()) : null;
 
@@ -82,16 +79,16 @@ public class DeliveryNotePdfService {
             .toList();
 
     DeliveryNote deliveryNote = DeliveryNote.builder()
-        .code(generateDeliveryNoteCode())
-        .fromWarehouseCode(fromWarehouse != null ? fromWarehouse.getCode() : fromPartner.getCode())
-        .fromWarehouseName(fromWarehouse != null ? fromWarehouse.getName() : fromPartner.getName())
-        .fromWarehouseAddress(
-            fromWarehouse != null ? fromWarehouse.getAddress() : fromPartner.getAddress())
-        .toWarehouseCode(toWarehouse.getCode())
-        .toWarehouseName(toWarehouse.getName())
-        .toWarehouseAddress(toWarehouse.getAddress())
-        .createdBy(user != null ? user.getFullName() : "")
+        .code(transaction.getCode() != null ? transaction.getCode() : "")
+        .fromWarehouseCode(transaction.getWarehouse().getCode())
+        .fromWarehouseName(transaction.getWarehouse().getName())
+        .fromWarehouseAddress(transaction.getWarehouse().getAddress())
+        .toWarehouseCode(toWarehouse != null ? toWarehouse.getCode() : toPartner.getCode())
+        .toWarehouseName(toWarehouse != null ? toWarehouse.getName() : toPartner.getName())
+        .toWarehouseAddress(toWarehouse != null ? toWarehouse.getAddress() : toPartner.getAddress())
+        .createdBy(user != null ? user.getCode() + " - " + user.getFullName() : "")
         .createdDate(LocalDateTime.now())
+        .type(transaction.getTransactionType().name())
         .items(noteItems)
         .build();
     // Create a model map with the delivery note data
@@ -101,12 +98,4 @@ public class DeliveryNotePdfService {
     // Generate the PDF using the HTML template
     return pdfGenerationService.generatePdfFromHtmlTemplate("delivery-note-template", model);
   }
-
-  private String generateDeliveryNoteCode() {
-    // Implement your logic to generate a unique delivery note code
-    // For example, you can use a combination of date and time or a sequence number
-    return "DN-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-  }
-
-
 }

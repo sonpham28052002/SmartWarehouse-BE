@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeliveryNote {
+
   private String code;
   private LocalDateTime createdDate;
   private String fromWarehouseName;
@@ -26,6 +27,7 @@ public class DeliveryNote {
   private String toWarehouseName;
   private String toWarehouseAddress;
   private String toWarehouseCode;
+  private String type;
   private String createdBy;
   private List<DeliveryNoteItem> items;
 
@@ -34,6 +36,7 @@ public class DeliveryNote {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class DeliveryNoteItem {
+
     private String productCode;
     private String sku;
     private String productName;

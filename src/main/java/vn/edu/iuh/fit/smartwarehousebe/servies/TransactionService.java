@@ -139,6 +139,8 @@ public class TransactionService {
         .with(TransactionSpecification.hasStatus(quest.getStatus()))
         .with(TransactionSpecification.hasTransactionPartner(quest.getPartner()))
         .with(TransactionSpecification.hasCode(quest.getCode()))
+        .with(TransactionSpecification.hasTransactionWarehouseCode(quest.getWarehouseCode()))
+        .with(TransactionSpecification.hasTransactionWarehouseName(quest.getWarehouseName()))
         .with(TransactionSpecification.hasTransactionPartner(quest.getPartner())).build();
 
     return transactionRepository.findAll(specification, pageRequest).map(transactionMapper::toDto);
@@ -185,7 +187,7 @@ public class TransactionService {
               .quantity((long) d.getQuantity())
               .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
         } else {
-          if (request.getTransactionType() == TransactionType.EXPORT_TO_WAREHOUSE) {
+          if (request.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE) {
             inventory = inventoryRepository.findByProduct_IdAndStorageLocation_IdAndUnitId(
                     product.getId(), d.getStorageLocationId(), d.getUnitId())
                 .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
@@ -297,7 +299,7 @@ public class TransactionService {
           transactionCSVRequest.get(0).getWarehouseCode());
       TransactionRequest request = TransactionRequest.builder().warehouseId(warehouse.getId())
           .description(transactionCSVRequest.get(0).getDescription())
-          .transactionType(TransactionType.EXPORT_TO_WAREHOUSE).build();
+          .transactionType(TransactionType.EXPORT_FROM_WAREHOUSE).build();
       if (transactionCSVRequest.get(0).getTransferCode()
           .equals(transactionCSVRequest.get(0).getWarehouseCode())) {
         throw new RuntimeException(
@@ -361,7 +363,8 @@ public class TransactionService {
 
   @Transactional
   public TransactionResponse approve(Long Transaction) {
-    Transaction transaction = transactionRepository.findById(Transaction).orElseThrow(()-> new NotFoundException("Transaction not found"));
+    Transaction transaction = transactionRepository.findById(Transaction)
+        .orElseThrow(() -> new NotFoundException("Transaction not found"));
     for (TransactionDetail detail : transaction.getDetails()) {
       Inventory inventory = detail.getInventory();
       inventory.setStatus(InventoryStatus.ACTIVE);
@@ -376,7 +379,8 @@ public class TransactionService {
     LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
     int sequence = transactionRepository.findTodaySequence(from, to);
     String prefix = "TRANS";
-    String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String date = java.time.LocalDate.now()
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
     String number = String.format("%03d", sequence);
     return String.format("%s-%s-%s", prefix, date, number);
   }

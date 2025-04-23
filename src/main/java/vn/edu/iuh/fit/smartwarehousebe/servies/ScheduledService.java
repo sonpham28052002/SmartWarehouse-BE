@@ -34,7 +34,7 @@ public class ScheduledService {
     LocalDateTime from = LocalDate.now().atStartOfDay();
     LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
     List<TransactionType> types = List.of(
-        TransactionType.EXPORT_TO_WAREHOUSE,
+        TransactionType.EXPORT_FROM_WAREHOUSE,
         TransactionType.INVENTORY,
         TransactionType.IMPORT_FROM_WAREHOUSE,
         TransactionType.WAREHOUSE_TRANSFER,
@@ -73,7 +73,7 @@ public class ScheduledService {
     LocalDateTime from = today.withDayOfMonth(1).atStartOfDay();
     LocalDateTime to = today.atTime(LocalTime.MAX);
     List<TransactionType> types = List.of(
-        TransactionType.EXPORT_TO_WAREHOUSE,
+        TransactionType.EXPORT_FROM_WAREHOUSE,
         TransactionType.INVENTORY,
         TransactionType.IMPORT_FROM_WAREHOUSE,
         TransactionType.WAREHOUSE_TRANSFER,

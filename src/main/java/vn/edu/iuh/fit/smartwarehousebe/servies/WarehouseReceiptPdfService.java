@@ -88,7 +88,7 @@ public class WarehouseReceiptPdfService {
             .toList();
 
     WarehouseReceipt receipt = WarehouseReceipt.builder()
-        .code(generateWarehouseReceiptCode())
+        .code(transaction.getCode() != null ? transaction.getCode() : "")
         .partnerCode(fromWarehouse != null ? fromWarehouse.getCode() : fromPartner.getCode())
         .partnerName(fromWarehouse != null ? fromWarehouse.getName() : fromPartner.getName())
         .partnerAddress(
@@ -97,7 +97,7 @@ public class WarehouseReceiptPdfService {
         .warehouseCode(toWarehouse.getCode())
         .warehouseName(toWarehouse.getName())
         .warehouseAddress(toWarehouse.getAddress())
-        .createdBy(user != null ? user.getFullName() : "")
+        .createdBy(user != null ? user.getCode() + " - " + user.getFullName() : "")
         .createdDate(LocalDateTime.now())
         .items(receiptItems)
         .build();
@@ -108,10 +108,5 @@ public class WarehouseReceiptPdfService {
 
     // Generate the PDF using the HTML template
     return pdfGenerationService.generatePdfFromHtmlTemplate("warehouse-receipt-template", model);
-  }
-
-  private String generateWarehouseReceiptCode() {
-    // Generate a unique code for the warehouse receipt
-    return "WR-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
   }
 }
