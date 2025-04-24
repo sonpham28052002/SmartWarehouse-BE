@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +40,7 @@ public class StockTakeResponse implements Serializable {
   private UserResponse executor;
   @JsonIgnoreProperties({"stockTake", "transaction", "exchange"})
   @JsonManagedReference
-  private List<DamagedProductResponse> damagedProducts;
+  private Set<DamagedProductResponse> damagedProducts;
 
 
 }

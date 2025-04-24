@@ -56,6 +56,12 @@ public class StockTakeService {
   @Autowired
   private TransactionService transactionService;
 
+  @Autowired
+  private DamagedProductService damagedProductService;
+
+  @Autowired
+  private DamagedProductRepository damagedProductRepository;
+
   @Transactional(readOnly = true)
   public Page<StockTakeResponse> getAll(PageRequest pageRequest, GetStockTakeRequest request) {
     Specification<StockTake> specification = Specification.where(null);
@@ -204,6 +210,10 @@ public class StockTakeService {
       stockTakeDetailResponses.add(
           StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail)));
     }
+    if (response.getDamagedProducts().size() != 0) {
+      response.setDamagedProducts(damagedProductService.updateAndCreateByStockTakeId(stockTakeId,
+          response.getDamagedProducts()));
+    }
     response.setStockTakeDetails(stockTakeDetailResponses);
     return response;
   }
@@ -253,6 +263,11 @@ public class StockTakeService {
       details.add(transactionDetailRepository.save(transactionDetail));
     }
     transactionRepository.save(transaction);
+    Set<DamagedProduct> damagedProducts = new HashSet<>();
+    for (DamagedProduct damagedProduct : stockTake.getDamagedProducts()) {
+      damagedProduct.setStatus(DamagedProductStatus.ACTIVE);
+      damagedProducts.add(damagedProductRepository.save(damagedProduct));
+    }
     stockTakeRepository.save(stockTake);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
   }
