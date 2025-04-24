@@ -4,12 +4,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedProduct;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner.GetPartnerQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.servies.DamagedProductService;
 
@@ -20,11 +29,10 @@ public class DamagedProductController {
   @Autowired
   private DamagedProductService damagedProductService;
 
-  @PostMapping("/api/damaged_products/{stockTakeId}/updateAndCreateByStockTakeId")
+  @PostMapping("{stockTakeId}/updateAndCreateByStockTakeId")
   public Set<DamagedProductResponse> updateAndCreateByStockTakeId(
       @PathVariable Long stockTakeId,
       @RequestBody Set<DamagedProductResponse> request) {
-    System.out.println(request.size());
     return damagedProductService.updateAndCreateByStockTakeId(stockTakeId, request);
   }
 
@@ -34,6 +42,18 @@ public class DamagedProductController {
       @PathVariable Long transactionId,
       @RequestBody Set<DamagedProductResponse> request) {
     return damagedProductService.updateAndCreateByTransactionId(transactionId, request);
+  }
+
+  @GetMapping()
+  public ResponseEntity<Page<DamagedProductResponse>> getPage(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sortBy,
+      GetDamagedProduct request
+  ) {
+    Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+    PageRequest pageRequest = PageRequest.of(page, size, sort);
+    return ResponseEntity.ok(damagedProductService.getAll(pageRequest, request));
   }
 
 }
