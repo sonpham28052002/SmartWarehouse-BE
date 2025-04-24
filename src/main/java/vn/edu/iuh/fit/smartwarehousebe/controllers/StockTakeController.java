@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.DamagedProductRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.unit.GetUnitRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
@@ -57,7 +59,8 @@ public class StockTakeController {
   }
 
   @GetMapping("/{stockTakeId}/startStockTake")
-  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+  public ResponseEntity<StockTakeResponse> startStockTake(@PathVariable Long stockTakeId,
+      @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(stockTakeService.startStockTake(stockTakeId, user));
   }
 
@@ -68,12 +71,14 @@ public class StockTakeController {
   }
 
   @PostMapping("/{stockTakeId}/completeStockTake")
-  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+  public ResponseEntity<StockTakeResponse> completeStockTake(@PathVariable Long stockTakeId,
+      @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(stockTakeService.completeStockTake(stockTakeId, user));
   }
 
   @PostMapping("/{stockTakeId}/approve")
-  public ResponseEntity<StockTakeResponse> approve(@PathVariable Long stockTakeId, @AuthenticationPrincipal User user) {
+  public ResponseEntity<StockTakeResponse> approve(@PathVariable Long stockTakeId,
+      @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(stockTakeService.approve(stockTakeId, user));
   }
 }

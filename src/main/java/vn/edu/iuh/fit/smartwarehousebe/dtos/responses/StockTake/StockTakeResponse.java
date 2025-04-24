@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
@@ -36,5 +37,9 @@ public class StockTakeResponse implements Serializable {
   private UserResponse approver;
   private UserResponse creator;
   private UserResponse executor;
+  @JsonIgnoreProperties({"stockTake", "transaction", "exchange"})
+  @JsonManagedReference
+  private List<DamagedProductResponse> damagedProducts;
+
 
 }

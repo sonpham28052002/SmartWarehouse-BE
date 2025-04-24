@@ -62,7 +62,7 @@ public class Transaction extends Auditable {
   @JoinColumn(name = "partner_id")
   private Partner partner;
 
-  @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<TransactionDetail> details;
 
   @Enumerated(EnumType.STRING)
@@ -72,7 +72,7 @@ public class Transaction extends Auditable {
   private List<Exchange> exchange;
 
   @OneToMany(mappedBy = "transaction")
-  private List<DamagedProduct> damagedProducts;
+  private Set<DamagedProduct> damagedProducts;
 
   @PrePersist
   public void setDefault() {

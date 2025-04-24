@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class StockTake extends Auditable {
   private List<StockTakeDetail> stockTakeDetails;
 
   @OneToMany(mappedBy = "stockTake", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-  private List<DamagedProduct> damagedProducts;
+  private Set<DamagedProduct> damagedProducts;
 
   private String description;
 

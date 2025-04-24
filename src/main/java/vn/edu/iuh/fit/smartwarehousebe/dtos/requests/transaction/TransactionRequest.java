@@ -51,8 +51,7 @@ public class TransactionRequest implements Serializable {
     @NotNull(message = "Quantity cannot be null")
     Long quantity;
 
-    Long storageLocationId;
-    String storageLocation;
-
+    @NotNull(message = "storageLocation name cannot be null")
+    String storageLocationName;
   }
 }

@@ -45,14 +45,18 @@ import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
+import vn.edu.iuh.fit.smartwarehousebe.models.Partner;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
+import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.StorageLocationRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseShelfRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionDetailSpecification;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
@@ -65,6 +69,8 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
 @Slf4j
 @Service
 public class TransactionService {
+
+  private final WarehouseShelfRepository warehouseShelfRepository;
 
   private final UnitMapper unitMapper;
   private final TransactionRepository transactionRepository;
@@ -81,6 +87,8 @@ public class TransactionService {
   private final ProductService productService;
   private final InventoryRepository inventoryRepository;
 
+  private final StorageLocationRepository storageLocationRepository;
+
   private final ProductRepository productRepository;
 
   public TransactionService(TransactionRepository transactionRepository,
@@ -89,7 +97,9 @@ public class TransactionService {
       ProductMapper productMapper, CsvService csvService, WarehouseMapper warehouseMapper,
       UnitService unitService, UnitMapper unitMapper, ProductService productService,
       InventoryRepository inventoryRepository, ProductRepository productRepository,
-      TransactionDetailRepository transactionDetailRepository) {
+      TransactionDetailRepository transactionDetailRepository,
+      StorageLocationRepository storageLocationRepository,
+      WarehouseShelfRepository warehouseShelfRepository) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
@@ -105,6 +115,9 @@ public class TransactionService {
     this.inventoryRepository = inventoryRepository;
     this.transactionDetailRepository = transactionDetailRepository;
     this.productRepository = productRepository;
+    this.storageLocationRepository = storageLocationRepository;
+
+    this.warehouseShelfRepository = warehouseShelfRepository;
   }
 
   /**
@@ -182,25 +195,44 @@ public class TransactionService {
         }
 
         Inventory inventory = null;
-        if (d.getStorageLocationId() == null) {
+        if (d.getStorageLocationName() == null) {
           inventory = Inventory.builder().product(productMapper.toEntity(product))
               .quantity((long) d.getQuantity())
               .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
         } else {
           if (request.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE) {
-            inventory = inventoryRepository.findByProduct_IdAndStorageLocation_IdAndUnitId(
-                    product.getId(), d.getStorageLocationId(), d.getUnitId())
+            inventory = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitId(
+                    product.getId(), d.getStorageLocationName(), d.getUnitId())
                 .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
           } else {
-            Optional<Inventory> inventoryOp = inventoryRepository.findByProduct_IdAndStorageLocation_IdAndUnitId(
-                product.getId(), d.getStorageLocationId(), d.getUnitId());
+            Optional<Inventory> inventoryOp = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitId(
+                product.getId(), d.getStorageLocationName(), d.getUnitId());
+
             if (inventoryOp.isPresent()) {
               inventory = inventoryOp.get();
             } else {
+              StorageLocation storageLocation = null;
+              String shelfName = d.getStorageLocationName().split("-")[0];
+              Long rowIndex = Long.parseLong(d.getStorageLocationName().split("-")[1]);
+              Long columnIndex = Long.parseLong(d.getStorageLocationName().split("-")[2]);
+              Optional<StorageLocation> storageLocationOP = storageLocationRepository.findByNameAndRowIndexAndColumnIndex(
+                  shelfName, rowIndex, columnIndex
+              );
+              if (storageLocationOP.isPresent()) {
+                storageLocation = storageLocationOP.get();
+              } else {
+                WarehouseShelf warehouseShelf = warehouseShelfRepository.findByShelfName(shelfName);
+                storageLocation = storageLocationRepository.save(StorageLocation.builder()
+                    .maxCapacity(warehouseShelf.getMaxCapacity())
+                    .warehouseShelf(warehouseShelf)
+                    .name(d.getStorageLocationName())
+                    .columnIndex(columnIndex)
+                    .rowIndex(rowIndex)
+                    .build());
+              }
               inventory = inventoryRepository.save(
                   Inventory.builder().status(InventoryStatus.INACTIVE).quantity(d.getQuantity())
-                      .storageLocation(
-                          StorageLocation.builder().id(d.getStorageLocationId()).build())
+                      .storageLocation(storageLocation)
                       .product(productRepository.findById(d.getProductId()).get())
                       .unit(Unit.builder().id(d.getUnitId()).build()).build());
             }
@@ -218,6 +250,7 @@ public class TransactionService {
         inventoryRepository.save(inventory);
         return detail;
       }).collect(Collectors.toSet());
+      System.out.println(details.size());
       transaction.setDetails(details);
 
       return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
@@ -299,15 +332,27 @@ public class TransactionService {
           transactionCSVRequest.get(0).getWarehouseCode());
       TransactionRequest request = TransactionRequest.builder().warehouseId(warehouse.getId())
           .description(transactionCSVRequest.get(0).getDescription())
-          .transactionType(TransactionType.EXPORT_FROM_WAREHOUSE).build();
-      if (transactionCSVRequest.get(0).getTransferCode()
-          .equals(transactionCSVRequest.get(0).getWarehouseCode())) {
-        throw new RuntimeException(
-            "Cannot import transaction with transfer code equals to warehouse code");
+          .build();
+
+      if (transactionCSVRequest.get(0).getPartnerCode() != null) {
+        PartnerResponse partner = partnerService.getByCode(
+            transactionCSVRequest.get(0).getPartnerCode());
+        request.setTransactionType(TransactionType.EXPORT_FROM_WAREHOUSE);
+        request.setPartnerId(partner.getId());
       }
-      WarehouseResponse transfer = warehouseService.getByCode(
-          transactionCSVRequest.get(0).getTransferCode());
-      request.setTransferId(transfer.getId());
+      if (transactionCSVRequest.get(0).getTransferCode() != null) {
+        if (transactionCSVRequest.get(0).getTransferCode()
+            .equals(transactionCSVRequest.get(0).getWarehouseCode())) {
+          throw new RuntimeException(
+              "Cannot import transaction with transfer code equals to warehouse code");
+        } else {
+          WarehouseResponse transfer = warehouseService.getByCode(
+              transactionCSVRequest.get(0).getTransferCode());
+          request.setTransactionType(TransactionType.WAREHOUSE_TRANSFER);
+          request.setTransferId(transfer.getId());
+        }
+      }
+
       List<TransactionRequest.TransactionDetailRequest> details = transactionCSVRequest.stream()
           .map(t -> {
             ProductResponse product = productService.getByCode(t.getProductCode());
@@ -316,7 +361,7 @@ public class TransactionService {
             return TransactionRequest.TransactionDetailRequest.builder().productId(product.getId())
                 .unitId(unit.getId()).quantity(
                     (long) (t.getQuantity() * -1)) // Export to warehouse, so quantity is negative
-                .storageLocationId(t.getStorageLocationId()).build();
+                .storageLocationName(t.getStorageLocationName()).build();
           }).toList();
       request.setDetails(details);
 

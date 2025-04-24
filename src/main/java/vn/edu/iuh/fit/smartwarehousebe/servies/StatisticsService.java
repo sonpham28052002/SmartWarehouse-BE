@@ -78,7 +78,6 @@ public class StatisticsService {
 
   public Map<String, Object> statisticsTransaction(GetTransactionQuest quest) {
     List<TransactionResponse> responses = transactionService.getTransactions(quest);
-
     long importFormWHCount = responses.stream()
         .filter((i) -> i.getTransactionType() == TransactionType.IMPORT_FROM_WAREHOUSE)
         .count();
@@ -100,7 +99,10 @@ public class StatisticsService {
         .filter((i) -> i.getStatus() == TransactionStatus.COMPLETE)
         .count();
 
-    long totalCount = responses.size();
+    long totalCount = responses.stream()
+        .filter((i) -> i.getTransactionType() != TransactionType.INVENTORY)
+        .count();
+    ;
 
     Map<String, Object> statistics = new HashMap<>();
     statistics.put("import_form_wh_count", importFormWHCount);
@@ -117,7 +119,7 @@ public class StatisticsService {
 
   public Map<String, Object> statisticsStockTake(GetStockTakeRequest quest) {
     List<StockTakeResponse> responses = stockTakeService.getAll(quest);
-
+    System.out.println(responses.size());
     long damageCount = 0;
     long calculateDifference = 0;
 
@@ -146,10 +148,10 @@ public class StatisticsService {
     List<TransactionResponse> responses = transactionService.getTransactions(quest);
 
     long agentCount = responses.stream()
-        .filter((i) -> i.getPartner().getType() == PartnerType.AGENT)
+        .filter((i) -> i.getPartner() != null && i.getPartner().getType() == PartnerType.AGENT)
         .count();
     long supplierCount = responses.stream()
-        .filter((i) -> i.getPartner().getType() == PartnerType.SUPPLIER)
+        .filter((i) -> i.getPartner() != null && i.getPartner().getType() == PartnerType.SUPPLIER)
         .count();
 
     long totalCount = responses.stream()

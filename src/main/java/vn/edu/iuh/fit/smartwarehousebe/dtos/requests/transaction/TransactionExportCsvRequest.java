@@ -15,24 +15,28 @@ import vn.edu.iuh.fit.smartwarehousebe.annotations.CsvField;
 @AllArgsConstructor
 @Builder
 public class TransactionExportCsvRequest {
-    @CsvField("description")
-    private String description;
-    
-    @CsvField("warehouse_code")
-    private String warehouseCode;
 
-    @CsvField("transfer_code")
-    private String transferCode;
+  @CsvField("description")
+  private String description;
 
-    @CsvField("product_code")
-    private String productCode;
-    
-    @CsvField("quantity")
-    private Integer quantity;
-    
-    @CsvField("unit_code")
-    private String unitCode;
+  @CsvField("warehouse_code")
+  private String warehouseCode;
 
-    @CsvField("storage_location_id")
-    private Long storageLocationId;
+  @CsvField("transfer_code")
+  private String transferCode;
+
+  @CsvField("product_code")
+  private String productCode;
+
+  @CsvField("quantity")
+  private Integer quantity;
+
+  @CsvField("unit_code")
+  private String unitCode;
+
+  @CsvField("storage_location_name")
+  private String storageLocationName;
+
+  @CsvField("partner_code")
+  private String partnerCode;
 }

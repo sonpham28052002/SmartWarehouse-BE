@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
+import java.util.Set;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
@@ -45,7 +46,7 @@ public class Inventory extends Auditable {
 
   @OneToMany(mappedBy = "inventory", orphanRemoval = true)
   @JsonManagedReference
-  private List<DamagedProduct> damagedProducts;
+  private Set<DamagedProduct> damagedProducts;
 
   @Enumerated(EnumType.STRING)
   private InventoryStatus status;

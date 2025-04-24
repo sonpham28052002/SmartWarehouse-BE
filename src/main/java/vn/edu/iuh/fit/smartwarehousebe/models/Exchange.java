@@ -15,6 +15,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,8 +38,10 @@ public class Exchange extends Auditable {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  private String code;
+
   @OneToMany(mappedBy = "exchange", fetch = FetchType.EAGER)
-  private List<DamagedProduct> damagedProducts;
+  private Set<DamagedProduct> damagedProducts;
 
   @Enumerated(EnumType.STRING)
   private ExchangeType type;

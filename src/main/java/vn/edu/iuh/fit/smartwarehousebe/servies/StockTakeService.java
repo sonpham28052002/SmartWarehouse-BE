@@ -49,16 +49,19 @@ public class StockTakeService {
   @Autowired
   @Lazy
   private WarehouseRepository warehouseRepository;
-    @Autowired
-    private TransactionDetailRepository transactionDetailRepository;
-    @Autowired
-    private TransactionRepository transactionRepository;
+  @Autowired
+  private TransactionDetailRepository transactionDetailRepository;
+  @Autowired
+  private TransactionRepository transactionRepository;
+  @Autowired
+  private TransactionService transactionService;
 
   @Transactional(readOnly = true)
   public Page<StockTakeResponse> getAll(PageRequest pageRequest, GetStockTakeRequest request) {
     Specification<StockTake> specification = Specification.where(null);
     if (request.getWarehouseCode() != null) {
-      specification = specification.and(StockTakeSpecification.hasWarehouseCode(request.getWarehouseCode()));
+      specification = specification.and(
+          StockTakeSpecification.hasWarehouseCode(request.getWarehouseCode()));
     }
 
     if (request.getCode() != null) {
@@ -83,11 +86,6 @@ public class StockTakeService {
     if (request.getStatus() != null) {
       specification = specification.and(
           StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
-    }
-
-    if (request.getStatus() != null) {
-      specification = specification.and(
-              StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
     }
 
     if (request.getCode() != null) {
@@ -134,8 +132,8 @@ public class StockTakeService {
         StockTake.builder().description(request.getDescription()).warehouse(
                 warehouseRepository.findById(request.getWarehouseId())
                     .orElseThrow(() -> new NotFoundException("warehouse not fond")))
-                .creator(user)
-                .code(generateStockTakeCode())
+            .creator(user)
+            .code(generateStockTakeCode())
             .status(StockTakeStatus.PENDING).build());
 
     List<Inventory> inventories = new ArrayList<>();
@@ -223,10 +221,12 @@ public class StockTakeService {
   @Transactional
   public StockTakeResponse approve(Long stockTakeId, User user) {
     StockTake stockTake = stockTakeRepository.findById(stockTakeId)
-            .orElseThrow(() -> new NotFoundException("stoke take not found"));
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
     stockTake.setStatus(StockTakeStatus.VERIFIED);
     stockTake.setApprover(user);
-    Transaction transaction = Transaction.builder()
+    Transaction transaction = transactionRepository.save(
+        Transaction.builder()
+            .code(transactionService.generateTransactionCode())
             .approver(user)
             .creator(user)
             .executor(stockTake.getExecutor())
@@ -234,20 +234,22 @@ public class StockTakeService {
             .transactionType(TransactionType.INVENTORY)
             .status(TransactionStatus.COMPLETE)
             .warehouse(stockTake.getWarehouse())
-            .description("kiểm kê kho "+stockTake.getWarehouse().getName()+" "+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-            .build();
+            .description(
+                "kiểm kê kho " + stockTake.getWarehouse().getName() + " " + LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .build());
     Set<TransactionDetail> details = new HashSet<>();
-    for (StockTakeDetail stockTakeDetail: stockTake.getStockTakeDetails()) {
+    for (StockTakeDetail stockTakeDetail : stockTake.getStockTakeDetails()) {
       Inventory inventory = stockTakeDetail.getInventory();
       Long actual = Optional.ofNullable(stockTakeDetail.getActualQuantity()).orElse(0L);
       Long damaged = Optional.ofNullable(stockTakeDetail.getDamagedQuantity()).orElse(0L);
       TransactionDetail transactionDetail = TransactionDetail.builder()
-              .product(stockTakeDetail.getInventory().getProduct())
-              .quantity((int) (actual - damaged))
-              .transaction(transaction)
-              .transactionType(transaction.getTransactionType())
-              .inventory(inventory)
-              .build();
+          .product(stockTakeDetail.getInventory().getProduct())
+          .quantity((int) (actual - damaged))
+          .transaction(transaction)
+          .transactionType(transaction.getTransactionType())
+          .inventory(inventory)
+          .build();
       details.add(transactionDetailRepository.save(transactionDetail));
     }
     transactionRepository.save(transaction);
@@ -260,7 +262,8 @@ public class StockTakeService {
     LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
     int sequence = stockTakeRepository.findTodaySequence(from, to);
     String prefix = "STK";
-    String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String date = java.time.LocalDate.now()
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
     String number = String.format("%03d", sequence);
     return String.format("%s-%s-%s", prefix, date, number);
   }

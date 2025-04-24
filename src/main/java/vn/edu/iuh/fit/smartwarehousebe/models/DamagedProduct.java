@@ -1,6 +1,9 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
+import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 
 @Entity
 @Table(name = "damaged_product")
@@ -34,21 +38,25 @@ public class DamagedProduct extends Auditable {
 
   private boolean isExchange;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   private Exchange exchange;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   private Inventory inventory;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   private StockTake stockTake;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   private Transaction transaction;
+
+  @Enumerated(EnumType.STRING)
+  private DamagedProductStatus status;
 
   @PrePersist
   public void prePersist() {
-    this.isExchange = this.exchange != null ? true : false;
+    this.isExchange = this.exchange != null && this.exchange.getId() != null;
   }
+
 
 }

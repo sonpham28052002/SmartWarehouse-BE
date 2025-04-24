@@ -18,8 +18,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
   List<Inventory> findByProduct_Id(Long productId);
 
-  Optional<Inventory> findByProduct_IdAndStorageLocation_IdAndUnitId(Long productId,
-      Long storageLocationId, Long unitId);
+  Optional<Inventory> findByProduct_IdAndStorageLocation_NameAndUnitId(Long productId,
+      String storageLocationName, Long unitId);
 
   Optional<Inventory> findByProduct_IdAndStorageLocation_Id(Long productId,
       Long storageLocationId);
@@ -31,16 +31,16 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
   Inventory findByProductIdAndUnitId(Long productId, Long unitId);
 
   @Query("SELECT DISTINCT i FROM Inventory i " +
-          "JOIN TransactionDetail td ON i.id = td.inventory.id " +
-          "JOIN Transaction t ON td.transaction.id = t.id " +
-          "WHERE t.lastModifiedDate BETWEEN :from AND :to " +
-          "AND t.transactionType IN :types " +
-          "AND i.status IN :status")
-  List<Inventory> findInventoriesByTransactionDateAndTypesAndStatus(@Param("from") LocalDateTime from,
-                                                                      @Param("to") LocalDateTime to,
-                                                                      @Param("types") List<TransactionType> types,
-                                                                      @Param("status") InventoryStatus status);
-
+      "JOIN TransactionDetail td ON i.id = td.inventory.id " +
+      "JOIN Transaction t ON td.transaction.id = t.id " +
+      "WHERE t.lastModifiedDate BETWEEN :from AND :to " +
+      "AND t.transactionType IN :types " +
+      "AND i.status IN :status")
+  List<Inventory> findInventoriesByTransactionDateAndTypesAndStatus(
+      @Param("from") LocalDateTime from,
+      @Param("to") LocalDateTime to,
+      @Param("types") List<TransactionType> types,
+      @Param("status") InventoryStatus status);
 
 
 }
