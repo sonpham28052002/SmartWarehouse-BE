@@ -46,4 +46,7 @@ public class Partner extends Auditable {
 
   @Enumerated(EnumType.STRING)
   private PartnerType type;
+
+  @OneToMany(mappedBy = "supplier")
+  private List<Exchange> exchanges;
 }

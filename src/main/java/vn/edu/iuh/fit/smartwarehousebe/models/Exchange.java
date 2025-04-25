@@ -57,4 +57,14 @@ public class Exchange extends Auditable {
   @JoinColumn(name = "stock_take_id")
   private StockTake stockTake;
 
+  @ManyToOne
+  private Partner supplier;
+
+  @ManyToOne
+  private User approver;
+
+  @ManyToOne
+  private User creator;
+
+
 }

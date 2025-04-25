@@ -73,6 +73,11 @@ public class Transaction extends Auditable {
 
   @OneToMany(mappedBy = "transaction")
   private List<ExchangeDetail> exchangeDetails;
+  @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<Exchange> exchange;
+
+  @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private Set<DamagedProduct> damagedProducts;
 
   @PrePersist
   public void setDefault() {
