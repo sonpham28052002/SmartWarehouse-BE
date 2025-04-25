@@ -19,6 +19,7 @@ public interface ProductMapper {
   @Mapping(source = "lastModifiedDate", target = "lastModifiedDate")
   @Mapping(source = "unit", target = "unit")
   @Mapping(source = "unitWeight", target = "unitWeight")
+  @Mapping(source = "partner", target = "partner")
   ProductResponse toDto(Product product);
 
   @Mapping(target = "partner", ignore = true)

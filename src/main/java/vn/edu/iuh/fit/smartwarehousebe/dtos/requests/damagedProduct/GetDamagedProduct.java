@@ -7,18 +7,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.Value;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@ToString
+@Value
 public class GetDamagedProduct {
 
-  private String productCode;
-  private String productName;
-  private String inventoryName;
-  private String stockTakeCode;
-  private String transactionCode;
+  String productCode;
+  String productName;
+  String inventoryName;
+  String stockTakeCode;
+  String transactionCode;
+  String supplierCode;
+  String supplierName;
+  String exchangeStatus;
+  String exchangeType;
 }
