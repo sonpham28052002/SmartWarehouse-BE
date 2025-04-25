@@ -27,9 +27,12 @@ public class DamagedProductResponse implements Serializable {
   private Long quantity;
   private String description;
   private boolean isExchange;
+  @JsonBackReference
   private ExchangeResponse exchange;
+  @JsonBackReference
   private InventoryResponse inventory;
   private String stockTakeCode;
+  @JsonBackReference
   private TransactionResponse transaction;
   private DamagedProductStatus status;
 

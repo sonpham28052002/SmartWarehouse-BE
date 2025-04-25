@@ -38,8 +38,7 @@ public class StockTakeResponse implements Serializable {
   private UserResponse approver;
   private UserResponse creator;
   private UserResponse executor;
-  @JsonIgnoreProperties({"stockTake", "transaction", "exchange"})
-  @JsonManagedReference
+  @JsonIgnoreProperties({"transaction", "exchange", "inventory"})
   private Set<DamagedProductResponse> damagedProducts;
 
 

@@ -18,6 +18,7 @@ import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
@@ -31,8 +32,8 @@ public class ArimaKMeansService {
   @Autowired
   private ArimaKMeansService self;
 
-  @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + T(java.time.YearMonth).now().toString()")
-  public Map<String, Object> forecastSales(List<String> selectedProducts) {
+  @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray()  + '_' + #warehouseCode+ '_' + T(java.time.YearMonth).now().toString()")
+  public Map<String, Object> forecastSales(List<String> selectedProducts, String warehouseCode) {
     int cores = Math.min(Runtime.getRuntime().availableProcessors(),
         2);  // Giới hạn luồng an toàn cho Docker
     ExecutorService executor = Executors.newFixedThreadPool(cores);
@@ -40,7 +41,7 @@ public class ArimaKMeansService {
 
     try {
       for (String product : selectedProducts) {
-        futures.add(executor.submit(() -> self.forecast(List.of(product))));
+        futures.add(executor.submit(() -> self.forecast(List.of(product), warehouseCode)));
       }
 
       Map<String, Object> combinedResult = new HashMap<>();
@@ -70,15 +71,26 @@ public class ArimaKMeansService {
     }
   }
 
-  @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + T(java.time.YearMonth).now().toString()")
-  public Map<String, Object> forecast(List<String> selectedProducts) throws Exception {
+  @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + #warehouseCode+ '_' + T(java.time.YearMonth).now().toString()")
+  public Map<String, Object> forecast(List<String> selectedProducts, String warehouseCode)
+      throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
-    String jsonString = objectMapper.writeValueAsString(Map.of(
+    Map<String, Object> data = Map.of(
         "selected_products", selectedProducts,
         "n_periods", 2
-    ));
+    );
 
-    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
+    if (warehouseCode != null) {
+      data.put("warehouseCode", warehouseCode);
+    }
+
+    String jsonString = objectMapper.writeValueAsString(data);
+
+//    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
+//     Chạy script Python
+    ProcessBuilder pb = new ProcessBuilder(
+        "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "D:\\dockerStudy\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
     pb.redirectErrorStream(true);
     Process process = pb.start();
 

@@ -49,4 +49,14 @@ public class Exchange extends Auditable {
   @ManyToOne
   private Transaction transaction;
 
+  @ManyToOne
+  private Partner supplier;
+
+  @ManyToOne
+  private User approver;
+
+  @ManyToOne
+  private User creator;
+
+
 }

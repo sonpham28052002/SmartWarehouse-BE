@@ -17,16 +17,24 @@ public class ArimaKMeansController {
 
   @PostMapping("/forecast")
   public Map<String, Object> forecast(
+      @PathVariable String warehouseCode,
       @RequestBody(required = false) List<String> selectedProducts) {
 
-    return arimaKMeansService.forecastSales(selectedProducts);
+    return arimaKMeansService.forecastSales(selectedProducts, warehouseCode);
 
   }
 
-  @PostMapping("/forecastv2")
+  @PostMapping("/forecastv2/{warehouseCode}")
   public Map<String, Object> forecastV2(
+      @PathVariable String warehouseCode,
       @RequestBody(required = false) List<String> selectedProducts) throws Exception {
-    return arimaKMeansService.forecast(selectedProducts);
+    return arimaKMeansService.forecast(selectedProducts, warehouseCode);
+  }
+
+  @PostMapping("/forecastv2")
+  public Map<String, Object> forecastV2NoWarehouseCode(
+      @RequestBody(required = false) List<String> selectedProducts) throws Exception {
+    return arimaKMeansService.forecast(selectedProducts, null);
   }
 
   @PostMapping("/kmeans")
