@@ -46,7 +46,7 @@ public class StockTakeDetail extends Auditable implements Serializable {
   @Enumerated(EnumType.ORDINAL)
   private StockTakeDetailStatus status;
 
-  @OneToMany(mappedBy = "stockTakeDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "stockTakeDetail", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private Set<DamagedProduct> damagedProducts;
 
 }

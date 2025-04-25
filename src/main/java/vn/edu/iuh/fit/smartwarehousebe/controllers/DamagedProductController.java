@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedProduct;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner.GetPartnerQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
@@ -29,19 +30,20 @@ public class DamagedProductController {
   @Autowired
   private DamagedProductService damagedProductService;
 
-  @PostMapping("{stockTakeId}/updateAndCreateByStockTakeId")
+  @PostMapping("{stockTakeId}/{inventoryId}/updateAndCreateByStockTakeId")
   public Set<DamagedProductResponse> updateAndCreateByStockTakeId(
       @PathVariable Long stockTakeId,
-      @RequestBody Set<DamagedProductResponse> request) {
-    return damagedProductService.updateAndCreateByStockTakeId(stockTakeId, request);
+      @PathVariable Long inventoryId,
+      @RequestBody Set<DamagedProductWithResponse> request) {
+    return damagedProductService.updateAndCreateByStockTakeId(stockTakeId, inventoryId, request);
   }
 
 
-  @PostMapping("{transactionId}/updateAndCreateByTransactionId")
+  @PostMapping("{transactionDetailId}/updateAndCreateByTransactionId")
   public Set<DamagedProductResponse> updateAndCreateByTransactionId(
-      @PathVariable Long transactionId,
-      @RequestBody Set<DamagedProductResponse> request) {
-    return damagedProductService.updateAndCreateByTransactionId(transactionId, request);
+      @PathVariable Long transactionDetailId,
+      @RequestBody Set<DamagedProductWithResponse> request) {
+    return damagedProductService.updateAndCreateByTransactionId(transactionDetailId, request);
   }
 
   @GetMapping()

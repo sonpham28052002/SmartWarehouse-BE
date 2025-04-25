@@ -1,20 +1,29 @@
 package vn.edu.iuh.fit.smartwarehousebe.mappers;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.StockTakeDetail;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring",
+    collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE
+)
 public interface StockTakeDetailMapper {
 
   StockTakeDetailMapper INSTANCE = Mappers.getMapper(StockTakeDetailMapper.class);
 
   @Mapping(source = "inventory", target = "inventory", qualifiedByName = "mapLocation")
+  @Mapping(target = "damagedProducts", source = "damagedProducts", qualifiedByName = "mapDamagedProducts")
   StockTakeDetailResponse toDto(StockTakeDetail stockTakeDetail);
 
   @Named("mapLocation")
@@ -36,5 +45,24 @@ public interface StockTakeDetailMapper {
         .build();
   }
 
-  StockTakeDetail toEntity(StockTakeDetailResponse response);
+  @Named("mapDamagedProducts")
+  default Set<StockTakeDetailResponse.DamagedProductWithResponse> mapDamagedProducts(Set<DamagedProduct> damagedProducts) {
+    if (damagedProducts == null || damagedProducts == null) {
+      return null;
+    }
+    Set<StockTakeDetailResponse.DamagedProductWithResponse> result = new HashSet<>();
+    for (DamagedProduct damagedProduct : damagedProducts) {
+      result.add(StockTakeDetailResponse.DamagedProductWithResponse.builder()
+              .id(damagedProduct.getId())
+              .stockTakeCode(damagedProduct.getStockTakeDetail() != null ? damagedProduct.getStockTakeDetail().getStockTake().getCode() : null)
+              .transactionCode(damagedProduct.getTransactionDetail()  != null ? damagedProduct.getTransactionDetail().getTransaction().getCode() : null)
+              .quantity(damagedProduct.getQuantity())
+              .status(damagedProduct.getStatus())
+              .description(damagedProduct.getDescription())
+              .isExchange(damagedProduct.isExchange())
+          .build());
+    }
+    return result;
+  }
+
 }

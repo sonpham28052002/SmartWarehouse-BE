@@ -38,7 +38,6 @@ public class TransactionDetail extends Auditable {
   @JoinColumn(name = "transaction_id", nullable = false)
   private Transaction transaction;
 
-  @OneToMany
-  @JoinColumn(name = "transaction_detail_id")
+  @OneToMany(mappedBy = "transactionDetail", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private Set<DamagedProduct> damagedProducts;
 }

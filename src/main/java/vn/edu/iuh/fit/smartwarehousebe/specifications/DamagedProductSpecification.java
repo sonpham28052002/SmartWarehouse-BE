@@ -11,14 +11,14 @@ public class DamagedProductSpecification {
   public static Specification<DamagedProduct> hasProductCode(String code) {
     return Optional.ofNullable(code)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-            root.get("inventory").get("product").get("code"), c))
+            root.get("stockTakeDetail").get("inventory").get("product").get("code"), c))
         .orElse(null);
   }
 
   public static Specification<DamagedProduct> hasSupplierCode(String code) {
     return Optional.ofNullable(code)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-            root.get("inventory").get("product").get("partner").get("code"), c))
+            root.get("stockTakeDetail").get("inventory").get("product").get("partner").get("code"), c))
         .orElse(null);
   }
 
@@ -26,7 +26,7 @@ public class DamagedProductSpecification {
     return Optional.ofNullable(name)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) ->
             criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("inventory").get("product").get("partner").get("name")),
+                criteriaBuilder.lower(root.get("stockTakeDetail").get("inventory").get("product").get("partner").get("name")),
                 "%" + c.toLowerCase() + "%"
             )
         )
@@ -37,7 +37,7 @@ public class DamagedProductSpecification {
     return Optional.ofNullable(name)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) ->
             criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("inventory").get("product").get("name")),
+                criteriaBuilder.lower(root.get("stockTakeDetail").get("inventory").get("product").get("name")),
                 "%" + c.toLowerCase() + "%"
             )
         )
@@ -48,7 +48,7 @@ public class DamagedProductSpecification {
     return Optional.ofNullable(name)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) ->
             criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("inventory").get("storageLocation").get("name")),
+                criteriaBuilder.lower(root.get("stockTakeDetail").get("inventory").get("storageLocation").get("name")),
                 "%" + c.toLowerCase() + "%"
             )
         )

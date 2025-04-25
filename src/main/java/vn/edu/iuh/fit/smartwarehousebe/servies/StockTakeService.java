@@ -23,6 +23,8 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRe
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.*;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeMapper;
@@ -207,13 +209,23 @@ public class StockTakeService {
       stockTakeDetail.setDamagedQuantity(detail.getDamagedQuantity());
       stockTakeDetail.setStatus(detail.getStatus());
       stockTakeDetail.setDescription(detail.getDescription());
-      stockTakeDetailResponses.add(
-          StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail)));
+      StockTakeDetailResponse stockTakeDetailResponse = StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail));
+      if (detail.getDamagedProducts().size() != 0 || stockTakeDetail.getDamagedProducts().size() != 0) {
+
+        stockTakeDetailResponse.setDamagedProducts(damagedProductService.updateAndCreateByStockTakeId(stockTakeId, stockTakeDetail.getInventory().getId() ,detail.getDamagedProducts())
+            .stream().map((i) -> {
+              return DamagedProductWithResponse.builder()
+                  .stockTakeCode(i.getStockTakeCode())
+                  .transactionCode(i.getTransactionCode())
+                  .isExchange(i.isExchange())
+                  .id(i.getId())
+                  .status(i.getStatus())
+                  .quantity(i.getQuantity())
+                  .build();
+            }).collect(Collectors.toSet()));
+      }
+      stockTakeDetailResponses.add(stockTakeDetailResponse);
     }
-//    if (response.getDamagedProducts().size() != 0) {
-//      response.setDamagedProducts(damagedProductService.updateAndCreateByStockTakeId(stockTakeId,
-//          response.getDamagedProducts()));
-//    }
     response.setStockTakeDetails(stockTakeDetailResponses);
     return response;
   }

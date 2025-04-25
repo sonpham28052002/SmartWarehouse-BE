@@ -1,6 +1,8 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

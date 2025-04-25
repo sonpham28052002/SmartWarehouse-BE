@@ -1,33 +1,35 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedProduct;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner.GetPartnerQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
-import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
-import vn.edu.iuh.fit.smartwarehousebe.models.Partner;
-import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
+import vn.edu.iuh.fit.smartwarehousebe.models.StockTakeDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
+import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.DamagedProductSpecification;
-import vn.edu.iuh.fit.smartwarehousebe.specifications.PartnerSpecification;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 
 @Service
@@ -37,96 +39,155 @@ public class DamagedProductService {
   private StockTakeRepository stockTakeRepository;
 
   @Autowired
+  private StockTakeDetailRepository stockTakeDetailRepository;
+
+
+  @Autowired
   private TransactionRepository transactionRepository;
+
+  @Autowired
+  private TransactionDetailRepository transactionDetailRepository;
 
   @Autowired
   private DamagedProductRepository damagedProductRepository;
 
   @Transactional
-  @CacheEvict(value = "DamagedProduct", allEntries = true)
   public Set<DamagedProductResponse> updateAndCreateByStockTakeId(Long stockTakeId,
-      Set<DamagedProductResponse> newDamagedProducts) {
-    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
-        .orElseThrow(() -> new NotFoundException("stocktake not found"));
-//    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByStockTakeId(
-//            stockTakeId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
-//        .collect(Collectors.toSet());
-//    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
-//    allDamagedProductResponses.addAll(newDamagedProducts);
+      Long inventoryId, Set<DamagedProductWithResponse> damagedProducts) {
+
+    StockTakeDetailId stockTakeDetailId = StockTakeDetailId.builder()
+        .stockTakeId(stockTakeId)
+        .inventoryId(inventoryId)
+        .build();
+
+    StockTakeDetail stockTakeDetail = stockTakeDetailRepository.findById(stockTakeDetailId)
+        .orElseThrow(() -> new EntityNotFoundException("StockTakeDetail not found"));
+
+    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponses(damagedProducts, stockTakeDetail);
+
+    Set<DamagedProductResponse> oldProductResponses = getOldDamagedProducts(stockTakeDetailId);
+
+    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(newDamagedProducts);
+    allDamagedProductResponses.addAll(oldProductResponses);
+
+    return handleDamagedProductResponses(allDamagedProductResponses, newDamagedProducts, oldProductResponses, stockTakeDetail);
+  }
+
+  private Set<DamagedProductResponse> mapToDamagedProductResponses(Set<DamagedProductWithResponse> damagedProducts, StockTakeDetail stockTakeDetail) {
+    return damagedProducts.stream()
+        .map(damagedProduct -> DamagedProductResponse.builder()
+            .stockTakeDetail(StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetail))
+            .isExchange(damagedProduct.isExchange())
+            .id(damagedProduct.getId())
+            .type(damagedProduct.getType())
+            .status(damagedProduct.getStatus())
+            .description(damagedProduct.getDescription())
+            .quantity(damagedProduct.getQuantity())
+            .build())
+        .collect(Collectors.toSet());
+  }
+
+  private Set<DamagedProductResponse> mapToDamagedProductResponsesByTransactionDetail(Set<DamagedProductWithResponse> damagedProducts, TransactionDetail transactionDetail) {
+    return damagedProducts.stream()
+        .map(damagedProduct -> DamagedProductResponse.builder()
+            .transactionDetail(TransactionDetailMapper.INSTANCE.toDto(transactionDetail))
+            .isExchange(damagedProduct.isExchange())
+            .id(damagedProduct.getId())
+            .type(damagedProduct.getType())
+            .status(damagedProduct.getStatus())
+            .description(damagedProduct.getDescription())
+            .quantity(damagedProduct.getQuantity())
+            .build())
+        .collect(Collectors.toSet());
+  }
+
+  private Set<DamagedProductResponse> getOldDamagedProducts(StockTakeDetailId stockTakeDetailId) {
+    return damagedProductRepository.findByStockTakeDetailId(stockTakeDetailId).stream()
+        .map(DamagedProductMapper.INSTANCE::toDto)
+        .collect(Collectors.toSet());
+  }
+
+  private Set<DamagedProductResponse> handleDamagedProductResponses(Set<DamagedProductResponse> allDamagedProductResponses,
+      Set<DamagedProductResponse> newDamagedProducts, Set<DamagedProductResponse> oldProductResponses,
+      StockTakeDetail stockTakeDetail) {
+
     Set<DamagedProductResponse> result = new HashSet<>();
-//    for (DamagedProductResponse response : allDamagedProductResponses) {
-//      if (response.getId() == null) {
-//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-//            .builder()
-//            .stockTakeDetail(stockTake)
-//            .description(response.getDescription())
-//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-//            .quantity(response.getQuantity())
-//            .status(DamagedProductStatus.INACTIVE)
-//            .build());
-//        System.out.println(damagedProduct);
-//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-//      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-//            .builder()
-//            .id(response.getId())
-//            .stockTake(stockTake)
-//            .description(response.getDescription())
-//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-//            .quantity(response.getQuantity())
-//            .status(DamagedProductStatus.INACTIVE)
-//            .build());
-//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-//      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-//        damagedProductRepository.deleteById(response.getId());
-//      }
-//    }
+
+    for (DamagedProductResponse response : allDamagedProductResponses) {
+      Optional<TransactionDetail> transactionDetailOpt = Optional.ofNullable(response.getTransactionDetail())
+          .flatMap(td -> transactionDetailRepository.findById(td.getId()));
+
+      if (response.getId() == null) {
+        DamagedProduct damagedProduct = createDamagedProduct(response, stockTakeDetail, transactionDetailOpt.orElse(null));
+        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+      } else if (newDamagedProducts.contains(response) && oldProductResponses.contains(response)) {
+        DamagedProduct damagedProduct = updateDamagedProduct(response, stockTakeDetail, transactionDetailOpt.orElse(null));
+        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+      } else if (!newDamagedProducts.contains(response) && oldProductResponses.contains(response)) {
+        deleteDamagedProduct(response.getId());
+      }
+    }
+
     return result;
+  }
+
+  private DamagedProduct createDamagedProduct(DamagedProductResponse response, StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
+    return damagedProductRepository.save(DamagedProduct.builder()
+        .stockTakeDetail(stockTakeDetail)
+        .transactionDetail(transactionDetail)
+        .description(response.getDescription())
+        .quantity(response.getQuantity())
+        .status(DamagedProductStatus.INACTIVE)
+        .type(response.getType())
+        .exchange(null)
+        .build());
+  }
+
+  private DamagedProduct updateDamagedProduct(DamagedProductResponse response, StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
+    return damagedProductRepository.save(DamagedProduct.builder()
+        .id(response.getId())
+        .stockTakeDetail(stockTakeDetail)
+        .transactionDetail(transactionDetail)
+        .description(response.getDescription())
+        .type(response.getType())
+        .quantity(response.getQuantity())
+        .status(DamagedProductStatus.INACTIVE)
+        .exchange(null)
+        .build());
+  }
+
+  private void deleteDamagedProduct(Long id) {
+    damagedProductRepository.deleteById(id);
   }
 
   @Transactional
-  @CacheEvict(value = "DamagedProduct", allEntries = true)
-  public Set<DamagedProductResponse> updateAndCreateByTransactionId(Long transactionId,
-      Set<DamagedProductResponse> newDamagedProducts) {
-    Transaction transaction = transactionRepository.findById(transactionId)
-        .orElseThrow(() -> new NotFoundException("transaction not found"));
-//    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByTransactionId(
-//            transactionId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
-//        .collect(Collectors.toSet());
+  public Set<DamagedProductResponse> updateAndCreateByTransactionId(Long transactionDetailId,
+      Set<DamagedProductWithResponse> damagedProducts) {
+    TransactionDetail transactionDetail = transactionDetailRepository.findById(transactionDetailId)
+        .orElseThrow(() -> new NotFoundException("transaction detail not found"));
+    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponsesByTransactionDetail(damagedProducts, transactionDetail);
 
-//    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
-//    allDamagedProductResponses.addAll(newDamagedProducts);
+    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByTransactionDetailId(
+            transactionDetailId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
+        .collect(Collectors.toSet());
+
+    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(newDamagedProducts);
+    allDamagedProductResponses.addAll(oldProductResponse);
     Set<DamagedProductResponse> result = new HashSet<>();
-//    for (DamagedProductResponse response : allDamagedProductResponses) {
-//      if (response.getId() == null) {
-//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-//            .builder()
-//            .transaction(transaction)
-//            .description(response.getDescription())
-//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-//            .quantity(response.getQuantity())
-//            .status(DamagedProductStatus.INACTIVE)
-//            .build());
-//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-//      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-//            .builder()
-//            .id(response.getId())
-//            .transaction(transaction)
-//            .description(response.getDescription())
-//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-//            .quantity(response.getQuantity())
-//            .status(DamagedProductStatus.INACTIVE)
-//            .build());
-//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-//      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-//        damagedProductRepository.deleteById(response.getId());
-//      }
-//    }
+    for (DamagedProductResponse response : allDamagedProductResponses) {
+      if (response.getId() == null) {
+        DamagedProduct damagedProduct = createDamagedProduct(response, null ,transactionDetail);
+        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+        DamagedProduct damagedProduct = updateDamagedProduct(response, null ,transactionDetail);
+        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+        deleteDamagedProduct(response.getId());
+      }
+    }
     return result;
   }
 
-  @Cacheable(value = "DamagedProduct", key = "#request + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
   public Page<DamagedProductResponse> getAll(PageRequest pageRequest, GetDamagedProduct request) {
     Specification<DamagedProduct> specification = SpecificationBuilder.<DamagedProduct>builder()
         .with(DamagedProductSpecification.hasStatus(DamagedProductStatus.INACTIVE.name()))
@@ -141,6 +202,7 @@ public class DamagedProductService {
         .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
         .build();
 
-    return damagedProductRepository.findAll(specification, pageRequest).map((i)-> DamagedProductMapper.INSTANCE.toDto(i));
+    return damagedProductRepository.findAll(specification, pageRequest)
+        .map((i) -> DamagedProductMapper.INSTANCE.toDto(i));
   }
 }

@@ -13,7 +13,7 @@ public interface ExchangeMapper {
 
   ExchangeMapper INSTANCE = Mappers.getMapper(ExchangeMapper.class);
 
-  @Mapping(source = "transaction.code", target = "transactionCode")
+  @Mapping(source = "originalTransaction.code", target = "transactionCode")
   @Mapping(source = "supplier", target = "supplier")
   @Mapping(source = "creator", target = "creator")
   @Mapping(source = "approver", target = "approver")
