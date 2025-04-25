@@ -47,6 +47,14 @@ public class Exchange extends Auditable {
   private ExchangeType type;
 
   @ManyToOne
-  private Transaction transaction;
+  @JoinColumn(name = "original_transaction_id")
+  private Transaction originalTransaction;
+
+  @OneToMany(mappedBy = "exchange")
+  private List<ExchangeDetail> exchangeDetails;
+
+  @ManyToOne
+  @JoinColumn(name = "stock_take_id")
+  private StockTake stockTake;
 
 }

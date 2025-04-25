@@ -44,10 +44,6 @@ public class Inventory extends Auditable {
   @JsonManagedReference
   private List<TransactionDetail> transactionDetails;
 
-  @OneToMany(mappedBy = "inventory", orphanRemoval = true)
-  @JsonManagedReference
-  private Set<DamagedProduct> damagedProducts;
-
   @Enumerated(EnumType.STRING)
   private InventoryStatus status;
 

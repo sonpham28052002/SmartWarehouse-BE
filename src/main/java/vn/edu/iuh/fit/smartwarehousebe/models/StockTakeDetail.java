@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
@@ -43,5 +45,9 @@ public class StockTakeDetail extends Auditable implements Serializable {
 
   @Enumerated(EnumType.ORDINAL)
   private StockTakeDetailStatus status;
+
+  @OneToMany(mappedBy = "stockTakeDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<DamagedProduct> damagedProducts;
+
 }
 

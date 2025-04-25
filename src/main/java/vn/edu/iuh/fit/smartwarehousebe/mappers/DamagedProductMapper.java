@@ -11,8 +11,6 @@ public interface DamagedProductMapper {
 
   DamagedProductMapper INSTANCE = Mappers.getMapper(DamagedProductMapper.class);
 
-  @Mapping(source = "stockTake.code", target = "stockTakeCode")
-  @Mapping(source = "inventory.storageLocation.name", target = "inventory.storageLocationName")
   DamagedProductResponse toDto(DamagedProduct damagedProduct);
 
 }

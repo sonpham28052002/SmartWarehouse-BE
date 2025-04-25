@@ -10,8 +10,8 @@ import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
 public interface DamagedProductRepository extends JpaRepository<DamagedProduct, Long>,
     JpaSpecificationExecutor<DamagedProduct> {
 
-  Set<DamagedProduct> findByStockTakeId(Long stockTakeId);
-
-  Set<DamagedProduct> findByTransactionId(Long transactionId);
+//  Set<DamagedProduct> findByStockTakeId(Long stockTakeId);
+//
+//  Set<DamagedProduct> findByTransactionId(Long transactionId);
 
 }

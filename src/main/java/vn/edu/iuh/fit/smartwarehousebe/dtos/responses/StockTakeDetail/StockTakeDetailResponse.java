@@ -1,10 +1,14 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
 
 @Getter
@@ -22,4 +26,6 @@ public class StockTakeDetailResponse implements Serializable {
   private Long damagedQuantity;
   private String description;
   private StockTakeDetailStatus status;
+  @JsonBackReference
+  private Set<DamagedProductResponse> damagedProducts;
 }

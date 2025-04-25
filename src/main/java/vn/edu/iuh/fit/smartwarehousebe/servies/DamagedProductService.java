@@ -48,39 +48,39 @@ public class DamagedProductService {
       Set<DamagedProductResponse> newDamagedProducts) {
     StockTake stockTake = stockTakeRepository.findById(stockTakeId)
         .orElseThrow(() -> new NotFoundException("stocktake not found"));
-    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByStockTakeId(
-            stockTakeId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
-        .collect(Collectors.toSet());
-    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
-    allDamagedProductResponses.addAll(newDamagedProducts);
+//    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByStockTakeId(
+//            stockTakeId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
+//        .collect(Collectors.toSet());
+//    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
+//    allDamagedProductResponses.addAll(newDamagedProducts);
     Set<DamagedProductResponse> result = new HashSet<>();
-    for (DamagedProductResponse response : allDamagedProductResponses) {
-      if (response.getId() == null) {
-        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-            .builder()
-            .stockTake(stockTake)
-            .description(response.getDescription())
-            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-            .quantity(response.getQuantity())
-            .status(DamagedProductStatus.INACTIVE)
-            .build());
-        System.out.println(damagedProduct);
-        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-            .builder()
-            .id(response.getId())
-            .stockTake(stockTake)
-            .description(response.getDescription())
-            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-            .quantity(response.getQuantity())
-            .status(DamagedProductStatus.INACTIVE)
-            .build());
-        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-        damagedProductRepository.deleteById(response.getId());
-      }
-    }
+//    for (DamagedProductResponse response : allDamagedProductResponses) {
+//      if (response.getId() == null) {
+//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
+//            .builder()
+//            .stockTakeDetail(stockTake)
+//            .description(response.getDescription())
+//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
+//            .quantity(response.getQuantity())
+//            .status(DamagedProductStatus.INACTIVE)
+//            .build());
+//        System.out.println(damagedProduct);
+//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+//      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
+//            .builder()
+//            .id(response.getId())
+//            .stockTake(stockTake)
+//            .description(response.getDescription())
+//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
+//            .quantity(response.getQuantity())
+//            .status(DamagedProductStatus.INACTIVE)
+//            .build());
+//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+//      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+//        damagedProductRepository.deleteById(response.getId());
+//      }
+//    }
     return result;
   }
 
@@ -90,39 +90,39 @@ public class DamagedProductService {
       Set<DamagedProductResponse> newDamagedProducts) {
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("transaction not found"));
-    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByTransactionId(
-            transactionId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
-        .collect(Collectors.toSet());
+//    Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByTransactionId(
+//            transactionId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
+//        .collect(Collectors.toSet());
 
-    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
-    allDamagedProductResponses.addAll(newDamagedProducts);
+//    Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(oldProductResponse);
+//    allDamagedProductResponses.addAll(newDamagedProducts);
     Set<DamagedProductResponse> result = new HashSet<>();
-    for (DamagedProductResponse response : allDamagedProductResponses) {
-      if (response.getId() == null) {
-        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-            .builder()
-            .transaction(transaction)
-            .description(response.getDescription())
-            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-            .quantity(response.getQuantity())
-            .status(DamagedProductStatus.INACTIVE)
-            .build());
-        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
-            .builder()
-            .id(response.getId())
-            .transaction(transaction)
-            .description(response.getDescription())
-            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
-            .quantity(response.getQuantity())
-            .status(DamagedProductStatus.INACTIVE)
-            .build());
-        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
-      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-        damagedProductRepository.deleteById(response.getId());
-      }
-    }
+//    for (DamagedProductResponse response : allDamagedProductResponses) {
+//      if (response.getId() == null) {
+//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
+//            .builder()
+//            .transaction(transaction)
+//            .description(response.getDescription())
+//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
+//            .quantity(response.getQuantity())
+//            .status(DamagedProductStatus.INACTIVE)
+//            .build());
+//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+//      } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+//        DamagedProduct damagedProduct = damagedProductRepository.save(DamagedProduct
+//            .builder()
+//            .id(response.getId())
+//            .transaction(transaction)
+//            .description(response.getDescription())
+//            .inventory(Inventory.builder().id(response.getInventory().getId()).build())
+//            .quantity(response.getQuantity())
+//            .status(DamagedProductStatus.INACTIVE)
+//            .build());
+//        result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
+//      } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
+//        damagedProductRepository.deleteById(response.getId());
+//      }
+//    }
     return result;
   }
 

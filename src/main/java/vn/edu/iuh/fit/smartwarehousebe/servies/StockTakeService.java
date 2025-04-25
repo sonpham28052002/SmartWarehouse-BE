@@ -210,10 +210,10 @@ public class StockTakeService {
       stockTakeDetailResponses.add(
           StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail)));
     }
-    if (response.getDamagedProducts().size() != 0) {
-      response.setDamagedProducts(damagedProductService.updateAndCreateByStockTakeId(stockTakeId,
-          response.getDamagedProducts()));
-    }
+//    if (response.getDamagedProducts().size() != 0) {
+//      response.setDamagedProducts(damagedProductService.updateAndCreateByStockTakeId(stockTakeId,
+//          response.getDamagedProducts()));
+//    }
     response.setStockTakeDetails(stockTakeDetailResponses);
     return response;
   }
@@ -260,14 +260,18 @@ public class StockTakeService {
           .transactionType(transaction.getTransactionType())
           .inventory(inventory)
           .build();
+
+      Set<DamagedProduct> damagedProducts = new HashSet<>();
+
+//      for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
+//        damagedProduct.setStatus(DamagedProductStatus.ACTIVE);
+//        damagedProducts.add(damagedProductRepository.save(damagedProduct));
+//      }
+//      transactionDetail.setDamagedProducts(damagedProducts);
       details.add(transactionDetailRepository.save(transactionDetail));
     }
     transactionRepository.save(transaction);
-    Set<DamagedProduct> damagedProducts = new HashSet<>();
-    for (DamagedProduct damagedProduct : stockTake.getDamagedProducts()) {
-      damagedProduct.setStatus(DamagedProductStatus.ACTIVE);
-      damagedProducts.add(damagedProductRepository.save(damagedProduct));
-    }
+
     stockTakeRepository.save(stockTake);
     return StockTakeMapper.INSTANCE.toDto(stockTake);
   }

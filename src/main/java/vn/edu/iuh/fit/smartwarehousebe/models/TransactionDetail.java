@@ -1,6 +1,8 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import jakarta.persistence.*;
+import java.util.List;
+import java.util.Set;
 import lombok.*;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
@@ -35,4 +37,8 @@ public class TransactionDetail extends Auditable {
   @ManyToOne
   @JoinColumn(name = "transaction_id", nullable = false)
   private Transaction transaction;
+
+  @OneToMany
+  @JoinColumn(name = "transaction_detail_id")
+  private Set<DamagedProduct> damagedProducts;
 }

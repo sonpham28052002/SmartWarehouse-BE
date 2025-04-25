@@ -68,11 +68,11 @@ public class Transaction extends Auditable {
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
 
-  @OneToMany(mappedBy = "transaction")
-  private List<Exchange> exchange;
+  @OneToMany(mappedBy = "originalTransaction")
+  private List<Exchange> originalExchanges;
 
   @OneToMany(mappedBy = "transaction")
-  private Set<DamagedProduct> damagedProducts;
+  private List<ExchangeDetail> exchangeDetails;
 
   @PrePersist
   public void setDefault() {

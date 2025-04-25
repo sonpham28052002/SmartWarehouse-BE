@@ -38,9 +38,6 @@ public class StockTake extends Auditable {
   @OneToMany(mappedBy = "stockTake", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
   private List<StockTakeDetail> stockTakeDetails;
 
-  @OneToMany(mappedBy = "stockTake", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-  private Set<DamagedProduct> damagedProducts;
-
   private String description;
 
   @Enumerated(EnumType.ORDINAL)
@@ -60,6 +57,9 @@ public class StockTake extends Auditable {
   @JoinColumn(name = "approver_id")
   @JsonIgnore
   private User approver;
+
+  @OneToMany(mappedBy = "stockTake")
+  private List<Exchange> exchanges;
 
   @Override
   public String toString() {

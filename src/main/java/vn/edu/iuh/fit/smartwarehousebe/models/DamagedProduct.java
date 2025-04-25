@@ -1,15 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,13 +33,15 @@ public class DamagedProduct extends Auditable {
   private Exchange exchange;
 
   @ManyToOne(fetch = FetchType.EAGER)
-  private Inventory inventory;
+  @JoinColumns({
+      @JoinColumn(name = "stock_take_id", referencedColumnName = "stock_take_id"),
+      @JoinColumn(name = "inventory_id", referencedColumnName = "inventory_id")
+  })
+  private StockTakeDetail stockTakeDetail;
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  private StockTake stockTake;
-
-  @ManyToOne(fetch = FetchType.EAGER)
-  private Transaction transaction;
+  @ManyToOne
+  @JoinColumn(name = "transaction_detail_id")
+  private TransactionDetail transaction_detail;
 
   @Enumerated(EnumType.STRING)
   private DamagedProductStatus status;
@@ -57,6 +50,4 @@ public class DamagedProduct extends Auditable {
   public void prePersist() {
     this.isExchange = this.exchange != null && this.exchange.getId() != null;
   }
-
-
 }

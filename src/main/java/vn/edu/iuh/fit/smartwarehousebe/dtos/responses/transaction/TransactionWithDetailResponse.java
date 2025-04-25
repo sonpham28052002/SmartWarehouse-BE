@@ -1,7 +1,9 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction;
 
+import java.util.Set;
 import lombok.Value;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
@@ -41,5 +43,6 @@ public class TransactionWithDetailResponse implements Serializable {
     InventoryResponse inventory;
     int quantity;
     TransactionType transactionType;
+    Set<DamagedProductResponse> damagedProducts;
   }
 }
