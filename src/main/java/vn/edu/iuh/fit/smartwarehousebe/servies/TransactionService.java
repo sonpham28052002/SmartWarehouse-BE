@@ -201,12 +201,12 @@ public class TransactionService {
               .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
         } else {
           if (request.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE) {
-            inventory = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitId(
-                    product.getId(), d.getStorageLocationName(), d.getUnitId())
+            inventory = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitIdAndStatus(
+                    product.getId(), d.getStorageLocationName(), d.getUnitId(), InventoryStatus.ACTIVE)
                 .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
           } else {
-            Optional<Inventory> inventoryOp = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitId(
-                product.getId(), d.getStorageLocationName(), d.getUnitId());
+            Optional<Inventory> inventoryOp = inventoryRepository.findByProduct_IdAndStorageLocation_NameAndUnitIdAndStatus(
+                product.getId(), d.getStorageLocationName(), d.getUnitId(), InventoryStatus.ACTIVE);
 
             if (inventoryOp.isPresent()) {
               inventory = inventoryOp.get();
