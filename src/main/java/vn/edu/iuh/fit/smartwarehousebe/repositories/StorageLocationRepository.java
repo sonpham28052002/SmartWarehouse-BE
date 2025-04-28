@@ -17,4 +17,5 @@ public interface StorageLocationRepository extends JpaRepository<StorageLocation
 
   Optional<StorageLocation> findByNameAndRowIndexAndColumnIndex(String name, Long rowIndex,
       Long columnIndex);
+  Optional<StorageLocation> findByName(String name);
 }

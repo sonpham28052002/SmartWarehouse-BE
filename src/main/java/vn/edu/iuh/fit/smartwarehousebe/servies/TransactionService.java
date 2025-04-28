@@ -212,15 +212,13 @@ public class TransactionService {
               inventory = inventoryOp.get();
             } else {
               StorageLocation storageLocation = null;
-              String shelfName = d.getStorageLocationName().split("-")[0];
-              Long rowIndex = Long.parseLong(d.getStorageLocationName().split("-")[1]);
-              Long columnIndex = Long.parseLong(d.getStorageLocationName().split("-")[2]);
-              Optional<StorageLocation> storageLocationOP = storageLocationRepository.findByNameAndRowIndexAndColumnIndex(
-                  shelfName, rowIndex, columnIndex
-              );
+              Optional<StorageLocation> storageLocationOP = storageLocationRepository.findByName(d.getStorageLocationName());
               if (storageLocationOP.isPresent()) {
                 storageLocation = storageLocationOP.get();
               } else {
+                String shelfName = d.getStorageLocationName().split("-")[0];
+                Long rowIndex = Long.parseLong(d.getStorageLocationName().split("-")[1]);
+                Long columnIndex = Long.parseLong(d.getStorageLocationName().split("-")[2]);
                 WarehouseShelf warehouseShelf = warehouseShelfRepository.findByShelfName(shelfName);
                 storageLocation = storageLocationRepository.save(StorageLocation.builder()
                     .maxCapacity(warehouseShelf.getMaxCapacity())
@@ -250,7 +248,6 @@ public class TransactionService {
         inventoryRepository.save(inventory);
         return detail;
       }).collect(Collectors.toSet());
-      System.out.println(details.size());
       transaction.setDetails(details);
 
       return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
