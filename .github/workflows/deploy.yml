@@ -1,0 +1,29 @@
+name: Deploy Dockerized Spring Boot to EC2
+
+on:
+  push:
+    branches:
+      - feat/17_crud_transaction_entity
+
+jobs:
+  deploy:
+    name: Deploy Docker App on EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch origin
+            git checkout feat/17_crud_transaction_entity
+            git pull origin feat/17_crud_transaction_entity
+            
+            # Build and restart all services
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
