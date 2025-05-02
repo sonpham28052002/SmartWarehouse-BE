@@ -50,6 +50,7 @@ import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StorageLocationRepository;
@@ -68,6 +69,8 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
 @Slf4j
 @Service
 public class TransactionService {
+
+  private final DamagedProductRepository damagedProductRepository;
 
   private final WarehouseShelfRepository warehouseShelfRepository;
 
@@ -90,6 +93,8 @@ public class TransactionService {
 
   private final ProductRepository productRepository;
 
+  private DamagedProductService damagedProductService;
+
   public TransactionService(TransactionRepository transactionRepository,
       TransactionMapper transactionMapper, WarehouseService warehouseService,
       PartnerService partnerService, PartnerMapper partnerMapper, UserService userService,
@@ -98,7 +103,9 @@ public class TransactionService {
       InventoryRepository inventoryRepository, ProductRepository productRepository,
       TransactionDetailRepository transactionDetailRepository,
       StorageLocationRepository storageLocationRepository,
-      WarehouseShelfRepository warehouseShelfRepository) {
+      WarehouseShelfRepository warehouseShelfRepository,
+      DamagedProductService damagedProductService,
+      DamagedProductRepository damagedProductRepository) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
@@ -115,8 +122,9 @@ public class TransactionService {
     this.transactionDetailRepository = transactionDetailRepository;
     this.productRepository = productRepository;
     this.storageLocationRepository = storageLocationRepository;
-
     this.warehouseShelfRepository = warehouseShelfRepository;
+    this.damagedProductRepository = damagedProductRepository;
+    this.damagedProductService = damagedProductService;
   }
 
   /**
@@ -236,18 +244,15 @@ public class TransactionService {
             }
           }
         }
-
+        Inventory inventoryRes = inventoryRepository.save(inventory);
         TransactionDetailId transactionDetailId = TransactionDetailId.builder()
-            .transactionId(transaction.getId())
-            .inventoryId(inventory.getId())
-            .build();
+            .transactionId(transaction.getId()).inventoryId(inventoryRes.getId()).build();
         detail.setId(transactionDetailId);
         detail.setProduct(productMapper.toEntity(product));
         detail.setTransactionType(transaction.getTransactionType());
         detail.setTransaction(transaction);
-        detail.setInventory(inventory);
+        detail.setInventory(inventoryRes);
 
-        inventoryRepository.save(inventory);
         return detail;
       }).collect(Collectors.toSet());
       transaction.setDetails(details);
@@ -405,8 +410,8 @@ public class TransactionService {
   }
 
   @Transactional
-  public TransactionResponse approve(Long Transaction) {
-    Transaction transaction = transactionRepository.findById(Transaction)
+  public TransactionResponse approve(Long transactionId) {
+    Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
     for (TransactionDetail detail : transaction.getDetails()) {
       Inventory inventory = detail.getInventory();
@@ -428,4 +433,50 @@ public class TransactionService {
     return String.format("%s-%s-%s", prefix, date, number);
   }
 
+  @Transactional
+  public TransactionWithDetailResponse save(Long transactionId,
+      TransactionWithDetailResponse transactionWithDetailResponse) {
+
+    for (TransactionDetailResponse detail : transactionWithDetailResponse.getDetails()) {
+      TransactionDetailId transactionDetailId = TransactionDetailId.builder()
+          .transactionId(transactionId).inventoryId(detail.getInventory().getId()).build();
+      TransactionDetail transactionDetail = transactionDetailRepository.findById(
+          transactionDetailId).get();
+      transactionDetail.setActualQuantity(detail.getActualQuantity());
+      damagedProductService.updateAndCreateByTransactionId(transactionId,
+          detail.getInventory().getId(), detail.getDamagedProducts());
+    }
+    Transaction transaction = transactionRepository.findById(transactionId)
+        .orElseThrow(() -> new NotFoundException("Transaction not found"));
+    return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
+  }
+
+  @Transactional
+  public TransactionWithDetailResponse complete(Long transactionId,
+      TransactionWithDetailResponse transactionWithDetailResponse) {
+
+    for (TransactionDetailResponse detail : transactionWithDetailResponse.getDetails()) {
+      TransactionDetailId transactionDetailId = TransactionDetailId.builder()
+          .transactionId(transactionId).inventoryId(detail.getInventory().getId()).build();
+      TransactionDetail transactionDetail = transactionDetailRepository.findById(
+          transactionDetailId).get();
+      transactionDetail.setActualQuantity(detail.getActualQuantity());
+      damagedProductService.updateAndCreateByTransactionId(transactionId,
+          detail.getInventory().getId(), detail.getDamagedProducts());
+    }
+    Transaction transaction = transactionRepository.findById(transactionId)
+        .orElseThrow(() -> new NotFoundException("Transaction not found"));
+    transaction.setStatus(TransactionStatus.PENDING_APPROVAL);
+    return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
+  }
+
+  @Transactional
+  public TransactionWithDetailResponse start(Long transactionId) {
+    Transaction transaction = transactionRepository.findById(transactionId)
+        .orElseThrow(() -> new NotFoundException("Transaction not found"));
+    transaction.setStatus(TransactionStatus.IN_PROCESS);
+    return transactionMapper.toDtoWithDetail((transactionRepository.save(transaction)));
+  }
+
 }
+

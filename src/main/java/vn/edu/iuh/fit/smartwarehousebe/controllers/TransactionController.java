@@ -171,7 +171,22 @@ public class TransactionController {
   }
 
   @PutMapping("{transactionId}/approve")
-  public TransactionResponse approve(Long transactionId) {
+  public TransactionResponse approve(@PathVariable("transactionId") Long transactionId) {
       return transactionService.approve(transactionId);
+  }
+
+  @PutMapping("{transactionId}/start")
+  public TransactionWithDetailResponse start(@PathVariable("transactionId") Long transactionId) {
+    return transactionService.start(transactionId);
+  }
+
+  @PutMapping("{transactionId}/save")
+  public TransactionWithDetailResponse save(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction) {
+    return transactionService.save(transactionId, transaction);
+  }
+
+  @PutMapping("{transactionId}/complete")
+  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction) {
+    return transactionService.complete(transactionId, transaction);
   }
 }

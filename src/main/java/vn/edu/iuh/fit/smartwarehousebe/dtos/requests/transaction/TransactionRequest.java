@@ -1,12 +1,14 @@
 package vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction;
 
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 import java.io.Serializable;
@@ -53,5 +55,7 @@ public class TransactionRequest implements Serializable {
 
     @NotNull(message = "storageLocation name cannot be null")
     String storageLocationName;
+
+    Set<DamagedProductWithResponse> damagedProducts;
   }
 }

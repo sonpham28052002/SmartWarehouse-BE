@@ -35,6 +35,7 @@ public class TransactionWithDetailResponse implements Serializable {
   String transferCode;
   String partnerCode;
   String code;
+  Long id;
   List<TransactionDetailResponse> details;
 
   @Value
@@ -43,6 +44,7 @@ public class TransactionWithDetailResponse implements Serializable {
     ProductResponse product;
     InventoryResponse inventory;
     int quantity;
+    int actualQuantity;
     TransactionType transactionType;
     Set<DamagedProductWithResponse> damagedProducts;
     Long transactionId;

@@ -30,6 +30,7 @@ public class TransactionDetail extends Auditable {
   private Inventory inventory;
 
   private int quantity;
+  private int actualQuantity;
 
   @Column(name = "transaction_type", nullable = false)
   @Enumerated(EnumType.STRING)
