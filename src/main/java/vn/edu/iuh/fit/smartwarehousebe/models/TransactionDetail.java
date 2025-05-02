@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.Set;
 import lombok.*;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 
 @Getter
@@ -15,10 +17,8 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 @Builder
 public class TransactionDetail extends Auditable {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", nullable = false)
-  private Long id;
+  @EmbeddedId
+  private TransactionDetailId id;
 
   @ManyToOne
   @JoinColumn(name = "product_id", nullable = false)
@@ -26,6 +26,7 @@ public class TransactionDetail extends Auditable {
 
   @ManyToOne
   @JoinColumn(name = "inventory_id", nullable = false)
+  @MapsId("inventoryId")
   private Inventory inventory;
 
   private int quantity;
@@ -36,6 +37,7 @@ public class TransactionDetail extends Auditable {
 
   @ManyToOne
   @JoinColumn(name = "transaction_id", nullable = false)
+  @MapsId("transactionId")
   private Transaction transaction;
 
   @OneToMany(mappedBy = "transactionDetail", cascade = CascadeType.REMOVE, orphanRemoval = true)

@@ -41,7 +41,7 @@ public interface TransactionMapper {
   @Mapping(target = "executor", source = "executor")
   @Mapping(target = "details", source = "details")
   @Mapping(target = "code", source = "code")
-  TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
+    TransactionWithDetailResponse toDtoWithDetail(Transaction transaction);
 
   @Mapping(target = "product", source = "product")
   @Mapping(target = "transactionType", source = "transactionType")

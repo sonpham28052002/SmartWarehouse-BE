@@ -66,5 +66,6 @@ public class Exchange extends Auditable {
   @ManyToOne
   private User creator;
 
+  private String note;
 
 }

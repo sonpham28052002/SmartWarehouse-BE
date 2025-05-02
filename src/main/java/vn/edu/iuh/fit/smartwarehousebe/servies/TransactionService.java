@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,8 +10,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.amazonaws.services.kms.model.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionDetailRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
@@ -45,7 +45,6 @@ import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
-import vn.edu.iuh.fit.smartwarehousebe.models.Partner;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
@@ -212,7 +211,8 @@ public class TransactionService {
               inventory = inventoryOp.get();
             } else {
               StorageLocation storageLocation = null;
-              Optional<StorageLocation> storageLocationOP = storageLocationRepository.findByName(d.getStorageLocationName());
+              Optional<StorageLocation> storageLocationOP = storageLocationRepository.findByName(
+                  d.getStorageLocationName());
               if (storageLocationOP.isPresent()) {
                 storageLocation = storageLocationOP.get();
               } else {
@@ -220,16 +220,13 @@ public class TransactionService {
                 Long rowIndex = Long.parseLong(d.getStorageLocationName().split("-")[1]);
                 Long columnIndex = Long.parseLong(d.getStorageLocationName().split("-")[2]);
                 WarehouseShelf warehouseShelf = warehouseShelfRepository.findByShelfName(shelfName);
-                storageLocation = storageLocationRepository.save(StorageLocation.builder()
-                    .maxCapacity(warehouseShelf.getMaxCapacity())
-                    .warehouseShelf(warehouseShelf)
-                    .name(d.getStorageLocationName())
-                    .columnIndex(columnIndex)
-                    .rowIndex(rowIndex)
-                    .build());
+                storageLocation = storageLocationRepository.save(
+                    StorageLocation.builder().maxCapacity(warehouseShelf.getMaxCapacity())
+                        .warehouseShelf(warehouseShelf).name(d.getStorageLocationName())
+                        .columnIndex(columnIndex).rowIndex(rowIndex).build());
               }
               inventory = inventoryRepository.save(
-                  Inventory.builder().status(InventoryStatus.INACTIVE).quantity(d.getQuantity())
+                  Inventory.builder().status(InventoryStatus.INACTIVE).quantity(0L)
                       .storageLocation(storageLocation)
                       .product(productRepository.findById(d.getProductId()).get())
                       .unit(Unit.builder().id(d.getUnitId()).build()).build());
@@ -240,6 +237,11 @@ public class TransactionService {
           }
         }
 
+        TransactionDetailId transactionDetailId = TransactionDetailId.builder()
+            .transactionId(transaction.getId())
+            .inventoryId(inventory.getId())
+            .build();
+        detail.setId(transactionDetailId);
         detail.setProduct(productMapper.toEntity(product));
         detail.setTransactionType(transaction.getTransactionType());
         detail.setTransaction(transaction);
@@ -328,8 +330,7 @@ public class TransactionService {
       WarehouseResponse warehouse = warehouseService.getByCode(
           transactionCSVRequest.get(0).getWarehouseCode());
       TransactionRequest request = TransactionRequest.builder().warehouseId(warehouse.getId())
-          .description(transactionCSVRequest.get(0).getDescription())
-          .build();
+          .description(transactionCSVRequest.get(0).getDescription()).build();
 
       if (transactionCSVRequest.get(0).getPartnerCode() != null) {
         PartnerResponse partner = partnerService.getByCode(

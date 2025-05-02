@@ -23,7 +23,6 @@ import java.util.List;
 @Value
 public class TransactionWithDetailResponse implements Serializable {
 
-  Long id;
   TransactionType transactionType;
   LocalDateTime transactionDate;
   String transactionFile;
@@ -41,11 +40,11 @@ public class TransactionWithDetailResponse implements Serializable {
   @Value
   public static class TransactionDetailResponse implements Serializable {
 
-    Long id;
     ProductResponse product;
     InventoryResponse inventory;
     int quantity;
     TransactionType transactionType;
     Set<DamagedProductWithResponse> damagedProducts;
+    Long transactionId;
   }
 }

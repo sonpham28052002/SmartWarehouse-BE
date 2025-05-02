@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedProduct;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
@@ -22,7 +23,6 @@ import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
 import vn.edu.iuh.fit.smartwarehousebe.models.StockTakeDetail;
-import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeDetailRepository;
@@ -63,17 +63,20 @@ public class DamagedProductService {
     StockTakeDetail stockTakeDetail = stockTakeDetailRepository.findById(stockTakeDetailId)
         .orElseThrow(() -> new EntityNotFoundException("StockTakeDetail not found"));
 
-    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponses(damagedProducts, stockTakeDetail);
+    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponses(damagedProducts,
+        stockTakeDetail);
 
     Set<DamagedProductResponse> oldProductResponses = getOldDamagedProducts(stockTakeDetailId);
 
     Set<DamagedProductResponse> allDamagedProductResponses = new HashSet<>(newDamagedProducts);
     allDamagedProductResponses.addAll(oldProductResponses);
 
-    return handleDamagedProductResponses(allDamagedProductResponses, newDamagedProducts, oldProductResponses, stockTakeDetail);
+    return handleDamagedProductResponses(allDamagedProductResponses, newDamagedProducts,
+        oldProductResponses, stockTakeDetail);
   }
 
-  private Set<DamagedProductResponse> mapToDamagedProductResponses(Set<DamagedProductWithResponse> damagedProducts, StockTakeDetail stockTakeDetail) {
+  private Set<DamagedProductResponse> mapToDamagedProductResponses(
+      Set<DamagedProductWithResponse> damagedProducts, StockTakeDetail stockTakeDetail) {
     return damagedProducts.stream()
         .map(damagedProduct -> DamagedProductResponse.builder()
             .stockTakeDetail(StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetail))
@@ -87,7 +90,8 @@ public class DamagedProductService {
         .collect(Collectors.toSet());
   }
 
-  private Set<DamagedProductResponse> mapToDamagedProductResponsesByTransactionDetail(Set<DamagedProductWithResponse> damagedProducts, TransactionDetail transactionDetail) {
+  private Set<DamagedProductResponse> mapToDamagedProductResponsesByTransactionDetail(
+      Set<DamagedProductWithResponse> damagedProducts, TransactionDetail transactionDetail) {
     return damagedProducts.stream()
         .map(damagedProduct -> DamagedProductResponse.builder()
             .transactionDetail(TransactionDetailMapper.INSTANCE.toDto(transactionDetail))
@@ -107,21 +111,29 @@ public class DamagedProductService {
         .collect(Collectors.toSet());
   }
 
-  private Set<DamagedProductResponse> handleDamagedProductResponses(Set<DamagedProductResponse> allDamagedProductResponses,
-      Set<DamagedProductResponse> newDamagedProducts, Set<DamagedProductResponse> oldProductResponses,
+  private Set<DamagedProductResponse> handleDamagedProductResponses(
+      Set<DamagedProductResponse> allDamagedProductResponses,
+      Set<DamagedProductResponse> newDamagedProducts,
+      Set<DamagedProductResponse> oldProductResponses,
       StockTakeDetail stockTakeDetail) {
 
     Set<DamagedProductResponse> result = new HashSet<>();
 
     for (DamagedProductResponse response : allDamagedProductResponses) {
-      Optional<TransactionDetail> transactionDetailOpt = Optional.ofNullable(response.getTransactionDetail())
-          .flatMap(td -> transactionDetailRepository.findById(td.getId()));
+      Optional<TransactionDetail> transactionDetailOpt = Optional.ofNullable(
+              response.getTransactionDetail())
+          .flatMap(td -> transactionDetailRepository.findById(TransactionDetailId.builder()
+              .transactionId(td.getTransactionId())
+              .inventoryId(td.getInventory().getId())
+              .build()));
 
       if (response.getId() == null) {
-        DamagedProduct damagedProduct = createDamagedProduct(response, stockTakeDetail, transactionDetailOpt.orElse(null));
+        DamagedProduct damagedProduct = createDamagedProduct(response, stockTakeDetail,
+            transactionDetailOpt.orElse(null));
         result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
       } else if (newDamagedProducts.contains(response) && oldProductResponses.contains(response)) {
-        DamagedProduct damagedProduct = updateDamagedProduct(response, stockTakeDetail, transactionDetailOpt.orElse(null));
+        DamagedProduct damagedProduct = updateDamagedProduct(response, stockTakeDetail,
+            transactionDetailOpt.orElse(null));
         result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
       } else if (!newDamagedProducts.contains(response) && oldProductResponses.contains(response)) {
         deleteDamagedProduct(response.getId());
@@ -131,7 +143,8 @@ public class DamagedProductService {
     return result;
   }
 
-  private DamagedProduct createDamagedProduct(DamagedProductResponse response, StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
+  private DamagedProduct createDamagedProduct(DamagedProductResponse response,
+      StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
     return damagedProductRepository.save(DamagedProduct.builder()
         .stockTakeDetail(stockTakeDetail)
         .transactionDetail(transactionDetail)
@@ -143,7 +156,8 @@ public class DamagedProductService {
         .build());
   }
 
-  private DamagedProduct updateDamagedProduct(DamagedProductResponse response, StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
+  private DamagedProduct updateDamagedProduct(DamagedProductResponse response,
+      StockTakeDetail stockTakeDetail, TransactionDetail transactionDetail) {
     return damagedProductRepository.save(DamagedProduct.builder()
         .id(response.getId())
         .stockTakeDetail(stockTakeDetail)
@@ -161,11 +175,13 @@ public class DamagedProductService {
   }
 
   @Transactional
-  public Set<DamagedProductResponse> updateAndCreateByTransactionId(Long transactionDetailId,
+  public Set<DamagedProductResponse> updateAndCreateByTransactionId(Long transactionId, Long inventoryId,
       Set<DamagedProductWithResponse> damagedProducts) {
+    TransactionDetailId transactionDetailId = TransactionDetailId.builder().transactionId(transactionId).inventoryId(inventoryId).build();
     TransactionDetail transactionDetail = transactionDetailRepository.findById(transactionDetailId)
         .orElseThrow(() -> new NotFoundException("transaction detail not found"));
-    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponsesByTransactionDetail(damagedProducts, transactionDetail);
+    Set<DamagedProductResponse> newDamagedProducts = mapToDamagedProductResponsesByTransactionDetail(
+        damagedProducts, transactionDetail);
 
     Set<DamagedProductResponse> oldProductResponse = damagedProductRepository.findByTransactionDetailId(
             transactionDetailId).stream().map((i) -> DamagedProductMapper.INSTANCE.toDto(i))
@@ -176,10 +192,10 @@ public class DamagedProductService {
     Set<DamagedProductResponse> result = new HashSet<>();
     for (DamagedProductResponse response : allDamagedProductResponses) {
       if (response.getId() == null) {
-        DamagedProduct damagedProduct = createDamagedProduct(response, null ,transactionDetail);
+        DamagedProduct damagedProduct = createDamagedProduct(response, null, transactionDetail);
         result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
       } else if (newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
-        DamagedProduct damagedProduct = updateDamagedProduct(response, null ,transactionDetail);
+        DamagedProduct damagedProduct = updateDamagedProduct(response, null, transactionDetail);
         result.add(DamagedProductMapper.INSTANCE.toDto(damagedProduct));
       } else if (!newDamagedProducts.contains(response) && oldProductResponse.contains(response)) {
         deleteDamagedProduct(response.getId());
@@ -194,10 +210,15 @@ public class DamagedProductService {
         .with(DamagedProductSpecification.hasProductCode(request.getProductCode()))
         .with(DamagedProductSpecification.hasProductName(request.getProductName()))
         .with(DamagedProductSpecification.hasInventoryName(request.getInventoryName()))
+        .with(DamagedProductSpecification.hasTransactionProductCode(request.getProductCode()))
+        .with(DamagedProductSpecification.hasTransactionProductName(request.getProductName()))
+        .with(DamagedProductSpecification.hasTransactionInventoryName(request.getInventoryName()))
         .with(DamagedProductSpecification.hasStockTakeCode(request.getStockTakeCode()))
         .with(DamagedProductSpecification.hasTransactionCode(request.getTransactionCode()))
         .with(DamagedProductSpecification.hasSupplierName(request.getSupplierName()))
         .with(DamagedProductSpecification.hasSupplierCode(request.getSupplierCode()))
+        .with(DamagedProductSpecification.hasTransactionSupplierName(request.getSupplierName()))
+        .with(DamagedProductSpecification.hasTransactionSupplierCode(request.getSupplierCode()))
         .with(DamagedProductSpecification.hasExchangeStatus(request.getExchangeStatus()))
         .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
         .build();

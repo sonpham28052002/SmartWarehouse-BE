@@ -1,12 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import jakarta.persistence.*;
-import java.util.Objects;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamageType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
@@ -37,12 +32,15 @@ public class DamagedProduct extends Auditable {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumns({
       @JoinColumn(name = "stock_take_id", referencedColumnName = "stock_take_id"),
-      @JoinColumn(name = "inventory_id", referencedColumnName = "inventory_id")
+      @JoinColumn(name = "stock_take_inventory_id", referencedColumnName = "inventory_id")
   })
   private StockTakeDetail stockTakeDetail;
 
-  @ManyToOne
-  @JoinColumn(name = "transaction_detail_id")
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumns({
+      @JoinColumn(name = "transaction_id", referencedColumnName = "transaction_id"),
+      @JoinColumn(name = "transaction_inventory_id", referencedColumnName = "inventory_id")
+  })
   private TransactionDetail transactionDetail;
 
   @Enumerated(EnumType.STRING)

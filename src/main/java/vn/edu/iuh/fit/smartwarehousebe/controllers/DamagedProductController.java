@@ -39,11 +39,12 @@ public class DamagedProductController {
   }
 
 
-  @PostMapping("{transactionDetailId}/updateAndCreateByTransactionId")
+  @PostMapping("{transactionId}/{inventoryId}/updateAndCreateByTransactionId")
   public Set<DamagedProductResponse> updateAndCreateByTransactionId(
-      @PathVariable Long transactionDetailId,
+      @PathVariable Long transactionId,
+      @PathVariable Long inventoryId,
       @RequestBody Set<DamagedProductWithResponse> request) {
-    return damagedProductService.updateAndCreateByTransactionId(transactionDetailId, request);
+    return damagedProductService.updateAndCreateByTransactionId(transactionId, inventoryId, request);
   }
 
   @GetMapping()
