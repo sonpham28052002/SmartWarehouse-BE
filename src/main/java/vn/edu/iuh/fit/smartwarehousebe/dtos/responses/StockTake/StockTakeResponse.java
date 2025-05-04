@@ -32,7 +32,6 @@ public class StockTakeResponse implements Serializable {
   private StockTakeStatus status;
   private LocalDateTime createdDate;
   private LocalDateTime lastModifiedDate;
-  @JsonManagedReference
   private List<StockTakeDetailResponse> stockTakeDetails;
   private boolean deleted;
   private UserResponse approver;

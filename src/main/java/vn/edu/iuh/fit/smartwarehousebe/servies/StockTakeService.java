@@ -209,6 +209,7 @@ public class StockTakeService {
       stockTakeDetail.setDamagedQuantity(detail.getDamagedQuantity());
       stockTakeDetail.setStatus(detail.getStatus());
       stockTakeDetail.setDescription(detail.getDescription());
+      stockTakeDetail.setExpectedQuantity(detail.getExpectedQuantity());
       StockTakeDetailResponse stockTakeDetailResponse = StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetailRepository.save(stockTakeDetail));
       if (detail.getDamagedProducts().size() != 0 || stockTakeDetail.getDamagedProducts().size() != 0) {
 

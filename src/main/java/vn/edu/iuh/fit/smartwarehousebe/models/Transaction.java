@@ -71,9 +71,6 @@ public class Transaction extends Auditable {
   @OneToMany(mappedBy = "originalTransaction")
   private List<Exchange> originalExchanges;
 
-  @OneToMany(mappedBy = "transaction")
-  private List<ExchangeDetail> exchangeDetails;
-
   @PrePersist
   public void setDefault() {
     if (this.status == null) {

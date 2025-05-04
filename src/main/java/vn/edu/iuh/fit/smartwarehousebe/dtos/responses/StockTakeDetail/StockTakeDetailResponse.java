@@ -23,7 +23,6 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StockTakeDetailResponse implements Serializable {
 
-  @JsonManagedReference
   private InventoryResponse inventory;
   private Long expectedQuantity;
   private Long actualQuantity;
