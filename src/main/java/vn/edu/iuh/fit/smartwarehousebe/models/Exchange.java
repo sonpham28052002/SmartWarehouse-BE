@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -50,7 +51,7 @@ public class Exchange extends Auditable {
   @JoinColumn(name = "original_transaction_id")
   private Transaction originalTransaction;
 
-  @OneToMany(mappedBy = "exchange")
+  @OneToMany(mappedBy = "exchange", cascade = CascadeType.REMOVE)
   private List<ExchangeDetail> exchangeDetails;
 
   @ManyToOne
@@ -67,5 +68,9 @@ public class Exchange extends Auditable {
   private User creator;
 
   private String note;
+
+  @ManyToOne
+  @JoinColumn(name = "exchane_transaction_id")
+  private Transaction exchangeTransaction;
 
 }

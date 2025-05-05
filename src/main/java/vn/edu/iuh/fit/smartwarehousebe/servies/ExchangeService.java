@@ -36,5 +36,9 @@ public class ExchangeService {
         .map((i) -> ExchangeMapper.INSTANCE.toDto(i));
   }
 
+  public ExchangeResponse createExchange() {
+    return null;
+  }
+
 
 }
