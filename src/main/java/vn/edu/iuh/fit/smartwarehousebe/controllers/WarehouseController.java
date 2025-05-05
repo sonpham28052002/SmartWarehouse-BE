@@ -92,6 +92,11 @@ public class WarehouseController {
     return ResponseEntity.ok(warehouseService.delete(id));
   }
 
+  @PostMapping("/{id}/restore")
+  public ResponseEntity<Boolean> restoreWarehouse(@PathVariable Long id) {
+    return ResponseEntity.ok(warehouseService.restore(id));
+  }
+
   @GetMapping("/{code}/checkCode")
   public ResponseEntity<Boolean> checkCode(@PathVariable String code) {
     return ResponseEntity.ok(warehouseService.checkCodeIsExist(Warehouse.class, code));

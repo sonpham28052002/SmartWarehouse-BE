@@ -14,6 +14,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamageType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,12 +29,11 @@ public class DamagedProductResponse implements Serializable {
   private String description;
   private String transactionCode;
   private String stockTakeCode;
-  private boolean isExchange;
-  private ExchangeResponse exchange;
   private StockTakeDetailResponse stockTakeDetail;
   private TransactionDetailResponse transactionDetail;
   private DamagedProductStatus status;
   private DamageType type;
+  private ExchangeType exchangeType;
   private LocalDateTime createdDate;
   private LocalDateTime lastModifiedDate;
   private boolean deleted;

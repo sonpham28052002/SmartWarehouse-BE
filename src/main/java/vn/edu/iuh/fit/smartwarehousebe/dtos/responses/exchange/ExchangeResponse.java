@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -40,6 +41,7 @@ public class ExchangeResponse implements Serializable {
   private ExchangeType type;
 
   private String transactionCode;
+  private String stockTakeCode;
 
   private PartnerResponse supplier;
   private UserResponse approver;
@@ -49,8 +51,10 @@ public class ExchangeResponse implements Serializable {
   @Value
   @Builder
   public static class ExchangeDetailWithResponse implements Serializable {
-    private DamagedProduct damagedProduct;
+    private DamagedProductResponse damagedProduct;
     private int quantity;
     private ExchangeType type;
   }
+
+
 }

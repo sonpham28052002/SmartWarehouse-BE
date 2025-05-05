@@ -19,6 +19,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedPr
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
@@ -149,9 +150,9 @@ public class DamagedProductService {
         .transactionDetail(transactionDetail)
         .description(response.getDescription())
         .quantity(response.getQuantity())
+        .exchangeType(ExchangeType.UNSPECIFIED)
         .status(DamagedProductStatus.INACTIVE)
         .type(response.getType())
-        .exchange(null)
         .build());
   }
 
@@ -163,9 +164,9 @@ public class DamagedProductService {
         .transactionDetail(transactionDetail)
         .description(response.getDescription())
         .type(response.getType())
+        .exchangeType(ExchangeType.UNSPECIFIED)
         .quantity(response.getQuantity())
         .status(DamagedProductStatus.INACTIVE)
-        .exchange(null)
         .build());
   }
 
@@ -205,7 +206,6 @@ public class DamagedProductService {
 
   public Page<DamagedProductResponse> getAll(PageRequest pageRequest, GetDamagedProduct request) {
     Specification<DamagedProduct> specification = SpecificationBuilder.<DamagedProduct>builder()
-        .with(DamagedProductSpecification.hasStatus(DamagedProductStatus.INACTIVE.name()))
         .with(DamagedProductSpecification.hasProductCode(request.getProductCode()))
         .with(DamagedProductSpecification.hasProductName(request.getProductName()))
         .with(DamagedProductSpecification.hasInventoryName(request.getInventoryName()))
@@ -229,7 +229,6 @@ public class DamagedProductService {
 
   public List<DamagedProductResponse> getAll(GetDamagedProduct request) {
     Specification<DamagedProduct> specification = SpecificationBuilder.<DamagedProduct>builder()
-        .with(DamagedProductSpecification.hasStatus(DamagedProductStatus.INACTIVE.name()))
         .with(DamagedProductSpecification.hasProductCode(request.getProductCode()))
         .with(DamagedProductSpecification.hasProductName(request.getProductName()))
         .with(DamagedProductSpecification.hasInventoryName(request.getInventoryName()))
@@ -242,7 +241,7 @@ public class DamagedProductService {
         .with(DamagedProductSpecification.hasSupplierCode(request.getSupplierCode()))
         .with(DamagedProductSpecification.hasTransactionSupplierName(request.getSupplierName()))
         .with(DamagedProductSpecification.hasTransactionSupplierCode(request.getSupplierCode()))
-        .with(DamagedProductSpecification.hasExchangeStatus(request.getExchangeStatus()))
+        .with(DamagedProductSpecification.hasExchangeStatus(DamagedProductStatus.NOT_RETURNED.name()))
         .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
         .with(DamagedProductSpecification.hasDeleted(false))
         .build();

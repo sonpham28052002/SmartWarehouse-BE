@@ -41,9 +41,6 @@ public class Exchange extends Auditable {
 
   private String code;
 
-  @OneToMany(mappedBy = "exchange", fetch = FetchType.EAGER)
-  private Set<DamagedProduct> damagedProducts;
-
   @Enumerated(EnumType.STRING)
   private ExchangeType type;
 

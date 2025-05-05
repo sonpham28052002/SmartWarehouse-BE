@@ -13,6 +13,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
+import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 
 import java.time.LocalDateTime;
@@ -39,4 +40,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
 
   @Query("SELECT COUNT(trans) + 1 FROM Transaction trans WHERE trans.createdDate >= :todayStart AND trans.createdDate <= :todayEnd")
   int findTodaySequence(@Param("todayStart") LocalDateTime start, @Param("todayEnd") LocalDateTime end);
+
+  Optional<Transaction> getByCode(String code);
+
 }

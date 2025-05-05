@@ -33,7 +33,7 @@ import vn.edu.iuh.fit.smartwarehousebe.repositories.*;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.StockTakeSpecification;
 
 @Service
-public class StockTakeService {
+public class StockTakeService extends CommonService<StockTake>{
 
   @Autowired
   @Lazy
@@ -275,11 +275,11 @@ public class StockTakeService {
 
       Set<DamagedProduct> damagedProducts = new HashSet<>();
 
-//      for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
-//        damagedProduct.setStatus(DamagedProductStatus.ACTIVE);
-//        damagedProducts.add(damagedProductRepository.save(damagedProduct));
-//      }
-//      transactionDetail.setDamagedProducts(damagedProducts);
+      for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
+        damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
+        damagedProducts.add(damagedProductRepository.save(damagedProduct));
+      }
+      transactionDetail.setDamagedProducts(damagedProducts);
       details.add(transactionDetailRepository.save(transactionDetail));
     }
     transactionRepository.save(transaction);

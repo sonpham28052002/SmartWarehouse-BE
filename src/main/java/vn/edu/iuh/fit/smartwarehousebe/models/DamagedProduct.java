@@ -6,6 +6,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamageType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 
 @Entity
 @Table(name = "damaged_product")
@@ -27,9 +28,6 @@ public class DamagedProduct extends Auditable {
   private String description;
 
   @ManyToOne(fetch = FetchType.EAGER)
-  private Exchange exchange;
-
-  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumns({
       @JoinColumn(name = "stock_take_id", referencedColumnName = "stock_take_id"),
       @JoinColumn(name = "stock_take_inventory_id", referencedColumnName = "inventory_id")
@@ -48,4 +46,8 @@ public class DamagedProduct extends Auditable {
 
   @Enumerated(EnumType.STRING)
   private DamageType type;
+
+  @Enumerated(EnumType.STRING)
+  private ExchangeType exchangeType;
+
 }

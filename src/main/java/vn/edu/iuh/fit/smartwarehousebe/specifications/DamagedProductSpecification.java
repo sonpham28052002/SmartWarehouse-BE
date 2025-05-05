@@ -97,14 +97,14 @@ public class DamagedProductSpecification {
     for (String attr : attributes) {
       path = path.get(attr);
     }
-    return (Path<String>) path;  // Trực tiếp ép kiểu path về String
+    return (Path<String>) path;
   }
 
 
   public static Specification<DamagedProduct> hasStockTakeCode(String code) {
     return Optional.ofNullable(code)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-            root.get("stockTake").get("code"), c))
+            root.get("stockTakeDetail").get("stockTake").get("code"), c))
         .orElse(null);
   }
 
@@ -125,30 +125,14 @@ public class DamagedProductSpecification {
   public static Specification<DamagedProduct> hasExchangeType(String type) {
     return Optional.ofNullable(type)
         .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-            root.get("exchange").get("type"), c))
+            root.get("exchangeType"), c))
         .orElse(null);
   }
 
   public static Specification<DamagedProduct> hasExchangeStatus(String status) {
     return Optional.ofNullable(status)
-        .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> {
-          if ("NOT_RETURNED".equals(c)) {
-            return criteriaBuilder.isNull(root.get("exchange"));
-          } else if ("RETURNING".equals(c)) {
-            return criteriaBuilder.and(
-                criteriaBuilder.isNotNull(root.get("exchange")),
-                criteriaBuilder.isNull(root.get("exchange").get("type"))
-            );
-          } else if ("RETURNED".equals(c)) {
-            return criteriaBuilder.and(
-                criteriaBuilder.isNotNull(root.get("exchange")),
-                criteriaBuilder.isNotNull(root.get("exchange").get("type"))
-            );
-          }
-          return null;
-        })
+        .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+            root.get("status"), c))
         .orElse(null);
   }
-
-
 }

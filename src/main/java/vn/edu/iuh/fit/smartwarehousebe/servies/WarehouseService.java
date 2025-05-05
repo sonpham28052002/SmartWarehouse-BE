@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -126,17 +127,24 @@ public class WarehouseService extends CommonService<Warehouse> {
       throw new NotFoundException("no found warehouse");
     }
 
-    if (oldWarehouse.getManager().getId() != updateWarehouse.getManager().getId()) {
+    Long oldManagerId = oldWarehouse.getManager() != null ? oldWarehouse.getManager().getId() : null;
+    Long newManagerId = updateWarehouse.getManager() != null ? updateWarehouse.getManager().getId() : null;
 
-      // update warehouse manager for the old manager
-      User oldManager = userService.getUserById(oldWarehouse.getManager().getId());
-      oldManager.setWarehouseManager(null);
-      userService.updateUser(oldManager);
+    if (!Objects.equals(oldManagerId, newManagerId)) {
+      if (oldManagerId != null) {
+        User oldManager = userService.getUserById(oldManagerId);
+        oldManager.setWarehouseManager(null);
+        userService.updateUser(oldManager);
+      }
 
-      // update warehouse manager for the old manager
-      User newManager = userService.getUserById(updateWarehouse.getManager().getId());
-      newManager.setWarehouseManager(oldWarehouse);
-      oldWarehouse.setManager(userService.updateUser(newManager));
+      if (newManagerId != null) {
+        User newManager = userService.getUserById(newManagerId);
+        newManager.setWarehouseManager(oldWarehouse);
+        userService.updateUser(newManager);
+        oldWarehouse.setManager(newManager);
+      } else {
+        oldWarehouse.setManager(null);
+      }
     }
 
     // update staffs
@@ -183,7 +191,6 @@ public class WarehouseService extends CommonService<Warehouse> {
       exception.printStackTrace();
     }
     return false;
-
   }
 
   public WarehouseResponse getByCode(String warehouseCode) {
@@ -191,4 +198,24 @@ public class WarehouseService extends CommonService<Warehouse> {
         .map(warehouseMapper::toDto)
         .orElseThrow(() -> new NoSuchElementException("Warehouse not found"));
   }
+
+  @CacheEvict(value = {"warehouse", "users"}, allEntries = true)
+  @Transactional
+  public boolean restore(Long id) {
+    try {
+      Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(null);
+      if (warehouse == null) {
+        return false;
+      }
+      warehouse.setDeleted(false);
+
+      warehouseRepository.save(warehouse);
+      return true;
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
+    return false;
+
+  }
+
 }

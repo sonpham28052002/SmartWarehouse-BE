@@ -26,4 +26,5 @@ public interface StockTakeRepository extends JpaRepository<StockTake, Long>,
   @Query("SELECT COUNT(s) + 1 FROM StockTake s WHERE s.createdDate >= :todayStart AND s.createdDate <= :todayEnd")
   int findTodaySequence(@Param("todayStart") LocalDateTime start, @Param("todayEnd") LocalDateTime end);
 
+  Optional<StockTake> getByCode(String code);
 }

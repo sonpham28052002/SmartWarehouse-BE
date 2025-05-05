@@ -33,6 +33,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWit
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.unit.UnitResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
@@ -44,6 +45,7 @@ import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
@@ -69,7 +71,7 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
  */
 @Slf4j
 @Service
-public class TransactionService {
+public class TransactionService extends CommonService<Transaction>{
 
   private final DamagedProductRepository damagedProductRepository;
 
@@ -416,6 +418,12 @@ public class TransactionService {
       Inventory inventory = detail.getInventory();
       inventory.setStatus(InventoryStatus.ACTIVE);
       inventoryRepository.save(inventory);
+    }
+    for (TransactionDetail detail:transaction.getDetails()) {
+      for (DamagedProduct damagedProduct:detail.getDamagedProducts()) {
+        damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
+        damagedProductRepository.save(damagedProduct);
+      }
     }
     transaction.setStatus(TransactionStatus.COMPLETE);
     transaction.setApprover(user);

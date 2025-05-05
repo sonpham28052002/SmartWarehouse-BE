@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -18,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Getter
 @Setter
@@ -27,6 +29,7 @@ import org.hibernate.annotations.SQLDelete;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Where(clause = "deleted = false")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class WarehouseShelf extends Auditable implements Serializable {
 
@@ -44,7 +47,7 @@ public class WarehouseShelf extends Auditable implements Serializable {
   @ManyToOne(fetch = FetchType.EAGER)
   private Warehouse warehouse;
 
-  @OneToMany(mappedBy = "warehouseShelf")
+  @OneToMany(mappedBy = "warehouseShelf", cascade = CascadeType.REMOVE)
   private List<StorageLocation> storageLocations;
 
   @Override

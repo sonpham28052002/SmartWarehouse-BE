@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 
 import java.io.Serializable;
 import java.util.List;
+import org.hibernate.annotations.Where;
 
 @Getter
 @Setter
@@ -19,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Where(clause = "deleted = false")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StorageLocation extends Auditable implements Serializable {
 
@@ -41,7 +43,7 @@ public class StorageLocation extends Auditable implements Serializable {
   @JoinColumn(name = "warehouse_shelf_id")
   private WarehouseShelf warehouseShelf;
 
-  @OneToMany(mappedBy = "storageLocation")
+  @OneToMany(mappedBy = "storageLocation", cascade = CascadeType.REMOVE)
   private List<Inventory> inventories;
 
 }

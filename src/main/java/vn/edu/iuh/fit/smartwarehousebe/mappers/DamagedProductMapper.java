@@ -20,6 +20,7 @@ public interface DamagedProductMapper {
   @Mapping(source = "stockTakeDetail.stockTake.code", target = "stockTakeCode")
   @Mapping(source = "transactionDetail.transaction.code", target = "transactionCode")
   @Mapping(source = "type", target = "type")
+  @Mapping(source = "exchangeType", target = "exchangeType")
   DamagedProductResponse toDto(DamagedProduct damagedProduct);
 
   @Named("mapLocation")
