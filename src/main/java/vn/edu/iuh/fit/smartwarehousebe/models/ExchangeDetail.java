@@ -34,7 +34,7 @@ public class ExchangeDetail extends Auditable{
   @EmbeddedId
   private ExchangeDetailId id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @MapsId("exchangeId")
   @JoinColumn(name = "exchange_id")
   @JsonIgnore

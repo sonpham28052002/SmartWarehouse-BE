@@ -49,6 +49,7 @@ import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
@@ -202,7 +203,7 @@ public class TransactionService {
         Inventory inventory = null;
         if (d.getStorageLocationName() == null) {
           inventory = Inventory.builder().product(productMapper.toEntity(product))
-              .quantity((long) d.getQuantity())
+              .inventoryQuantity ((long) d.getQuantity())
               .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
         } else {
           if (request.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE) {
@@ -232,7 +233,7 @@ public class TransactionService {
                         .columnIndex(columnIndex).rowIndex(rowIndex).build());
               }
               inventory = inventoryRepository.save(
-                  Inventory.builder().status(InventoryStatus.INACTIVE).quantity(0L)
+                  Inventory.builder().status(InventoryStatus.INACTIVE).inventoryQuantity(0L)
                       .storageLocation(storageLocation)
                       .product(productRepository.findById(d.getProductId()).get())
                       .unit(Unit.builder().id(d.getUnitId()).build()).build());
@@ -408,7 +409,7 @@ public class TransactionService {
   }
 
   @Transactional
-  public TransactionResponse approve(Long transactionId) {
+  public TransactionResponse approve(Long transactionId, User user) {
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
     for (TransactionDetail detail : transaction.getDetails()) {
@@ -417,6 +418,7 @@ public class TransactionService {
       inventoryRepository.save(inventory);
     }
     transaction.setStatus(TransactionStatus.COMPLETE);
+    transaction.setApprover(user);
     return transactionMapper.toDto(transactionRepository.save(transaction));
   }
 
@@ -433,7 +435,7 @@ public class TransactionService {
 
   @Transactional
   public TransactionWithDetailResponse save(Long transactionId,
-      TransactionWithDetailResponse transactionWithDetailResponse) {
+      TransactionWithDetailResponse transactionWithDetailResponse, User user) {
 
     for (TransactionDetailResponse detail : transactionWithDetailResponse.getDetails()) {
       TransactionDetailId transactionDetailId = TransactionDetailId.builder()
@@ -446,12 +448,13 @@ public class TransactionService {
     }
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
+    transaction.setExecutor(user);
     return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
   }
 
   @Transactional
   public TransactionWithDetailResponse complete(Long transactionId,
-      TransactionWithDetailResponse transactionWithDetailResponse) {
+      TransactionWithDetailResponse transactionWithDetailResponse, User user) {
 
     for (TransactionDetailResponse detail : transactionWithDetailResponse.getDetails()) {
       TransactionDetailId transactionDetailId = TransactionDetailId.builder()
@@ -465,14 +468,16 @@ public class TransactionService {
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
     transaction.setStatus(TransactionStatus.PENDING_APPROVAL);
+    transaction.setExecutor(user);
     return transactionMapper.toDtoWithDetail(transactionRepository.save(transaction));
   }
 
   @Transactional
-  public TransactionWithDetailResponse start(Long transactionId) {
+  public TransactionWithDetailResponse start(Long transactionId, User user) {
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
     transaction.setStatus(TransactionStatus.IN_PROCESS);
+    transaction.setExecutor(user);
     return transactionMapper.toDtoWithDetail((transactionRepository.save(transaction)));
   }
 

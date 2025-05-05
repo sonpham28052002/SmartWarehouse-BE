@@ -2,6 +2,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,19 +34,9 @@ public class DamagedProductResponse implements Serializable {
   private TransactionDetailResponse transactionDetail;
   private DamagedProductStatus status;
   private DamageType type;
-
-  @Override
-  public String toString() {
-    return "DamagedProductResponse{" +
-        "id=" + id +
-        ", quantity=" + quantity +
-        ", description='" + description + '\'' +
-        ", transactionCode='" + transactionCode + '\'' +
-        ", stockTakeCode='" + stockTakeCode + '\'' +
-        ", isExchange=" + isExchange +
-        ", type=" + type +
-        '}';
-  }
+  private LocalDateTime createdDate;
+  private LocalDateTime lastModifiedDate;
+  private boolean deleted;
 
   @Override
   public boolean equals(Object o) {

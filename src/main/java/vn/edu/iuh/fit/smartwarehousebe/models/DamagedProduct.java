@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.models;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamageType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 
@@ -14,6 +15,7 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 @NoArgsConstructor
 @Builder
 @SQLDelete(sql = "UPDATE damaged_product SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 public class DamagedProduct extends Auditable {
 
   @Id
@@ -23,8 +25,6 @@ public class DamagedProduct extends Auditable {
   private Long quantity;
 
   private String description;
-
-  private boolean isExchange;
 
   @ManyToOne(fetch = FetchType.EAGER)
   private Exchange exchange;
@@ -48,9 +48,4 @@ public class DamagedProduct extends Auditable {
 
   @Enumerated(EnumType.STRING)
   private DamageType type;
-
-  @PrePersist
-  public void prePersist() {
-    this.isExchange = this.exchange != null && this.exchange.getId() != null;
-  }
 }

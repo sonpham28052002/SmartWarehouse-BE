@@ -81,7 +81,6 @@ public class DamagedProductService {
     return damagedProducts.stream()
         .map(damagedProduct -> DamagedProductResponse.builder()
             .stockTakeDetail(StockTakeDetailMapper.INSTANCE.toDto(stockTakeDetail))
-            .isExchange(damagedProduct.isExchange())
             .id(damagedProduct.getId())
             .type(damagedProduct.getType())
             .status(damagedProduct.getStatus())
@@ -96,7 +95,6 @@ public class DamagedProductService {
     return damagedProducts.stream()
         .map(damagedProduct -> DamagedProductResponse.builder()
             .transactionDetail(TransactionDetailMapper.INSTANCE.toDto(transactionDetail))
-            .isExchange(damagedProduct.isExchange())
             .id(damagedProduct.getId())
             .type(damagedProduct.getType())
             .status(damagedProduct.getStatus())
@@ -222,6 +220,7 @@ public class DamagedProductService {
         .with(DamagedProductSpecification.hasTransactionSupplierCode(request.getSupplierCode()))
         .with(DamagedProductSpecification.hasExchangeStatus(request.getExchangeStatus()))
         .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
+        .with(DamagedProductSpecification.hasDeleted(false))
         .build();
 
     return damagedProductRepository.findAll(specification, pageRequest)
@@ -245,6 +244,7 @@ public class DamagedProductService {
         .with(DamagedProductSpecification.hasTransactionSupplierCode(request.getSupplierCode()))
         .with(DamagedProductSpecification.hasExchangeStatus(request.getExchangeStatus()))
         .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
+        .with(DamagedProductSpecification.hasDeleted(false))
         .build();
 
     return damagedProductRepository.findAll(specification)

@@ -69,19 +69,11 @@ public class ScheduledService {
 
   @Scheduled(cron = "0 59 23 L * *", zone = "Asia/Ho_Chi_Minh")
   public void calculateInventoryMonthly() {
-    LocalDate today = LocalDate.now();
-    LocalDateTime from = today.withDayOfMonth(1).atStartOfDay();
-    LocalDateTime to = today.atTime(LocalTime.MAX);
-    List<TransactionType> types = List.of(
-        TransactionType.EXPORT_FROM_WAREHOUSE,
-        TransactionType.INVENTORY,
-        TransactionType.IMPORT_FROM_WAREHOUSE,
-        TransactionType.WAREHOUSE_TRANSFER,
-        TransactionType.IMPORT_FROM_SUPPLIER
-    );
-    List<Inventory> inventories = inventoryRepository.findInventoriesByTransactionDateAndTypesAndStatus(
-        from, to, types, InventoryStatus.ACTIVE);
-    System.out.println(inventories.size());
+    List<Inventory> inventories = inventoryRepository.findAll();
+    for (Inventory inventory : inventories) {
+      inventory.setInventoryQuantity(inventory.getQuantity());
+      inventoryRepository.save(inventory);
+    }
   }
 
   public static void main(String[] args) throws IOException {

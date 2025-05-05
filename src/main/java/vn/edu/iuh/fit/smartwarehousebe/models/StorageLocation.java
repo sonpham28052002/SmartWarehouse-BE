@@ -37,7 +37,7 @@ public class StorageLocation extends Auditable implements Serializable {
   @Column(name = "max_capacity", nullable = false)
   private Double maxCapacity;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "warehouse_shelf_id")
   private WarehouseShelf warehouseShelf;
 

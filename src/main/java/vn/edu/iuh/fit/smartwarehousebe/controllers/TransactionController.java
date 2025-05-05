@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
@@ -17,6 +18,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequ
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
@@ -171,22 +173,22 @@ public class TransactionController {
   }
 
   @PutMapping("{transactionId}/approve")
-  public TransactionResponse approve(@PathVariable("transactionId") Long transactionId) {
-      return transactionService.approve(transactionId);
+  public TransactionResponse approve(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
+      return transactionService.approve(transactionId, user);
   }
 
   @PutMapping("{transactionId}/start")
-  public TransactionWithDetailResponse start(@PathVariable("transactionId") Long transactionId) {
-    return transactionService.start(transactionId);
+  public TransactionWithDetailResponse start(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
+    return transactionService.start(transactionId, user);
   }
 
   @PutMapping("{transactionId}/save")
-  public TransactionWithDetailResponse save(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction) {
-    return transactionService.save(transactionId, transaction);
+  public TransactionWithDetailResponse save(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction, @AuthenticationPrincipal User user) {
+    return transactionService.save(transactionId, transaction, user);
   }
 
   @PutMapping("{transactionId}/complete")
-  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction) {
-    return transactionService.complete(transactionId, transaction);
+  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction, @AuthenticationPrincipal User user) {
+    return transactionService.complete(transactionId, transaction, user);
   }
 }

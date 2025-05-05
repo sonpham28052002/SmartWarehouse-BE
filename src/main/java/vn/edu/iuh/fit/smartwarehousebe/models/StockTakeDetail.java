@@ -27,7 +27,7 @@ public class StockTakeDetail extends Auditable implements Serializable {
   @EmbeddedId
   private StockTakeDetailId id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @MapsId("stockTakeId")
   @JoinColumn(name = "stock_take_id")
   @JsonIgnore

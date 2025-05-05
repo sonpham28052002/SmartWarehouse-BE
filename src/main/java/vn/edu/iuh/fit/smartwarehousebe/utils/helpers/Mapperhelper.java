@@ -2,12 +2,9 @@ package vn.edu.iuh.fit.smartwarehousebe.utils.helpers;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.mapstruct.factory.Mappers;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
-import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
@@ -19,7 +16,6 @@ public class Mapperhelper {
     if (inventory == null || inventory.getStorageLocation() == null) {
       return null;
     }
-
     return InventoryResponse.builder()
         .location(inventory.getStorageLocation().getWarehouseShelf().getShelfName() + "-"
             + String.valueOf(
@@ -29,6 +25,7 @@ public class Mapperhelper {
         .product(ProductMapper.INSTANCE.toDto(inventory.getProduct()))
         .unit(UnitMapper.INSTANCE.toDto(inventory.getUnit()))
         .quantity(inventory.getQuantity())
+        .calculatedQuantity(inventory.getQuantity())
         .status(inventory.getStatus())
         .build();
   }
@@ -46,7 +43,6 @@ public class Mapperhelper {
           .quantity(damagedProduct.getQuantity())
           .status(damagedProduct.getStatus())
           .description(damagedProduct.getDescription())
-          .isExchange(damagedProduct.isExchange())
           .build());
     }
     return result;

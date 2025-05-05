@@ -5,9 +5,17 @@ import jakarta.persistence.criteria.Root;
 import java.util.Optional;
 import org.springframework.data.jpa.domain.Specification;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
+import vn.edu.iuh.fit.smartwarehousebe.models.Partner;
 
 public class DamagedProductSpecification {
   DamagedProductSpecification() {
+  }
+
+  public static Specification<DamagedProduct> hasDeleted(boolean isDeleted) {
+    return Optional.ofNullable(isDeleted)
+        .map(c -> (Specification<DamagedProduct>) (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+            root.get("deleted"), c))
+        .orElse(null);
   }
 
   public static Specification<DamagedProduct> hasProductCode(String code) {

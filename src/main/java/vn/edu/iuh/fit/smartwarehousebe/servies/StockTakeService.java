@@ -218,7 +218,6 @@ public class StockTakeService {
               return DamagedProductWithResponse.builder()
                   .stockTakeCode(i.getStockTakeCode())
                   .transactionCode(i.getTransactionCode())
-                  .isExchange(i.isExchange())
                   .id(i.getId())
                   .status(i.getStatus())
                   .quantity(i.getQuantity())

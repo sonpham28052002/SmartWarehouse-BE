@@ -69,12 +69,12 @@ public class User extends Auditable implements UserDetails, Serializable {
   @Enumerated(EnumType.ORDINAL)
   private Role role;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "warehouse_id")
   @JsonIgnore
   private Warehouse warehouse;
 
-  @OneToOne(mappedBy = "manager", fetch = FetchType.LAZY)
+  @OneToOne(mappedBy = "manager", fetch = FetchType.EAGER)
   @JsonIgnore
   private Warehouse warehouseManager;
 

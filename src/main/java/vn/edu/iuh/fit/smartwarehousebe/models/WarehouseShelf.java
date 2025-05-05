@@ -41,7 +41,7 @@ public class WarehouseShelf extends Auditable implements Serializable {
   private Long columnNum;
   private Double maxCapacity;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   private Warehouse warehouse;
 
   @OneToMany(mappedBy = "warehouseShelf")

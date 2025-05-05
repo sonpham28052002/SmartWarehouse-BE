@@ -68,7 +68,7 @@ public class StorageLocationService {
       inventory = inventoryRepository.save(Inventory.builder()
           .id(request.getInventoryResponses().getId())
           .status(InventoryStatus.ACTIVE)
-          .quantity(request.getInventoryResponses().getQuantity())
+          .inventoryQuantity(request.getInventoryResponses().getQuantity())
           .unit(unitRepository.findById(request.getInventoryResponses().getUnit().getId())
               .orElseThrow(() -> new NotFoundException("unit not fond")))
           .product(productRepository.findById(request.getInventoryResponses().getProduct().getId())
@@ -78,7 +78,7 @@ public class StorageLocationService {
     } else {
       inventory = inventoryRepository.findById(request.getInventoryResponses().getId())
           .orElseThrow(() -> new NotFoundException("inventory not fond"));
-      inventory.setQuantity(request.getInventoryResponses().getQuantity());
+      inventory.setInventoryQuantity(request.getInventoryResponses().getQuantity());
       inventory.setUnit(unitRepository.findById(request.getInventoryResponses().getUnit().getId())
           .orElseThrow(() -> new NotFoundException("unit not fond")));
       inventory.setProduct(

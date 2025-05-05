@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,8 +41,10 @@ public class StockTakeDetailResponse implements Serializable {
     String description;
     String transactionCode;
     String stockTakeCode;
-    boolean isExchange;
     DamagedProductStatus status;
     DamageType type;
+    LocalDateTime createdDate;
+    LocalDateTime lastModifiedDate;
+    boolean deleted;
   }
 }
