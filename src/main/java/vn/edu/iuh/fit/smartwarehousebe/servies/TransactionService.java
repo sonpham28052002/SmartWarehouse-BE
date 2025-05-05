@@ -134,7 +134,6 @@ public class TransactionService {
    * @return the transaction response
    * @throws TransactionNotFoundException if the transaction is not found
    */
-  @Cacheable(value = "transactions", key = "#id")
   public TransactionWithDetailResponse getTransaction(Long id) {
     return transactionRepository.findById(id).map(transactionMapper::toDtoWithDetail)
         .orElseThrow(TransactionNotFoundException::new);
@@ -172,7 +171,6 @@ public class TransactionService {
    * @param request the transaction request containing details
    * @return the transaction response
    */
-  @CacheEvict(value = "transactions", allEntries = true)
   @Transactional
   public TransactionWithDetailResponse createTransaction(TransactionRequest request) {
     try {

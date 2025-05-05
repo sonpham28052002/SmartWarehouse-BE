@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 import com.amazonaws.services.kms.model.NotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -225,5 +226,29 @@ public class DamagedProductService {
 
     return damagedProductRepository.findAll(specification, pageRequest)
         .map((i) -> DamagedProductMapper.INSTANCE.toDto(i));
+  }
+
+  public List<DamagedProductResponse> getAll(GetDamagedProduct request) {
+    Specification<DamagedProduct> specification = SpecificationBuilder.<DamagedProduct>builder()
+        .with(DamagedProductSpecification.hasStatus(DamagedProductStatus.INACTIVE.name()))
+        .with(DamagedProductSpecification.hasProductCode(request.getProductCode()))
+        .with(DamagedProductSpecification.hasProductName(request.getProductName()))
+        .with(DamagedProductSpecification.hasInventoryName(request.getInventoryName()))
+        .with(DamagedProductSpecification.hasTransactionProductCode(request.getProductCode()))
+        .with(DamagedProductSpecification.hasTransactionProductName(request.getProductName()))
+        .with(DamagedProductSpecification.hasTransactionInventoryName(request.getInventoryName()))
+        .with(DamagedProductSpecification.hasStockTakeCode(request.getStockTakeCode()))
+        .with(DamagedProductSpecification.hasTransactionCode(request.getTransactionCode()))
+        .with(DamagedProductSpecification.hasSupplierName(request.getSupplierName()))
+        .with(DamagedProductSpecification.hasSupplierCode(request.getSupplierCode()))
+        .with(DamagedProductSpecification.hasTransactionSupplierName(request.getSupplierName()))
+        .with(DamagedProductSpecification.hasTransactionSupplierCode(request.getSupplierCode()))
+        .with(DamagedProductSpecification.hasExchangeStatus(request.getExchangeStatus()))
+        .with(DamagedProductSpecification.hasExchangeType(request.getExchangeType()))
+        .build();
+
+    return damagedProductRepository.findAll(specification)
+        .stream()
+        .map((i) -> DamagedProductMapper.INSTANCE.toDto(i)).collect(Collectors.toList());
   }
 }
