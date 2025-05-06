@@ -23,7 +23,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
       "WHERE s.warehouseShelf.warehouse.id = :warehouseId")
   List<Product> findAllByWarehouseId(@Param("warehouseId") Long warehouseId);
 
-
   @Query("SELECT DISTINCT p FROM Product p " +
       "JOIN Inventory i ON i.product.id = p.id " +
       "JOIN StorageLocation s ON i.storageLocation.id = s.id " +

@@ -29,4 +29,6 @@ public class InventoryResponse implements Serializable {
   private String location;
   private InventoryStatus status;
   private String storageLocationName;
+  private String wareHouseCode;
+  private String wareHouseName;
 }
