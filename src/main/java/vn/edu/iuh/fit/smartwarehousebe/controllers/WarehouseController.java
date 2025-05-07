@@ -102,16 +102,8 @@ public class WarehouseController {
     return ResponseEntity.ok(warehouseService.checkCodeIsExist(Warehouse.class, code));
   }
 
-//
-//  @PostMapping("/export-delivery-note")
-//  public ResponseEntity<byte[]> exportPdf(@RequestBody @Valid DeliveryNoteRequest request) {
-//    byte[] pdfContent = deliveryNotePdfService.generatePdf(request);
-//    HttpHeaders headers = new HttpHeaders();
-//    headers.setContentType(MediaType.APPLICATION_PDF);
-//    headers.setContentDispositionFormData("attachment", "phieu-xuat-kho.pdf");
-//    headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-//
-//    return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
-//  }
-
+  @GetMapping("/staff/{id}")
+  public ResponseEntity<WarehouseResponse> getWarehouseByStaffId(@PathVariable Long id) {
+    return ResponseEntity.ok(warehouseService.getWarehouseByStaffId(id));
+  }
 }
