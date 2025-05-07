@@ -1,11 +1,10 @@
 package vn.edu.iuh.fit.smartwarehousebe.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.text.Normalizer;
+import java.util.regex.Pattern;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
@@ -45,9 +44,9 @@ public class Product extends Auditable implements Serializable {
   private Double unitWeight;
 
   @ManyToOne
-  @JoinColumn(name = "supplier_id")
+  @JoinColumn(name = "partner_id")
   @JsonIgnore
-  private Supplier supplier;
+  private Partner partner;
 
   @OneToMany(mappedBy = "product")
   private List<Inventory> inventories;
@@ -55,5 +54,39 @@ public class Product extends Auditable implements Serializable {
   @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
   @JsonIgnore
   private List<ConversionUnit> conversionUnits;
+
+  @PrePersist
+  public void generateSku() {
+    if (sku == null || sku.isEmpty()) {
+      String productCode = code != null ? code.toUpperCase() : "NO_CODE";
+      String productName =
+          name != null ? removeVietnameseAccents(name).replaceAll("\\s+", "").toUpperCase()
+              : "NO_NAME";
+
+      String partnerCode =
+          partner != null && partner.getCode() != null ? partner.getCode().toString()
+              : "NO_CODE";
+      String partnerName =
+          partner != null && partner.getName() != null ? removeVietnameseAccents(
+              partner.getName()).replaceAll("\\s+", "").toUpperCase() : "NO_SUPP";
+
+      String unitCode = unit != null && unit.getCode() != null ? unit.getCode() : "NO_CODE";
+      String unitName = unit != null && unit.getName() != null ? removeVietnameseAccents(
+          unit.getName()).replaceAll("\\s+", "").toUpperCase() : "NO_UNIT";
+
+      String weight = unitWeight != null ? String.format("%.2f", unitWeight) : "0";
+
+      this.sku = String.format("%s-%s-%s-%s-%s-%s-%s",
+          productCode, productName, partnerCode, partnerName, unitCode, unitName, weight);
+    }
+  }
+
+
+  public static String removeVietnameseAccents(String str) {
+    str = Normalizer.normalize(str, Normalizer.Form.NFD);
+    Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+    return pattern.matcher(str).replaceAll("").replaceAll("Đ", "D").replaceAll("đ", "d");
+  }
+
 
 }

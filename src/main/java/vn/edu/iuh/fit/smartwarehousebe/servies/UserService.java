@@ -1,27 +1,30 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
+import jakarta.annotation.PostConstruct;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.user.UserResponse;
 import vn.edu.iuh.fit.smartwarehousebe.enums.Role;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.UserImportRequest;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserCodeNotValid;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.UserNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UserMapper;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.UserRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.UserSpecification;
 import vn.edu.iuh.fit.smartwarehousebe.utils.helpers.UserCsvHelper;
 
@@ -30,21 +33,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService extends CommonService<User> implements UserDetailsService {
+public class UserService extends CommonService<User> {
+
+  @Autowired
+  private UserMapper userMapper;
 
   @Autowired
   private UserRepository userRepository;
 
   private final PasswordEncoder passwordEncoder;
-
-  @Override
-  @Cacheable(value = "token", key = "#username", unless = "#result == null")
-  public User loadUserByUsername(String username) throws UsernameNotFoundException {
-    return userRepository.findUserByUserName(username)
-        .orElseThrow(() -> new NoSuchElementException("User not found with name: " + username));
-  }
 
   /**
    * get user by name
@@ -68,7 +68,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
+  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
   public User createUser(User user) {
     user.setPassword(passwordEncoder.encode("11111"));
     return userRepository.save(user);
@@ -80,7 +80,7 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    * @param user
    * @return User
    */
-  @CacheEvict(value = { "warehouse", "user" }, allEntries = true)
+  @CacheEvict(value = {"warehouse", "user"}, allEntries = true)
   public User updateUser(User user) {
     User userOld = userRepository.findById(user.getId())
         .orElseThrow(() -> new NoSuchElementException());
@@ -129,8 +129,9 @@ public class UserService extends CommonService<User> implements UserDetailsServi
       spec = spec.and(UserSpecification.hasStatus(userQuest.getStatus().name()));
     }
 
-    boolean includeDeleted = userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true
-        : false;
+    boolean includeDeleted =
+        userQuest.getStatus() == UserStatus.DELETED || userQuest.getStatus() == null ? true
+            : false;
 
     return userRepository.findAllUsers(spec, pageRequest, includeDeleted)
         .map(i -> UserMapper.INSTANCE.toDto(i));
@@ -185,17 +186,19 @@ public class UserService extends CommonService<User> implements UserDetailsServi
    *
    * @param file the CSV file containing user data
    * @return the number of users successfully imported
-   * @throws IllegalArgumentException if there is an error reading the file or if
-   *                                  any user code is not valid
+   * @throws IllegalArgumentException if there is an error reading the file or if any user code is
+   *                                  not valid
    */
   public Integer importUser(MultipartFile file) {
     try {
       List<UserImportRequest> userRequests = UserCsvHelper.csvToUserRequest(file.getInputStream());
-      boolean notValid = userRequests.stream().anyMatch(userRequest -> !validateCode(userRequest.getCode()));
+      boolean notValid = userRequests.stream()
+          .anyMatch(userRequest -> !validateCode(userRequest.getCode()));
       if (notValid) {
         throw new UserCodeNotValid();
       }
-      return userRepository.saveAll(userRequests.stream().map(UserMapper.INSTANCE::toEntity).toList()).size();
+      return userRepository.saveAll(
+          userRequests.stream().map(UserMapper.INSTANCE::toEntity).toList()).size();
     } catch (IOException | UserCodeNotValid e) {
       throw new IllegalArgumentException(e);
     }
@@ -204,6 +207,54 @@ public class UserService extends CommonService<User> implements UserDetailsServi
   private boolean validateCode(String code) {
     String regex = "USER-\\d{5}";
     return code.matches(regex);
+  }
+
+  /**
+   * Get the current authenticated user's ID or a default admin ID if no user is authenticated
+   *
+   * @return the ID of the current authenticated user or a default admin ID
+   */
+  public Long getCurrentUserId() {
+    try {
+      // Try to get the current authenticated user
+      Authentication authentication =
+          SecurityContextHolder.getContext().getAuthentication();
+
+      if (authentication != null && authentication.isAuthenticated() &&
+          authentication.getPrincipal() instanceof User user) {
+        return user.getId();
+      }
+      throw new UserNotFoundException();
+    } catch (Exception e) {
+      throw new UserNotFoundException();
+    }
+  }
+
+  public UserResponse getUserByCode(String userCode) {
+    return userMapper.toDto(userRepository.findByCode(userCode)
+        .orElseThrow(UserNotFoundException::new));
+  }
+
+  @PostConstruct
+  public void init() {
+    User user = userRepository.findById(1L).orElse(null);
+    if (user != null) {
+      return;
+    }
+
+    User newUser = User.builder()
+        .sex(false)
+        .status(UserStatus.ACTIVE)
+        .userName("admin")
+        .password(passwordEncoder.encode("admin2025"))
+        .role(Role.ADMIN)
+        .code("USER-00001")
+        .phoneNumber("0346676956")
+        .email("sonpham28052002@gmail.com")
+        .dateOfBirth(LocalDate.of(2002, 5, 28).atStartOfDay())
+        .build();
+
+    userRepository.save(newUser);
   }
 
 }

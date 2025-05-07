@@ -13,7 +13,7 @@ services:
       - mysql
       - redis
     environment:
-      - MYSQL_URL=jdbc:mysql://mysql:3306/cineticket_db?createDatabaseIfNotExist=true
+      - MYSQL_URL=jdbc:mysql://mysql:3306/smartwarehouse_db?createDatabaseIfNotExist=true
       - MYSQL_USERNAME=root
       - MYSQL_PASSWORD=rootpassword
       - REDIS_HOST=redis
@@ -22,7 +22,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=
       - AWS_REGION=ap-southeast-1
       - AWS_S3_BUCKET_NAME=smartwh
-
+      - TZ=Asia/Ho_Chi_Minh
 
   nginx:
     build:

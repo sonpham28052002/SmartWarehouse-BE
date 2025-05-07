@@ -33,7 +33,7 @@ public class SecurityConfig {
   private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
   @Autowired
   private JwtAuthenticationFilter authenticationFilter;
-  @Lazy
+
   @Autowired
   private UserDetailsService userService;
 
@@ -46,6 +46,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(request ->
             request.requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/file/**").permitAll()
+                .requestMatchers("/api/forecast").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers("/api/admin/**").hasAnyAuthority(Role.ADMIN.name())

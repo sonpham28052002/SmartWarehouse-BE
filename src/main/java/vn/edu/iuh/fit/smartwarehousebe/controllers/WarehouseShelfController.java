@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.smartwarehousebe.controllers;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,5 +38,10 @@ public class WarehouseShelfController {
       @RequestBody List<WarehouseShelfRequest> warehouseShelfRequests) {
     return ResponseEntity.ok(
         warehouseShelfService.createAndUpdate(wareHouseID, warehouseShelfRequests));
+  }
+
+  @DeleteMapping("{shelfId}/delete")
+  public boolean delete(@PathVariable Long shelfId) {
+    return warehouseShelfService.delete(shelfId);
   }
 }

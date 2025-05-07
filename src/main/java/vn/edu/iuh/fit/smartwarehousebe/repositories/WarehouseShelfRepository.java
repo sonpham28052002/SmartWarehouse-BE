@@ -9,4 +9,6 @@ import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 public interface WarehouseShelfRepository extends JpaRepository<WarehouseShelf, Long>,
     JpaSpecificationExecutor<WarehouseShelf> {
 
+  WarehouseShelf findByShelfName(String name);
+
 }

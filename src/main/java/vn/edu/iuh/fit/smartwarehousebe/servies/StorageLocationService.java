@@ -1,10 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,18 +10,19 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.storage_location.CreateStorageLocationRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.storage_location.GetStorageLocationRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.storage_location.StorageLocationResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
+import vn.edu.iuh.fit.smartwarehousebe.exceptions.StorageLocationNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StorageLocationMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
-import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
-import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.StorageLocationRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.UnitRepository;
-import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseShelfRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.*;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.StorageLocationSpecification;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class StorageLocationService {
@@ -70,7 +67,8 @@ public class StorageLocationService {
     if (request.getInventoryResponses().getId() == null) {
       inventory = inventoryRepository.save(Inventory.builder()
           .id(request.getInventoryResponses().getId())
-          .quantity(request.getInventoryResponses().getQuantity())
+          .status(InventoryStatus.ACTIVE)
+          .inventoryQuantity(request.getInventoryResponses().getQuantity())
           .unit(unitRepository.findById(request.getInventoryResponses().getUnit().getId())
               .orElseThrow(() -> new NotFoundException("unit not fond")))
           .product(productRepository.findById(request.getInventoryResponses().getProduct().getId())
@@ -80,7 +78,7 @@ public class StorageLocationService {
     } else {
       inventory = inventoryRepository.findById(request.getInventoryResponses().getId())
           .orElseThrow(() -> new NotFoundException("inventory not fond"));
-      inventory.setQuantity(request.getInventoryResponses().getQuantity());
+      inventory.setInventoryQuantity(request.getInventoryResponses().getQuantity());
       inventory.setUnit(unitRepository.findById(request.getInventoryResponses().getUnit().getId())
           .orElseThrow(() -> new NotFoundException("unit not fond")));
       inventory.setProduct(
@@ -127,6 +125,12 @@ public class StorageLocationService {
         .stream()
         .map(i -> StorageLocationMapper.INSTANCE.toDto(i))
         .collect(Collectors.toList());
+  }
+
+  public StorageLocationResponse getById(Long id) {
+    StorageLocation storageLocation = storageLocationRepository.findById(id)
+        .orElseThrow(StorageLocationNotFoundException::new);
+    return StorageLocationMapper.INSTANCE.toDto(storageLocation);
   }
 }
 

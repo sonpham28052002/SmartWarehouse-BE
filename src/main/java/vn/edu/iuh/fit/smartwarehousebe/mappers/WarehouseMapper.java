@@ -8,13 +8,14 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseRespons
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface WarehouseMapper {
 
   WarehouseMapper INSTANCE = Mappers.getMapper(WarehouseMapper.class);
 
-
   Warehouse toEntity(CreateWarehouseRequest createWarehouseRequest);
+
+  Warehouse toEntity(WarehouseResponse warehouseResponse);
 
   @Mapping(source = "deleted", target = "deleted")
   @Mapping(source = "createdDate", target = "createdDate")

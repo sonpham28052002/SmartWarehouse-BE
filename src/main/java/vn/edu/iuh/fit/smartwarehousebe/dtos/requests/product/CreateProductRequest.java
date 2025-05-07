@@ -23,8 +23,8 @@ public class CreateProductRequest implements Serializable {
   String name;
   String description;
   String image;
-  @NotNull(message = "Supplier id is required")
-  Long supplierId;
+  @NotNull(message = "partner id is required")
+  Long partnerId;
   Double unitWeight;
   Long unitId;
   List<ConversionUnit> conversionUnits;

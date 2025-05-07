@@ -13,10 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.CreateProductRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.GetProductQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
-import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.supplier.SupplierResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.ProductNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
-import vn.edu.iuh.fit.smartwarehousebe.mappers.SupplierMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.PartnerMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.ConversionUnit;
 import vn.edu.iuh.fit.smartwarehousebe.models.Product;
@@ -34,22 +34,24 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.SpecificationBuilder;
 public class ProductService extends CommonService<Product> {
 
   private final ProductRepository productRepository;
-  private final SupplierService supplierService;
-  private final SupplierMapper supplierMapper;
+  private final PartnerService partnerService;
+  private final PartnerMapper partnerMapper;
 
   private final UnitService unitService;
 
   private final ConversionUnitService conversionUnitService;
+  private final ProductMapper productMapper;
 
-  public ProductService(ProductRepository productRepository, SupplierService supplierService,
-      SupplierMapper supplierMapper, UnitService unitService,
-      ConversionUnitService conversionUnitService) {
+  public ProductService(ProductRepository productRepository, PartnerService partnerService,
+      PartnerMapper partnerMapper, UnitService unitService,
+      ConversionUnitService conversionUnitService, ProductMapper productMapper) {
     super();
     this.productRepository = productRepository;
-    this.supplierService = supplierService;
-    this.supplierMapper = supplierMapper;
+    this.partnerService = partnerService;
+    this.partnerMapper = partnerMapper;
     this.unitService = unitService;
     this.conversionUnitService = conversionUnitService;
+    this.productMapper = productMapper;
   }
 
   @Cacheable(value = "products", key = "#productQuest + '_' + #pageRequest.pageNumber + '_' + #pageRequest.pageSize")
@@ -58,7 +60,7 @@ public class ProductService extends CommonService<Product> {
         .with(ProductSpecification.hasCode(productQuest.getCode()))
         .with(ProductSpecification.hasSku(productQuest.getSku()))
         .with(ProductSpecification.hasName(productQuest.getName()))
-        .with(ProductSpecification.hasSupplierId(productQuest.getSupplierId())).build();
+        .with(ProductSpecification.hasPartnerId(productQuest.getPartnerId())).build();
 
     return productRepository.findAll(specification, pageRequest)
         .map((i) -> ProductMapper.INSTANCE.toDto(i));
@@ -71,7 +73,7 @@ public class ProductService extends CommonService<Product> {
         .with(ProductSpecification.hasCode(productQuest.getCode()))
         .with(ProductSpecification.hasSku(productQuest.getSku()))
         .with(ProductSpecification.hasName(productQuest.getName()))
-        .with(ProductSpecification.hasSupplierId(productQuest.getSupplierId())).build();
+        .with(ProductSpecification.hasPartnerId(productQuest.getPartnerId())).build();
 
     return productRepository.findAll(specification).stream()
         .map((i) -> ProductMapper.INSTANCE.toDto(i)).toList();
@@ -89,8 +91,8 @@ public class ProductService extends CommonService<Product> {
 
     Product product = ProductMapper.INSTANCE.toEntity(productRequest);
     Unit unit = UnitMapper.INSTANCE.toEntity(unitService.getUnitById(productRequest.getUnitId()));
-    SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
-    product.setSupplier(supplierMapper.toEntity(supplier));
+    PartnerResponse partner = partnerService.getById(productRequest.getPartnerId());
+    product.setPartner(partnerMapper.toEntity(partner));
     product.setUnit(unit);
 
     Product newProduct = productRepository.save(product);
@@ -122,9 +124,9 @@ public class ProductService extends CommonService<Product> {
       product.setUnit(unit);
     }
 
-    if (product.getSupplier().getId() != productRequest.getSupplierId()) {
-      SupplierResponse supplier = supplierService.getById(productRequest.getSupplierId());
-      product.setSupplier(supplierMapper.toEntity(supplier));
+    if (product.getPartner().getId() != productRequest.getPartnerId()) {
+      PartnerResponse partner = partnerService.getById(productRequest.getPartnerId());
+      product.setPartner(partnerMapper.toEntity(partner));
     }
 
     Product newProduct = productRepository.save(product);
@@ -158,4 +160,21 @@ public class ProductService extends CommonService<Product> {
             Collectors.toList());
   }
 
+  @Transactional
+  @CacheEvict(value = "products", allEntries = true)
+  public List<ProductResponse> findAllByWarehouseIdAndPartnerId(Long warehouseId, Long partnerId) {
+    return productRepository.findAllByWarehouseIdAAndPartnerId(warehouseId, partnerId).stream()
+        .map((i) -> ProductMapper.INSTANCE.toDto(i)).collect(
+            Collectors.toList());
+  }
+
+  public List<ProductResponse> getByIds(List<Long> productIds) {
+    return productRepository.findByIdIn(productIds).stream()
+        .map(productMapper::toDto).toList();
+  }
+
+  public ProductResponse getByCode(String productCode) {
+    return productRepository.findByCode(productCode).map(productMapper::toDto)
+        .orElseThrow(ProductNotFoundException::new);
+  }
 }
