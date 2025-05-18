@@ -218,4 +218,12 @@ public class WarehouseService extends CommonService<Warehouse> {
 
   }
 
+
+  public WarehouseResponse getWarehouseByStaffId(Long id) {
+      User user = userService.getUserById(id);
+      if (user.getWarehouse() == null) {
+         throw new NoSuchElementException("Warehouse not found");
+      }
+      return warehouseMapper.toDto(user.getWarehouse());
+  }
 }
