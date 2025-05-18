@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.inventory.GetInventoryRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.Inventory.InventoryResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.InventoryMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
@@ -26,6 +27,7 @@ public class InventoryService {
         .with(InventorySpecification.hasWarehouseCode(request.getWarehouseCode()))
         .with(InventorySpecification.hasProductCode(request.getProductCode()))
         .with(InventorySpecification.hasProductName(request.getProductName()))
+        .with(InventorySpecification.hasStatus(InventoryStatus.ACTIVE.name()))
         .build();
     return inventoryRepository.findAll(specification, pageRequest)
         .map((i) -> InventoryMapper.INSTANCE.toDto(i));

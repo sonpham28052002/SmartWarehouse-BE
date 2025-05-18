@@ -240,9 +240,6 @@ public class TransactionService extends CommonService<Transaction>{
                       .product(productRepository.findById(d.getProductId()).get())
                       .unit(Unit.builder().id(d.getUnitId()).build()).build());
             }
-            if (inventory.getQuantity() < -1 * d.getQuantity()) {
-              throw new IllegalArgumentException("Insufficient stock");
-            }
           }
         }
         Inventory inventoryRes = inventoryRepository.save(inventory);

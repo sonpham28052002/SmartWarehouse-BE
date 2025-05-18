@@ -33,6 +33,14 @@ public class InventorySpecification {
         .orElse(null);
   }
 
+  public static Specification<Inventory> hasStatus(String status) {
+    return Optional.ofNullable(status)
+        .map(c -> (Specification<Inventory>) (root, query, criteriaBuilder) ->
+            criteriaBuilder.like(criteriaBuilder.lower(root.get("status")), c)
+        )
+        .orElse(null);
+  }
+
   public static Specification<Inventory> hasWarehouseName(String name) {
     return Optional.ofNullable(name)
         .map(c -> (Specification<Inventory>) (root, query, criteriaBuilder) ->

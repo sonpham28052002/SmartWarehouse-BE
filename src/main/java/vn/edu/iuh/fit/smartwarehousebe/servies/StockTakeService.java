@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
@@ -265,7 +266,12 @@ public class StockTakeService extends CommonService<StockTake>{
       Inventory inventory = stockTakeDetail.getInventory();
       Long actual = Optional.ofNullable(stockTakeDetail.getActualQuantity()).orElse(0L);
       Long damaged = Optional.ofNullable(stockTakeDetail.getDamagedQuantity()).orElse(0L);
+      TransactionDetailId transactionDetailId = TransactionDetailId.builder()
+          .transactionId(transaction.getId())
+          .inventoryId(inventory.getId())
+          .build();
       TransactionDetail transactionDetail = TransactionDetail.builder()
+          .id(transactionDetailId)
           .product(stockTakeDetail.getInventory().getProduct())
           .quantity((int) (actual - damaged))
           .transaction(transaction)
@@ -274,10 +280,11 @@ public class StockTakeService extends CommonService<StockTake>{
           .build();
 
       Set<DamagedProduct> damagedProducts = new HashSet<>();
-
-      for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
-        damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
-        damagedProducts.add(damagedProductRepository.save(damagedProduct));
+      if (transactionDetail.getDamagedProducts() != null && transactionDetail.getDamagedProducts().size() != 0) {
+        for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
+          damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
+          damagedProducts.add(damagedProductRepository.save(damagedProduct));
+        }
       }
       transactionDetail.setDamagedProducts(damagedProducts);
       details.add(transactionDetailRepository.save(transactionDetail));

@@ -48,4 +48,19 @@ public class StatisticsController {
   public Map<String, Long> getCompletedTransactionCountByDateRange(GetTransactionQuest quest) {
     return statisticsService.getCompletedTransactionCountByDateRange(quest);
   }
+
+  @GetMapping("/statisticsExchange")
+  public Map<String, Object> statisticsExchange(GetTransactionQuest quest) {
+    return statisticsService.statisticsExchange(quest);
+  }
+
+  @GetMapping("/findTop10ExportedProducts")
+  public List<Object> findTop10ExportedProducts(GetTransactionQuest quest) {
+    return statisticsService.findTop10ExportedProducts(quest);
+  }
+
+  @GetMapping("/findTop10ImportedProducts")
+  public List<Object> findTop10ImportedProducts(GetTransactionQuest quest) {
+    return statisticsService.findTop10ImportedProducts(quest);
+  }
 }

@@ -14,6 +14,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.CreateProductReques
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.product.GetProductQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.ProductNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.PartnerMapper;
@@ -155,7 +156,7 @@ public class ProductService extends CommonService<Product> {
   @Transactional
   @CacheEvict(value = "products", allEntries = true)
   public List<ProductResponse> findAllByWarehouseId(Long warehouseId) {
-    return productRepository.findAllByWarehouseId(warehouseId).stream()
+    return productRepository.findAllByWarehouseId(warehouseId, InventoryStatus.ACTIVE).stream()
         .map((i) -> ProductMapper.INSTANCE.toDto(i)).collect(
             Collectors.toList());
   }
@@ -163,7 +164,7 @@ public class ProductService extends CommonService<Product> {
   @Transactional
   @CacheEvict(value = "products", allEntries = true)
   public List<ProductResponse> findAllByWarehouseIdAndPartnerId(Long warehouseId, Long partnerId) {
-    return productRepository.findAllByWarehouseIdAAndPartnerId(warehouseId, partnerId).stream()
+    return productRepository.findAllByWarehouseIdAAndPartnerId(warehouseId, partnerId, InventoryStatus.ACTIVE).stream()
         .map((i) -> ProductMapper.INSTANCE.toDto(i)).collect(
             Collectors.toList());
   }

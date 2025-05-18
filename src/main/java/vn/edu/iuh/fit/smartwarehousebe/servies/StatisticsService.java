@@ -2,13 +2,17 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.partner.GetPartnerQuest;
@@ -17,12 +21,19 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.user.GetUserQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.PartnerType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.enums.UserStatus;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.Exchange;
+import vn.edu.iuh.fit.smartwarehousebe.models.Product;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.ExchangeRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
 
 @Service
@@ -42,6 +53,12 @@ public class StatisticsService {
 
   @Autowired
   private TransactionRepository transactionRepository;
+
+  @Autowired
+  private ExchangeRepository exchangeRepository;
+
+  @Autowired
+  private ProductRepository productRepository;
 
   public Map<String, Object> statisticsPartner(GetPartnerQuest quest) {
     List<PartnerResponse> responses = partnerService.getAll(quest);
@@ -99,6 +116,16 @@ public class StatisticsService {
         .filter((i) -> i.getStatus() == TransactionStatus.COMPLETE)
         .count();
 
+    long export_exchange_count = responses.stream()
+        .filter((i) -> i.getTransactionType() != TransactionType.EXPORT_EXCHANGE)
+        .count();
+    ;
+
+    long import_exchange_count = responses.stream()
+        .filter((i) -> i.getTransactionType() != TransactionType.EXPORT_EXCHANGE)
+        .count();
+    ;
+
     long totalCount = responses.stream()
         .filter((i) -> i.getTransactionType() != TransactionType.INVENTORY)
         .count();
@@ -112,6 +139,8 @@ public class StatisticsService {
     statistics.put("export_count", exportCount);
     statistics.put("complete_count", completeCount);
     statistics.put("pending_approval_count", pending_approval_count);
+    statistics.put("import_exchange_count", import_exchange_count);
+    statistics.put("export_exchange_count", export_exchange_count);
     statistics.put("total_count", totalCount);
 
     return statistics;
@@ -119,7 +148,6 @@ public class StatisticsService {
 
   public Map<String, Object> statisticsStockTake(GetStockTakeRequest quest) {
     List<StockTakeResponse> responses = stockTakeService.getAll(quest);
-    System.out.println(responses.size());
     long damageCount = 0;
     long calculateDifference = 0;
 
@@ -187,4 +215,66 @@ public class StatisticsService {
 
     return transactionCountByDate;
   }
+
+  public Map<String, Object> statisticsExchange(GetTransactionQuest quest) {
+    LocalDateTime from = quest.getStartDate();
+    LocalDateTime to = quest.getEndDate();
+
+    Map<String, Object> statistics = new HashMap<>();
+    List<Exchange> exchanges = exchangeRepository.findAllByCreatedDateBetweenAndTypeIn(from, to,
+        List.of(
+            ExchangeType.EXCHANGE, ExchangeType.RETURN, ExchangeType.UNSPECIFIED));
+    int countExchange = (int) exchanges.stream().filter((i) -> i.getType() == ExchangeType.EXCHANGE)
+        .count();
+    int countReturn = (int) exchanges.stream().filter((i) -> i.getType() == ExchangeType.RETURN)
+        .count();
+    int countUnspecified = (int) exchanges.stream().filter((i) -> i.getType() == ExchangeType.UNSPECIFIED)
+        .count();
+    statistics.put("exchange", countExchange);
+    statistics.put("return", countReturn);
+    statistics.put("total", exchanges.size());
+    statistics.put("unspecified", countUnspecified);
+
+    return statistics;
+  }
+
+  public List<Object> findTop10ExportedProducts(GetTransactionQuest quest) {
+    LocalDateTime from = quest.getStartDate();
+    LocalDateTime to = quest.getEndDate();
+    Pageable topTen = PageRequest.of(0, 10);
+    List<Object[]> list = transactionRepository.findTop10Products(
+        List.of(TransactionType.EXPORT_FROM_WAREHOUSE, TransactionType.EXPORT_EXCHANGE), from, to,
+        topTen);
+
+    List<Object> results = new ArrayList<>();
+    int count = 0;
+    for (Object[] objects:list) {
+      Map<Integer, Map<String, Object>> result = new HashMap<>();
+      ProductResponse productResponse = ProductMapper.INSTANCE.toDto(productRepository.findByCode(String.valueOf(objects[0])).get());
+      result.put(++count, Map.of("product", productResponse, "count", Integer.parseInt(objects[1].toString())));
+      results.add(result);
+    }
+    return results;
+  }
+
+  public List<Object> findTop10ImportedProducts(GetTransactionQuest quest) {
+    LocalDateTime from = quest.getStartDate();
+    LocalDateTime to = quest.getEndDate();
+    Pageable topTen = PageRequest.of(0, 10);
+    List<Object[]> list = transactionRepository.findTop10Products(
+        List.of(TransactionType.IMPORT_FROM_WAREHOUSE, TransactionType.IMPORT_FROM_SUPPLIER), from, to,
+        topTen);
+
+    List<Object> results = new ArrayList<>();
+    int count = 0;
+    for (Object[] objects:list) {
+      Map<Integer, Map<String, Object>> result = new HashMap<>();
+      ProductResponse productResponse = ProductMapper.INSTANCE.toDto(productRepository.findByCode(String.valueOf(objects[0])).get());
+      result.put(++count, Map.of("product", productResponse, "count", Integer.parseInt(objects[1].toString())));
+      results.add(result);
+    }
+
+    return results;
+  }
+
 }

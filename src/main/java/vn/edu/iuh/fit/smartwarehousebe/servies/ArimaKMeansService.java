@@ -4,7 +4,6 @@ package vn.edu.iuh.fit.smartwarehousebe.servies;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +17,6 @@ import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
@@ -34,8 +32,7 @@ public class ArimaKMeansService {
 
   @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray()  + '_' + #warehouseCode+ '_' + T(java.time.YearMonth).now().toString()")
   public Map<String, Object> forecastSales(List<String> selectedProducts, String warehouseCode) {
-    int cores = Math.min(Runtime.getRuntime().availableProcessors(),
-        2);  // Giới hạn luồng an toàn cho Docker
+    int cores = Math.min(Runtime.getRuntime().availableProcessors(),2);
     ExecutorService executor = Executors.newFixedThreadPool(cores);
     List<Future<Map<String, Object>>> futures = new ArrayList<>();
 
@@ -74,23 +71,23 @@ public class ArimaKMeansService {
   @Cacheable(value = "forecastSales", key = "#selectedProducts.toArray() + '_' + #warehouseCode+ '_' + T(java.time.YearMonth).now().toString()")
   public Map<String, Object> forecast(List<String> selectedProducts, String warehouseCode)
       throws Exception {
+
+    if (selectedProducts.size() == 0) return Map.of();
     ObjectMapper objectMapper = new ObjectMapper();
-    Map<String, Object> data = Map.of(
-        "selected_products", selectedProducts,
-        "n_periods", 2
-    );
+    Map<String, Object> data = new HashMap<>();
+    data.put("selected_products", selectedProducts);
+    data.put("n_periods", 2);
 
     if (warehouseCode != null) {
       data.put("warehouseCode", warehouseCode);
     }
-
     String jsonString = objectMapper.writeValueAsString(data);
 
-//    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
+    ProcessBuilder pb = new ProcessBuilder("/usr/bin/python3", "/app-be/forecast_arima_kmeans.py");
 //     Chạy script Python
-    ProcessBuilder pb = new ProcessBuilder(
-        "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
-        "D:\\dockerStudy\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
+//    ProcessBuilder pb = new ProcessBuilder(
+//        "C:\\Users\\Leon\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+//        "D:\\dockerStudy\\public\\SmartWarehouse-BE\\forecast_arima_kmeans.py");
     pb.redirectErrorStream(true);
     Process process = pb.start();
 
@@ -142,7 +139,7 @@ public class ArimaKMeansService {
     }
 
     int k = 2;
-    if (k > productQuantities.size()) {
+    if (k >= productQuantities.size()) {
       throw new IllegalArgumentException("Số cụm K không thể lớn hơn số lượng sản phẩm.");
     }
 

@@ -43,4 +43,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
 
   Optional<Transaction> getByCode(String code);
 
+  @Query("""
+  SELECT td.product.code, count(td) 
+  FROM TransactionDetail td 
+  JOIN td.transaction t
+  WHERE td.transactionType IN :types
+    AND t.transactionDate BETWEEN :from AND :to
+  GROUP BY td.product.id 
+  ORDER BY SUM(td.quantity) DESC
+""")
+  List<Object[]> findTop10Products(
+      @Param("types") List<TransactionType> types,
+      @Param("from") LocalDateTime from,
+      @Param("to") LocalDateTime to,
+      Pageable pageable
+  );
+
+
+
 }

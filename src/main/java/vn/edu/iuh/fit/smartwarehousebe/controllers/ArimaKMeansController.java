@@ -24,10 +24,11 @@ public class ArimaKMeansController {
 
   }
 
-  @PostMapping("/forecastv2/{warehouseCode}")
+  @PostMapping("/forecastv/{warehouseCode}")
   public Map<String, Object> forecastV2(
       @PathVariable String warehouseCode,
       @RequestBody(required = false) List<String> selectedProducts) throws Exception {
+    System.out.println(warehouseCode);
     return arimaKMeansService.forecast(selectedProducts, warehouseCode);
   }
 
