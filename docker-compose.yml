@@ -5,8 +5,8 @@ services:
     build:
       context: .
     container_name: SmartWarehouse_app
-    ports:
-      - "8080:8080"
+#    ports:
+#      - "8080:8080"
     networks:
       - app-network
     depends_on:
@@ -27,20 +27,26 @@ services:
   nginx:
     build:
       context: ./nginx
+      dockerfile: Dockerfile
     container_name: nginx
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - springboot_app
     networks:
       - app-network
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
 
   mysql:
     image: mysql:8.0
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: cineticket_db
+      MYSQL_DATABASE: smartwarehouse_db
     ports:
       - "3306:3306"
     networks:
