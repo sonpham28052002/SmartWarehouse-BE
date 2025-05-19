@@ -117,12 +117,12 @@ public class StatisticsService {
         .count();
 
     long export_exchange_count = responses.stream()
-        .filter((i) -> i.getTransactionType() != TransactionType.EXPORT_EXCHANGE)
+        .filter((i) -> i.getTransactionType() == TransactionType.EXPORT_EXCHANGE)
         .count();
     ;
 
     long import_exchange_count = responses.stream()
-        .filter((i) -> i.getTransactionType() != TransactionType.EXPORT_EXCHANGE)
+        .filter((i) -> i.getTransactionType() == TransactionType.IMPORT_EXCHANGE)
         .count();
     ;
 

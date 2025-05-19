@@ -458,18 +458,7 @@ public class TransactionService extends CommonService<Transaction>{
   }
 
   @Transactional
-  public TransactionWithDetailResponse complete(Long transactionId,
-      TransactionWithDetailResponse transactionWithDetailResponse, User user) {
-
-    for (TransactionDetailResponse detail : transactionWithDetailResponse.getDetails()) {
-      TransactionDetailId transactionDetailId = TransactionDetailId.builder()
-          .transactionId(transactionId).inventoryId(detail.getInventory().getId()).build();
-      TransactionDetail transactionDetail = transactionDetailRepository.findById(
-          transactionDetailId).get();
-      transactionDetail.setActualQuantity(detail.getActualQuantity());
-      damagedProductService.updateAndCreateByTransactionId(transactionId,
-          detail.getInventory().getId(), detail.getDamagedProducts());
-    }
+  public TransactionWithDetailResponse complete(Long transactionId, User user) {
     Transaction transaction = transactionRepository.findById(transactionId)
         .orElseThrow(() -> new NotFoundException("Transaction not found"));
     transaction.setStatus(TransactionStatus.PENDING_APPROVAL);

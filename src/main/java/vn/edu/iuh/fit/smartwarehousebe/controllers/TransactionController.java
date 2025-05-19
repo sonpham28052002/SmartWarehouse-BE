@@ -188,7 +188,7 @@ public class TransactionController {
   }
 
   @PutMapping("{transactionId}/complete")
-  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @RequestBody TransactionWithDetailResponse transaction, @AuthenticationPrincipal User user) {
-    return transactionService.complete(transactionId, transaction, user);
+  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
+    return transactionService.complete(transactionId, user);
   }
 }
