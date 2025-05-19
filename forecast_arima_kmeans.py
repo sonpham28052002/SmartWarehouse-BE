@@ -16,7 +16,7 @@ from datetime import datetime
 def log_to_txt(message, level="INFO"):
   timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
   log_message = f"{timestamp} [{level}] {message}\n"
-  with open("forecast.txt", "a", encoding="utf-8") as f:
+  with open("/tmp/forecast.txt", "a", encoding="utf-8") as f:
     f.write(log_message)
 
 # Tắt tất cả cảnh báo
