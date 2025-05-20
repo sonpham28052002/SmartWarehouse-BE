@@ -15,6 +15,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionB
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionDetailRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
@@ -188,7 +189,12 @@ public class TransactionController {
   }
 
   @PutMapping("{transactionId}/complete")
-  public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
-    return transactionService.complete(transactionId, user);
+    public TransactionWithDetailResponse complete(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
+      return transactionService.complete(transactionId, user);
+  }
+
+  @PutMapping("{transactionId}/createExchange")
+  public ExchangeResponse createExchange(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
+    return transactionService.createExchange(transactionId, user);
   }
 }

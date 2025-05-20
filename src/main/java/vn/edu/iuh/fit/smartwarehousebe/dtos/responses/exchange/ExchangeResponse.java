@@ -47,6 +47,8 @@ public class ExchangeResponse implements Serializable {
   private UserResponse approver;
   private UserResponse creator;
   private List<ExchangeDetailWithResponse> exchangeDetails;
+  private boolean deleted;
+
 
   @Value
   @Builder

@@ -9,7 +9,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.Value;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class GetDamagedProduct {
 
   String productCode;

@@ -28,7 +28,7 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@SQLDelete(sql = "UPDATE exchange_detail SET deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE exchange_detail SET deleted = true WHERE damaged_product_id = ? AND exchange_id = ?")
 public class ExchangeDetail extends Auditable{
 
   @EmbeddedId

@@ -18,6 +18,8 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.exchange.CreateExchangeRequ
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.exchange.GetExchangeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.ExchangeType;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ExchangeMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
@@ -48,6 +50,8 @@ public class ExchangeService {
   private TransactionRepository transactionRepository;
   @Autowired
   private StockTakeRepository stockTakeRepository;
+  @Autowired
+  private TransactionService transactionService;
 
   public Page<ExchangeResponse> getAll(PageRequest pageRequest, GetExchangeRequest request) {
     Specification<Exchange> specification = SpecificationBuilder.<Exchange>builder()
@@ -136,13 +140,61 @@ public class ExchangeService {
           i.setType(ExchangeType.RETURN);
           DamagedProduct damagedProduct = i.getDamagedProduct();
           damagedProduct.setExchangeType(ExchangeType.RETURN);
+          damagedProduct.setStatus(DamagedProductStatus.RETURNED);
+          damagedProductRepository.save(damagedProduct);
+          return exchangeDetailRepository.save(i);
+        }
+    ).collect(Collectors.toList());
+    TransactionWithDetailResponse transaction = transactionService.createTransactionExchange(user,
+        exchange);
+    exchange.setExchangeTransaction(Transaction.builder().id(transaction.getId()).build());
+
+    return ExchangeMapper.INSTANCE.toDto(exchangeRepository.save(exchange));
+  }
+
+  public ExchangeResponse onExchange(Long id, User user) {
+    Exchange exchange = exchangeRepository.findById(id).orElse(null);
+    if (exchange == null) {
+      return null;
+    }
+
+    exchange.setType(ExchangeType.EXCHANGE);
+    exchange.setApprover(user);
+    exchange.getExchangeDetails().stream().map((i) -> {
+          i.setType(ExchangeType.EXCHANGE);
+          DamagedProduct damagedProduct = i.getDamagedProduct();
+          damagedProduct.setExchangeType(ExchangeType.EXCHANGE);
+          damagedProduct.setStatus(DamagedProductStatus.RETURNED);
           damagedProductRepository.save(damagedProduct);
           return exchangeDetailRepository.save(i);
         }
     ).collect(Collectors.toList());
 
+    TransactionWithDetailResponse transaction = transactionService.createTransactionExchange(user,
+        exchange);
+    exchange.setExchangeTransaction(Transaction.builder().id(transaction.getId()).build());
     return ExchangeMapper.INSTANCE.toDto(exchangeRepository.save(exchange));
   }
 
+  @Transactional
+  public boolean cancelExchange(Long id) {
+    try {
+      exchangeRepository.deleteById(id);
+      return true;
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
+    return false;
+  }
+
+  public List<ExchangeResponse> getExchangeByStockTakeId(Long stockTakeId) {
+    return exchangeRepository.findByStockTakeIdAndDeleted(stockTakeId, false).stream()
+        .map((i) -> ExchangeMapper.INSTANCE.toDto(i)).collect(Collectors.toList());
+  }
+
+  public List<ExchangeResponse> getExchangeByTransactionId(Long transactionId) {
+    return exchangeRepository.findByOriginalTransactionIdAndDeleted(transactionId, false).stream()
+        .map((i) -> ExchangeMapper.INSTANCE.toDto(i)).collect(Collectors.toList());
+  }
 
 }

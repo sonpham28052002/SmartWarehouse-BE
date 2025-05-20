@@ -4,6 +4,8 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -11,8 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,12 +20,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.exchange.CreateExchangeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionBetweenRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionDetailRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.GetTransactionQuest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionExportCsvRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionImportCsvRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.transaction.TransactionRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.partner.PartnerResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.product.ProductResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionResponse;
@@ -39,6 +42,7 @@ import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
 import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.TransactionNotFoundException;
 import vn.edu.iuh.fit.smartwarehousebe.exceptions.UnitOfProductNotFoundException;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.PartnerMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.ProductMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionDetailMapper;
@@ -46,16 +50,22 @@ import vn.edu.iuh.fit.smartwarehousebe.mappers.TransactionMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.UnitMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseMapper;
 import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
+import vn.edu.iuh.fit.smartwarehousebe.models.Exchange;
+import vn.edu.iuh.fit.smartwarehousebe.models.ExchangeDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
+import vn.edu.iuh.fit.smartwarehousebe.models.Product;
+import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
 import vn.edu.iuh.fit.smartwarehousebe.models.StorageLocation;
 import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
 import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
 import vn.edu.iuh.fit.smartwarehousebe.models.Unit;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StorageLocationRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
@@ -71,7 +81,9 @@ import vn.edu.iuh.fit.smartwarehousebe.specifications.TransactionSpecification;
  */
 @Slf4j
 @Service
-public class TransactionService extends CommonService<Transaction>{
+public class TransactionService extends CommonService<Transaction> {
+
+  private final StockTakeRepository stockTakeRepository;
 
   private final DamagedProductRepository damagedProductRepository;
 
@@ -98,6 +110,9 @@ public class TransactionService extends CommonService<Transaction>{
 
   private DamagedProductService damagedProductService;
 
+  private ExchangeService exchangeService;
+
+
   public TransactionService(TransactionRepository transactionRepository,
       TransactionMapper transactionMapper, WarehouseService warehouseService,
       PartnerService partnerService, PartnerMapper partnerMapper, UserService userService,
@@ -108,7 +123,9 @@ public class TransactionService extends CommonService<Transaction>{
       StorageLocationRepository storageLocationRepository,
       WarehouseShelfRepository warehouseShelfRepository,
       DamagedProductService damagedProductService,
-      DamagedProductRepository damagedProductRepository) {
+      ExchangeService exchangeService,
+      DamagedProductRepository damagedProductRepository,
+      StockTakeRepository stockTakeRepository) {
     this.warehouseService = warehouseService;
     this.transactionRepository = transactionRepository;
     this.transactionMapper = transactionMapper;
@@ -128,6 +145,8 @@ public class TransactionService extends CommonService<Transaction>{
     this.warehouseShelfRepository = warehouseShelfRepository;
     this.damagedProductRepository = damagedProductRepository;
     this.damagedProductService = damagedProductService;
+    this.exchangeService = exchangeService;
+    this.stockTakeRepository = stockTakeRepository;
   }
 
   /**
@@ -205,7 +224,7 @@ public class TransactionService extends CommonService<Transaction>{
         Inventory inventory = null;
         if (d.getStorageLocationName() == null) {
           inventory = Inventory.builder().product(productMapper.toEntity(product))
-              .inventoryQuantity ((long) d.getQuantity())
+              .inventoryQuantity((long) d.getQuantity())
               .unit(unitMapper.toEntity(unitService.getUnitById(d.getUnitId()))).build();
         } else {
           if (request.getTransactionType() == TransactionType.EXPORT_FROM_WAREHOUSE) {
@@ -416,10 +435,12 @@ public class TransactionService extends CommonService<Transaction>{
       inventory.setStatus(InventoryStatus.ACTIVE);
       inventoryRepository.save(inventory);
     }
-    for (TransactionDetail detail:transaction.getDetails()) {
-      for (DamagedProduct damagedProduct:detail.getDamagedProducts()) {
-        damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
-        damagedProductRepository.save(damagedProduct);
+    for (TransactionDetail detail : transaction.getDetails()) {
+      for (DamagedProduct damagedProduct : detail.getDamagedProducts()) {
+        if (damagedProduct.getStatus() == DamagedProductStatus.INACTIVE) {
+          damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
+          damagedProductRepository.save(damagedProduct);
+        }
       }
     }
     transaction.setStatus(TransactionStatus.COMPLETE);
@@ -473,6 +494,87 @@ public class TransactionService extends CommonService<Transaction>{
     transaction.setStatus(TransactionStatus.IN_PROCESS);
     transaction.setExecutor(user);
     return transactionMapper.toDtoWithDetail((transactionRepository.save(transaction)));
+  }
+
+  @Transactional
+  public ExchangeResponse createExchange(Long transactionId, User user) {
+    Transaction transaction = transactionRepository.findById(transactionId)
+        .orElseThrow(() -> new NotFoundException("Transaction not found"));
+    List<DamagedProductResponse> productResponses = new ArrayList<>();
+    for (TransactionDetail transactionDetail : transaction.getDetails()) {
+      Set<DamagedProduct> damagedProducts = transactionDetail.getDamagedProducts();
+      List<DamagedProductResponse> productResponses1 = damagedProducts.stream()
+          .map((i) -> DamagedProductMapper.INSTANCE.toDto(i)).collect(Collectors.toList());
+      productResponses.addAll(productResponses1);
+    }
+    CreateExchangeRequest createExchangeRequest = CreateExchangeRequest.builder()
+        .damagedProducts(productResponses)
+        .note("Phiếu đổi trả cho giao dịch " + transaction.getCode())
+        .transactionCode(transaction.getCode())
+        .build();
+    ExchangeResponse exchangeResponse = exchangeService.createExchange(createExchangeRequest, user);
+
+    return exchangeResponse;
+  }
+
+  @Transactional
+  public TransactionWithDetailResponse createTransactionExchange(User user, Exchange exchange) {
+    User executor = null;
+    Warehouse warehouse = null;
+    boolean isTransaction = false;
+    if (exchange.getOriginalTransaction() != null) {
+      Transaction transaction = transactionRepository.findById(
+          exchange.getOriginalTransaction().getId()).get();
+      executor = transaction.getExecutor();
+      warehouse = transaction.getWarehouse();
+      isTransaction = true;
+    } else {
+      StockTake stockTake = stockTakeRepository.findById(exchange.getStockTake().getId()).get();
+      executor = stockTake.getExecutor();
+      warehouse = stockTake.getWarehouse();
+    }
+    DamagedProduct firstDamagedProduct = exchange.getExchangeDetails().get(0).getDamagedProduct();
+    Transaction newTransaction = transactionRepository.save(
+        Transaction.builder()
+            .code(generateTransactionCode())
+            .approver(user)
+            .creator(user)
+            .partner(
+                isTransaction ? firstDamagedProduct.getTransactionDetail().getProduct().getPartner()
+                    : firstDamagedProduct.getStockTakeDetail().getInventory().getProduct()
+                        .getPartner())
+            .executor(executor)
+            .transactionDate(LocalDateTime.now())
+            .transactionType(TransactionType.EXPORT_EXCHANGE)
+            .status(TransactionStatus.COMPLETE)
+            .warehouse(warehouse)
+            .description("Xuất đổi trả cho phiếu đổi trả " + exchange.getCode())
+            .build());
+    Set<TransactionDetail> transactionDetails = new HashSet<>();
+    for (ExchangeDetail exchangeDetail : exchange.getExchangeDetails()) {
+      DamagedProduct damagedProduct = exchangeDetail.getDamagedProduct();
+      System.out.println(isTransaction ? "transaction" : "stocktake");
+      Product product = isTransaction ? damagedProduct.getTransactionDetail().getProduct()
+          : damagedProduct.getStockTakeDetail().getInventory()
+              .getProduct();
+      Inventory inventory = isTransaction ? damagedProduct.getTransactionDetail().getInventory()
+          : damagedProduct.getStockTakeDetail().getInventory();
+      TransactionDetailId id = TransactionDetailId.builder()
+          .inventoryId(inventory.getId())
+          .transactionId(newTransaction.getId())
+          .build();
+      TransactionDetail transactionDetail = TransactionDetail.builder()
+          .id(id)
+          .product(product)
+          .quantity(Math.toIntExact(damagedProduct.getQuantity()))
+          .inventory(inventory)
+          .transactionType(TransactionType.EXPORT_EXCHANGE)
+          .transaction(newTransaction)
+          .build();
+      transactionDetails.add(transactionDetailRepository.save(transactionDetail));
+    }
+    newTransaction.setDetails(transactionDetails);
+    return transactionMapper.toDtoWithDetail(newTransaction);
   }
 
 }

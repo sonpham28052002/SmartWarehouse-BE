@@ -200,7 +200,7 @@ public class StatisticsService {
     List<Object[]> result = transactionRepository.countTransactionsByDateRangeAndStatus(
         startDate, endDate, TransactionStatus.COMPLETE.name(), quest.getTransactionType());
     Map<String, Long> transactionCountByDate = new HashMap<>();
-
+    System.out.println(result.size());
     for (Object[] row : result) {
       if (row != null && row.length == 2) {
         Date day = (Date) row[0];

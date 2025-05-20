@@ -31,7 +31,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
   @Query(value = "SELECT DATE(t.transaction_date) AS day, COUNT(t.id) AS transaction_count " +
       "FROM transactions t " +
       "WHERE t.transaction_date BETWEEN :startDate AND :endDate " +
-      "AND t.status = :status " +
       "AND t.transaction_type = :type " +
       "GROUP BY DATE(t.transaction_date) " +
       "ORDER BY day", nativeQuery = true)

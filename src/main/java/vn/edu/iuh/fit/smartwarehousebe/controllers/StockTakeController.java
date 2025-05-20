@@ -21,6 +21,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeReque
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.DamagedProductRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.unit.GetUnitRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.servies.StockTakeService;
 
@@ -80,5 +81,11 @@ public class StockTakeController {
   public ResponseEntity<StockTakeResponse> approve(@PathVariable Long stockTakeId,
       @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(stockTakeService.approve(stockTakeId, user));
+  }
+
+  @PostMapping("/{stockTakeId}/createExchange")
+  public ResponseEntity<List<ExchangeResponse>> createExchange(@PathVariable Long stockTakeId,
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(stockTakeService.createExchange(stockTakeId, user));
   }
 }

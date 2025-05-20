@@ -79,10 +79,13 @@ public class Inventory extends Auditable {
 
           if (!modified.isBefore(startOfDay) && !modified.isAfter(endOfDay)) {
             TransactionType type = detail.getTransactionType();
-            if (type == TransactionType.IMPORT_FROM_SUPPLIER || type == TransactionType.IMPORT_FROM_WAREHOUSE) {
-              quantity += detail.getQuantity();
-            } else {
-              quantity -= detail.getQuantity();
+            if (type == TransactionType.IMPORT_FROM_SUPPLIER || type == TransactionType.IMPORT_FROM_WAREHOUSE || type == TransactionType.IMPORT_FROM_WAREHOUSE) {
+              quantity += detail.getActualQuantity();
+            } else if (type == TransactionType.INVENTORY){
+
+            }
+            else {
+              quantity -= detail.getActualQuantity();
             }
           }
         }

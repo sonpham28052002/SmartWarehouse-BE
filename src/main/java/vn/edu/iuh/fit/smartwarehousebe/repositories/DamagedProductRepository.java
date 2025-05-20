@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.smartwarehousebe.repositories;
 
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -15,5 +16,4 @@ public interface DamagedProductRepository extends JpaRepository<DamagedProduct, 
   Set<DamagedProduct> findByStockTakeDetailId(StockTakeDetailId stockTakeDetailId);
 
   Set<DamagedProduct> findByTransactionDetailId(TransactionDetailId transactionDetailId);
-
 }

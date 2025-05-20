@@ -18,4 +18,7 @@ public interface ExchangeRepository extends JpaRepository<Exchange, Long>,
   int findTodaySequence(@Param("todayStart") LocalDateTime start, @Param("todayEnd") LocalDateTime end);
 
   List<Exchange> findAllByCreatedDateBetweenAndTypeIn(LocalDateTime from, LocalDateTime to, List<ExchangeType> types);
+
+  List<Exchange> findByStockTakeIdAndDeleted(Long stockTakeId, boolean deleted);
+  List<Exchange> findByOriginalTransactionIdAndDeleted(Long transactionId, boolean deleted);
 }

@@ -19,8 +19,8 @@ public class Mapperhelper {
     return InventoryResponse.builder()
         .location(inventory.getStorageLocation().getWarehouseShelf().getShelfName() + "-"
             + String.valueOf(
-            inventory.getStorageLocation().getColumnIndex()) + "-" +
-            String.valueOf(inventory.getStorageLocation().getRowIndex()))
+            inventory.getStorageLocation().getRowIndex()) + "-" +
+            String.valueOf(inventory.getStorageLocation().getColumnIndex()))
         .id(inventory.getId())
         .product(ProductMapper.INSTANCE.toDto(inventory.getProduct()))
         .unit(UnitMapper.INSTANCE.toDto(inventory.getUnit()))
