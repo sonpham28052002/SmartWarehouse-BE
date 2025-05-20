@@ -567,6 +567,7 @@ public class TransactionService extends CommonService<Transaction> {
           .id(id)
           .product(product)
           .quantity(Math.toIntExact(damagedProduct.getQuantity()))
+          .actualQuantity(Math.toIntExact(damagedProduct.getQuantity()))
           .inventory(inventory)
           .transactionType(TransactionType.EXPORT_EXCHANGE)
           .transaction(newTransaction)
