@@ -1,6 +1,22 @@
 package vn.edu.iuh.fit.smartwarehousebe.controllers;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
 import jakarta.validation.Valid;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -196,5 +212,57 @@ public class TransactionController {
   @PutMapping("{transactionId}/createExchange")
   public ExchangeResponse createExchange(@PathVariable("transactionId") Long transactionId, @AuthenticationPrincipal User user) {
     return transactionService.createExchange(transactionId, user);
+  }
+
+  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<Map<String, Object>> uploadPdf(@RequestParam("file") MultipartFile file) throws IOException {
+    File tempFile = File.createTempFile("upload", ".pdf");
+    file.transferTo(tempFile);
+
+    Map<String, Object> result = extractQRCodes(tempFile);
+    return ResponseEntity.ok(result);
+  }
+
+  private Map<String, Object> extractQRCodes(File pdfFile) throws IOException {
+    Map<String, Object> result = new HashMap<>();
+    List<Map<String, Object>> detailList = new ArrayList<>();
+
+    try (PDDocument document = PDDocument.load(pdfFile)) {
+      PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+      for (int page = 0; page < document.getNumberOfPages(); ++page) {
+        BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300);
+        LuminanceSource source = new BufferedImageLuminanceSource(image);
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+
+        try {
+          Result qrResult = new MultiFormatReader().decode(bitmap);
+          String content = qrResult.getText();
+
+          String[] parts = content.split("\\|");
+          if (parts.length >= 2) {
+            result.put("partnerId", parts[0]);
+
+            for (int i = 1; i < parts.length; i++) {
+              String[] fields = parts[i].split(",");
+              if (fields.length == 3) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("productId", fields[0]);
+                item.put("quantity", Integer.parseInt(fields[1]));
+                item.put("unitId", fields[2]);
+                detailList.add(item);
+              }
+            }
+          }
+
+          break;
+        } catch (NotFoundException e) {
+          // QR không tồn tại trong trang này
+        }
+      }
+    }
+
+    result.put("detail", detailList);
+    return result;
   }
 }
