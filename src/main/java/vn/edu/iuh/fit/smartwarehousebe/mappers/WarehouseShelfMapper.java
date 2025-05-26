@@ -9,7 +9,7 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.warehouse.WarehouseRespons
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface WarehouseShelfMapper {
 
   WarehouseShelfMapper INSTANCE = Mappers.getMapper(WarehouseShelfMapper.class);

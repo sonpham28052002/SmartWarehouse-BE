@@ -10,7 +10,7 @@ import vn.edu.iuh.fit.smartwarehousebe.models.User;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
     @Mapping(source = "username", target = "userName")

@@ -14,7 +14,17 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /app-be
 
+# Cài Python và các thư viện cần thiết
+RUN apt-get update && apt-get install -y python3 python3-pip && \
+    pip3 install numpy==1.24.3 pandas scipy pmdarima==2.0.4 \
+    geopandas pandas-datareader pandas-gbq \
+    pandas-stubs sklearn-pandas
+
 COPY --from=build /app/target/SmartWarehouse-BE-0.0.1-SNAPSHOT.jar /app-be/SmartWarehouse-BE.jar
+
+# Copy Python script vào container
+COPY forecast_arima_kmeans.py /app-be/forecast_arima_kmeans.py
+COPY data /app-be/data
 
 RUN useradd -ms /bin/bash springuser
 

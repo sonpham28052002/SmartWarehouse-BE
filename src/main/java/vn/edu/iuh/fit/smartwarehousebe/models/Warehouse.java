@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -24,25 +24,31 @@ import java.util.Set;
 public class Warehouse extends Auditable implements Serializable {
 
   @Id
+  @Column(name = "id")
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String address;
 
   private String code;
+
   private String name;
 
-  @OneToMany(mappedBy = "warehouse", fetch = FetchType.EAGER)
-  @JsonIgnore
+  @OneToMany(mappedBy = "warehouse")
+  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
   private Set<User> staffs = new HashSet<>();
 
-  @OneToOne(fetch = FetchType.EAGER)
+  @OneToOne
   @JoinColumn(name = "manager_id", referencedColumnName = "id", nullable = true)
-  @JsonBackReference
+  @JsonIgnoreProperties({"authorities", "warehouseManager", "warehouse"})
   private User manager;
 
-  @OneToMany(mappedBy = "warehouse", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "warehouse")
   private List<WarehouseShelf> warehouseShelves;
 
+  @OneToMany(mappedBy = "warehouse")
+  private Set<Transaction> transactions;
 
+  @OneToMany(mappedBy = "transfer")
+  private Set<Transaction> transferTransactions;
 }

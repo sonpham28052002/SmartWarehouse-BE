@@ -68,4 +68,8 @@ public class UnitService extends CommonService<Unit>{
     public UnitResponse getUnitById(Long id) {
         return UnitMapper.INSTANCE.toDto(unitRepository.findById(id).orElseThrow(null));
     }
+
+    public UnitResponse getUnitByCode(String unitCode) {
+        return UnitMapper.INSTANCE.toDto(unitRepository.findByCode(unitCode).orElseThrow(null));
+    }
 }

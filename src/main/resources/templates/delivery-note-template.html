@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Phiếu Xuất Kho</title>
+    <style>
+        body {
+            font-family: "Times New Roman", sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .info-section .row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .info-section .col {
+            flex: 1;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        .info-section p {
+            margin: 0;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .total-row {
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-section {
+            text-align: center;
+            flex: 1;
+        }
+        .signature-section p {
+            margin-top: 50px;
+        }
+        .note-section {
+            margin-top: 20px;
+        }
+        .note-section h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <#if deliveryNote.type ?? && deliveryNote.type != "EXPORT_FROM_WAREHOUSE">
+        <h1>CHUYỂN KHO</h1>
+    <#else>
+        <h1>PHIẾU XUẤT KHO</h1>
+    </#if>
+</div>
+
+<div class="info-section">
+    <div class="row" style="font-size: 13px;">
+        <div class="col">
+            <div style="text-align: left">Mã phiếu: ${deliveryNote.code}</div>
+        </div>
+        <div class="col">
+            <div>Ngày lập: <#assign dateTime = deliveryNote.createdDate?datetime("iso")>${dateTime?string("dd/MM/yyyy HH:mm:ss")}</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p style="font-weight: bold; font-size: 14px">Kho xuất:</p>
+            <p style="height: 20px; font-size: 12px">Mã kho: ${deliveryNote.fromWarehouseCode}</p>
+            <p style="height: 20px; font-size: 12px">Tên kho: ${deliveryNote.fromWarehouseName}</p>
+            <p style="height: 20px; font-size: 12px">Địa chỉ: ${deliveryNote.fromWarehouseAddress}</p>
+        </div>
+        <div class="col">
+            <#if deliveryNote.type ?? && deliveryNote.type != "EXPORT_FROM_WAREHOUSE">
+                <p style="font-weight: bold; font-size: 14px">Kho nhận:</p>
+            <#else>
+                <p style="font-weight: bold; font-size: 14px">Đại lý:</p>
+            </#if>
+            <p style="height: 20px; font-size: 12px">Mã kho: ${deliveryNote.toWarehouseCode}</p>
+            <p style="height: 20px; font-size: 12px">Tên kho: ${deliveryNote.toWarehouseName}</p>
+            <p style="height: 20px; font-size: 12px">Địa chỉ: ${deliveryNote.toWarehouseAddress}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p>Người lập phiếu: ${deliveryNote.createdBy}</p>
+        </div>
+    </div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>STT</th>
+        <th style="width: 150px;">Mã sản phẩm</th>
+        <th style="max-width: 300px; text-align: center">SKU</th>
+        <th style="width: 150px;">Tên sản phẩm</th>
+        <th style="width: 70px;">Đơn vị</th>
+        <th style="width: 100px;">Số lượng</th>
+    </tr>
+    </thead>
+    <tbody>
+    <#list deliveryNote.items as item>
+    <tr>
+        <td style="text-align: center">${item?index + 1}</td>
+        <td style="text-align: center">${item.productCode}</td>
+        <td style="text-align: left">${item.sku}</td>
+        <td style="text-align: left">${item.productName}</td>
+        <td style="text-align: left">${item.unit}</td>
+        <td style="text-align: right">${item.quantity}</td>
+    </tr>
+    </#list>
+    <tr class="total-row">
+        <td colspan="5" style="text-align: left">Tổng cộng:</td>
+        <td style="text-align: right">
+            <#assign total = 0>
+            <#list deliveryNote.items as item>
+            <#assign total = total + item.quantity>
+        </#list>
+        ${total}
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div class="footer">
+    <div class="signature-section">
+        <h5>Người xuất hàng</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+    <div class="signature-section">
+        <h5>Thủ kho</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+    <div class="signature-section">
+        <h5>Người quản lý</h5>
+        <p>(Ký và ghi rõ họ tên)</p>
+    </div>
+</div>
+</body>
+</html>

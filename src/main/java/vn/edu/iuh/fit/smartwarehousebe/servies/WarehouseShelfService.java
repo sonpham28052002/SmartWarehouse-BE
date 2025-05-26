@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.WarehouseShelf.WarehouseShelfRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.WarehouseShelf.WarehouseShelfResponse;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.WarehouseShelfMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
 import vn.edu.iuh.fit.smartwarehousebe.models.WarehouseShelf;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
@@ -79,5 +80,20 @@ public class WarehouseShelfService {
     return response.stream().map((i) -> WarehouseShelfMapper.INSTANCE.toDto(i))
         .collect(Collectors.toList());
   }
+
+  public boolean delete(Long id) {
+    try {
+      WarehouseShelf warehouseShelf = warehouseShelfRepository.findById(id).orElseThrow(null);
+      if (warehouseShelf == null) {
+        return false;
+      }
+      warehouseShelfRepository.deleteById(id);
+      return true;
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
+    return false;
+  }
+
 
 }

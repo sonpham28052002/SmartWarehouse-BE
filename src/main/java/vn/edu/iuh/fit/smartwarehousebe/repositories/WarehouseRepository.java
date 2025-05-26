@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-import vn.edu.iuh.fit.smartwarehousebe.models.User;
 import vn.edu.iuh.fit.smartwarehousebe.models.Warehouse;
+
+import java.util.Optional;
 
 @Repository
 public interface WarehouseRepository extends JpaRepository<Warehouse, Long>,
@@ -26,6 +26,8 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, Long>,
           (root, query, cb) -> cb.equal(root.get("deleted"), false));
     }
 
-    return findAll(finalSpecification, pageable);
-  }
+        return findAll(finalSpecification, pageable);
+    }
+
+    Optional<Warehouse> findByCode(String code);
 }

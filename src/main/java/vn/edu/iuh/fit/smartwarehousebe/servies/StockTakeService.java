@@ -1,25 +1,63 @@
 package vn.edu.iuh.fit.smartwarehousebe.servies;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.StockTakeDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.Ids.TransactionDetailId;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.CreateStockTakeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.StockTake.GetStockTakeRequest;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.damagedProduct.GetDamagedProduct;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.requests.exchange.CreateExchangeRequest;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTake.StockTakeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.StockTakeDetail.StockTakeDetailResponse.DamagedProductWithResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.damagedProduct.DamagedProductResponse;
+import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.exchange.ExchangeResponse;
+import vn.edu.iuh.fit.smartwarehousebe.enums.DamagedProductStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.InventoryStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeDetailStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.StockTakeStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionStatus;
+import vn.edu.iuh.fit.smartwarehousebe.enums.TransactionType;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.DamagedProductMapper;
+import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeDetailMapper;
 import vn.edu.iuh.fit.smartwarehousebe.mappers.StockTakeMapper;
+import vn.edu.iuh.fit.smartwarehousebe.models.DamagedProduct;
+import vn.edu.iuh.fit.smartwarehousebe.models.Inventory;
 import vn.edu.iuh.fit.smartwarehousebe.models.StockTake;
 import vn.edu.iuh.fit.smartwarehousebe.models.StockTakeDetail;
+import vn.edu.iuh.fit.smartwarehousebe.models.Transaction;
+import vn.edu.iuh.fit.smartwarehousebe.models.TransactionDetail;
+import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.DamagedProductRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.InventoryRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeDetailRepository;
 import vn.edu.iuh.fit.smartwarehousebe.repositories.StockTakeRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionDetailRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.TransactionRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.WarehouseRepository;
 import vn.edu.iuh.fit.smartwarehousebe.specifications.StockTakeSpecification;
 
 @Service
-public class StockTakeService {
+public class StockTakeService extends CommonService<StockTake> {
 
   @Autowired
   @Lazy
@@ -29,8 +67,52 @@ public class StockTakeService {
   @Lazy
   private StockTakeDetailRepository stockTakeDetailRepository;
 
+  @Autowired
+  @Lazy
+  private InventoryRepository inventoryRepository;
+
+
+  @Autowired
+  @Lazy
+  private WarehouseRepository warehouseRepository;
+  @Autowired
+  private TransactionDetailRepository transactionDetailRepository;
+  @Autowired
+  private TransactionRepository transactionRepository;
+  @Autowired
+  private TransactionService transactionService;
+
+  @Autowired
+  private DamagedProductService damagedProductService;
+
+  @Autowired
+  private DamagedProductRepository damagedProductRepository;
+
+  @Autowired
+  private ExchangeService exchangeService;
+
   @Transactional(readOnly = true)
   public Page<StockTakeResponse> getAll(PageRequest pageRequest, GetStockTakeRequest request) {
+    Specification<StockTake> specification = Specification.where(null);
+    if (request.getWarehouseCode() != null) {
+      specification = specification.and(
+          StockTakeSpecification.hasWarehouseCode(request.getWarehouseCode()));
+    }
+
+    if (request.getCode() != null) {
+      specification = specification.and(StockTakeSpecification.hasCode(request.getCode()));
+    }
+
+    if (request.getStatus() != null) {
+      specification = specification.and(
+          StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
+    }
+    return stockTakeRepository.findAll(specification, pageRequest)
+        .map(StockTakeMapper.INSTANCE::toDto);
+  }
+
+  @Transactional(readOnly = true)
+  public List<StockTakeResponse> getAll(GetStockTakeRequest request) {
     Specification<StockTake> specification = Specification.where(null);
     if (request.getWarehouseCode() != null) {
       specification = specification.and(StockTakeSpecification.hasCode(request.getWarehouseCode()));
@@ -40,8 +122,20 @@ public class StockTakeService {
       specification = specification.and(
           StockTakeSpecification.hasStatus(request.getStatus().getStatus()));
     }
-    return stockTakeRepository.findAll(specification, pageRequest)
-        .map(StockTakeMapper.INSTANCE::toDto);
+
+    if (request.getCode() != null) {
+      specification = specification.and(StockTakeSpecification.hasCode(request.getCode()));
+    }
+
+    if (request.getEndDate() != null && request.getStartDate() != null) {
+      specification = specification.and(
+          StockTakeSpecification.hasStockTakeDateBetween(request.getStartDate(),
+              request.getEndDate()));
+    }
+
+    return stockTakeRepository.findAll(specification)
+        .stream()
+        .map(StockTakeMapper.INSTANCE::toDto).toList();
   }
 
   @Transactional
@@ -56,7 +150,6 @@ public class StockTakeService {
       StockTake stockTake = stockTakeRepository.findById(id)
           .orElseThrow(() -> new NotFoundException("stock take not fond"));
       for (StockTakeDetail detail : stockTake.getStockTakeDetails()) {
-        System.out.println("aaaaaaaaaaaaaaaaaaaaaaaa");
         stockTakeDetailRepository.delete(detail);
       }
       stockTakeRepository.deleteById(id);
@@ -66,4 +159,213 @@ public class StockTakeService {
     }
     return false;
   }
+
+
+  @Transactional
+  public StockTakeResponse createStockTake(CreateStockTakeRequest request, User user) {
+    StockTake stockTake = stockTakeRepository.save(
+        StockTake.builder().description(request.getDescription()).warehouse(
+                warehouseRepository.findById(request.getWarehouseId())
+                    .orElseThrow(() -> new NotFoundException("warehouse not fond")))
+            .creator(user)
+            .code(generateStockTakeCode())
+            .status(StockTakeStatus.PENDING).build());
+
+    List<Inventory> inventories = new ArrayList<>();
+
+    if (request.getProductIds() != null) {
+      inventories = inventoryRepository.findByProductIdIn(
+          request.getProductIds());
+    } else {
+      inventories = inventoryRepository.findByStorageLocationWarehouseShelfIdIn(
+          request.getShelfIds());
+    }
+
+    List<StockTakeDetail> stockTakeDetails = new ArrayList<>();
+
+    for (Inventory inventory : inventories) {
+      if (inventory.getStatus() == InventoryStatus.ACTIVE) {
+        stockTakeDetails.add(stockTakeDetailRepository.save(
+            StockTakeDetail.builder()
+                .id(StockTakeDetailId.builder().stockTakeId(stockTake.getId())
+                    .inventoryId(inventory.getId()).build())
+                .stockTake(stockTake).status(StockTakeDetailStatus.UNVERIFIED)
+                .actualQuantity(0L).expectedQuantity(0L).damagedQuantity(0L).inventory(inventory)
+                .description(null).build()));
+      }
+    }
+    stockTake.setStockTakeDetails(stockTakeDetails);
+    return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
+  @Transactional
+  public StockTakeResponse startStockTake(Long stockTakeId, User user) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.IN_PROGRESS);
+    stockTake.setExecutor(user);
+    StockTake newStockTake = stockTakeRepository.save(stockTake);
+    List<StockTakeDetail> stockTakeDetails = new ArrayList<>();
+    for (StockTakeDetail detail : stockTake.getStockTakeDetails()) {
+      if (detail.getStatus() == StockTakeDetailStatus.UNVERIFIED) {
+        detail.setExpectedQuantity(detail.getInventory().getQuantity());
+        stockTakeDetails.add(stockTakeDetailRepository.save(detail));
+      } else {
+        stockTakeDetails.add(detail);
+      }
+    }
+    newStockTake.setStockTakeDetails(stockTakeDetails);
+    List<StockTakeDetailResponse> stockTakeDetailResponses = stockTakeDetails.stream()
+        .map((i) -> StockTakeDetailMapper.INSTANCE.toDto(i)).collect(
+            Collectors.toList());
+    StockTakeResponse response = StockTakeMapper.INSTANCE.toDto(newStockTake);
+    response.setStockTakeDetails(stockTakeDetailResponses);
+    return response;
+  }
+
+  @Transactional
+  public StockTakeResponse saveStockTake(Long stockTakeId, StockTakeResponse response) {
+    List<StockTakeDetailResponse> stockTakeDetailResponses = new ArrayList<>();
+    for (StockTakeDetailResponse detail : response.getStockTakeDetails()) {
+      StockTakeDetail stockTakeDetail = stockTakeDetailRepository.findById(
+              StockTakeDetailId.builder()
+                  .inventoryId(detail.getInventory().getId())
+                  .stockTakeId(stockTakeId).build())
+          .orElseThrow(() -> new NotFoundException("stoke take detail not found"));
+      stockTakeDetail.setActualQuantity(detail.getActualQuantity());
+      stockTakeDetail.setDamagedQuantity(detail.getDamagedQuantity());
+      stockTakeDetail.setStatus(detail.getStatus());
+      stockTakeDetail.setDescription(detail.getDescription());
+      stockTakeDetail.setExpectedQuantity(detail.getExpectedQuantity());
+      StockTakeDetailResponse stockTakeDetailResponse = StockTakeDetailMapper.INSTANCE.toDto(
+          stockTakeDetailRepository.save(stockTakeDetail));
+      if (detail.getDamagedProducts().size() != 0
+          || stockTakeDetail.getDamagedProducts().size() != 0) {
+
+        stockTakeDetailResponse.setDamagedProducts(
+            damagedProductService.updateAndCreateByStockTakeId(stockTakeId,
+                    stockTakeDetail.getInventory().getId(), detail.getDamagedProducts())
+                .stream().map((i) -> {
+                  return DamagedProductWithResponse.builder()
+                      .stockTakeCode(i.getStockTakeCode())
+                      .transactionCode(i.getTransactionCode())
+                      .id(i.getId())
+                      .status(i.getStatus())
+                      .quantity(i.getQuantity())
+                      .build();
+                }).collect(Collectors.toSet()));
+      }
+      stockTakeDetailResponses.add(stockTakeDetailResponse);
+    }
+    response.setStockTakeDetails(stockTakeDetailResponses);
+    return response;
+  }
+
+  @Transactional
+  public StockTakeResponse completeStockTake(Long stockTakeId, User user) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.COMPLETED);
+    stockTake.setExecutor(user);
+    stockTakeRepository.save(stockTake);
+    return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
+  @Transactional
+  public StockTakeResponse approve(Long stockTakeId, User user) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("stoke take not found"));
+    stockTake.setStatus(StockTakeStatus.VERIFIED);
+    stockTake.setApprover(user);
+    Transaction transaction = transactionRepository.save(
+        Transaction.builder()
+            .code(transactionService.generateTransactionCode())
+            .approver(user)
+            .creator(user)
+            .executor(stockTake.getExecutor())
+            .transactionDate(LocalDateTime.now())
+            .transactionType(TransactionType.INVENTORY)
+            .status(TransactionStatus.COMPLETE)
+            .warehouse(stockTake.getWarehouse())
+            .description(
+                "kiểm kê kho " + stockTake.getWarehouse().getName() + " " + LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .build());
+    Set<TransactionDetail> details = new HashSet<>();
+    for (StockTakeDetail stockTakeDetail : stockTake.getStockTakeDetails()) {
+      Inventory inventory = stockTakeDetail.getInventory();
+      Long actual = Optional.ofNullable(stockTakeDetail.getActualQuantity()).orElse(0L);
+      Long damaged = Optional.ofNullable(stockTakeDetail.getDamagedQuantity()).orElse(0L);
+      Long expected = Optional.ofNullable(stockTakeDetail.getExpectedQuantity()).orElse(0L);
+
+      TransactionDetailId transactionDetailId = TransactionDetailId.builder()
+          .transactionId(transaction.getId())
+          .inventoryId(inventory.getId())
+          .build();
+      TransactionDetail transactionDetail = TransactionDetail.builder()
+          .id(transactionDetailId)
+          .product(stockTakeDetail.getInventory().getProduct())
+          .quantity((int) (Math.abs(actual - damaged - expected)))
+          .transaction(transaction)
+          .transactionType(transaction.getTransactionType())
+          .inventory(inventory)
+          .build();
+
+      Set<DamagedProduct> damagedProducts = new HashSet<>();
+      if (transactionDetail.getDamagedProducts() != null
+          && transactionDetail.getDamagedProducts().size() != 0) {
+        for (DamagedProduct damagedProduct : transactionDetail.getDamagedProducts()) {
+          damagedProduct.setStatus(DamagedProductStatus.NOT_RETURNED);
+          damagedProducts.add(damagedProductRepository.save(damagedProduct));
+        }
+      }
+      transactionDetail.setDamagedProducts(damagedProducts);
+      details.add(transactionDetailRepository.save(transactionDetail));
+    }
+    transactionRepository.save(transaction);
+
+    stockTakeRepository.save(stockTake);
+    return StockTakeMapper.INSTANCE.toDto(stockTake);
+  }
+
+  public String generateStockTakeCode() {
+    LocalDateTime from = LocalDate.now().atStartOfDay();
+    LocalDateTime to = LocalDate.now().atTime(LocalTime.MAX);
+    int sequence = stockTakeRepository.findTodaySequence(from, to);
+    String prefix = "STK";
+    String date = java.time.LocalDate.now()
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String number = String.format("%03d", sequence);
+    return String.format("%s-%s-%s", prefix, date, number);
+  }
+
+  @Transactional
+  public List<ExchangeResponse> createExchange(Long stockTakeId, User user) {
+    StockTake stockTake = stockTakeRepository.findById(stockTakeId)
+        .orElseThrow(() -> new NotFoundException("StockTake not found"));
+
+    Map<Long, List<DamagedProduct>> map = new HashMap<>();
+    for (StockTakeDetail stockTakeDetail : stockTake.getStockTakeDetails()) {
+      Long partnerId = stockTakeDetail.getInventory().getProduct().getPartner().getId();
+      List<DamagedProduct> damagedProducts = stockTakeDetail.getDamagedProducts().stream().toList();
+      map.computeIfAbsent(partnerId, k -> new ArrayList<>()).addAll(damagedProducts);
+    }
+
+    List<ExchangeResponse> exchangeResponses = new ArrayList<>();
+    for (Map.Entry<Long, List<DamagedProduct>> entry : map.entrySet()) {
+      Long key = entry.getKey();
+      List<DamagedProductResponse> damagedProducts = entry.getValue().stream()
+          .map((i) -> DamagedProductMapper.INSTANCE.toDto(i)).collect(Collectors.toList());
+      CreateExchangeRequest createExchangeRequest = CreateExchangeRequest.builder()
+          .damagedProducts(damagedProducts)
+          .note("Phiếu đổi trả cho phiên kiểm kê " + stockTake.getCode())
+          .stockTakeCode(stockTake.getCode())
+          .build();
+      ExchangeResponse exchangeResponse = exchangeService.createExchange(createExchangeRequest,
+          user);
+      exchangeResponses.add(exchangeResponse);
+    }
+    return null;
+  }
+
 }
