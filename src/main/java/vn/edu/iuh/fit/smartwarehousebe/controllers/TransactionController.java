@@ -36,6 +36,8 @@ import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionRes
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.dtos.responses.transaction.TransactionWithDetailResponse.TransactionDetailResponse;
 import vn.edu.iuh.fit.smartwarehousebe.models.User;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.ProductRepository;
+import vn.edu.iuh.fit.smartwarehousebe.repositories.UnitRepository;
 import vn.edu.iuh.fit.smartwarehousebe.servies.DeliveryNotePdfService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.TransactionService;
 import vn.edu.iuh.fit.smartwarehousebe.servies.WarehouseReceiptPdfService;
@@ -52,13 +54,19 @@ public class TransactionController {
   private final TransactionService transactionService;
   private final DeliveryNotePdfService deliveryNotePdfService;
   private final WarehouseReceiptPdfService warehouseReceiptPdfService;
+  private final UnitRepository unitRepository;
+  private final ProductRepository productRepository;
 
   public TransactionController(TransactionService transactionService,
       DeliveryNotePdfService deliveryNotePdfService,
+      UnitRepository unitRepository,
+      ProductRepository productRepository,
       WarehouseReceiptPdfService warehouseReceiptPdfService) {
     this.transactionService = transactionService;
     this.deliveryNotePdfService = deliveryNotePdfService;
     this.warehouseReceiptPdfService = warehouseReceiptPdfService;
+    this.unitRepository = unitRepository;
+    this.productRepository = productRepository;
   }
 
   @GetMapping()
@@ -247,9 +255,9 @@ public class TransactionController {
               String[] fields = parts[i].split(",");
               if (fields.length == 3) {
                 Map<String, Object> item = new HashMap<>();
-                item.put("productId", fields[0]);
+                item.put("productId", productRepository.findByCode(fields[0]).get().getId());
                 item.put("quantity", Integer.parseInt(fields[1]));
-                item.put("unitId", fields[2]);
+                item.put("unitId", unitRepository.findByCode(fields[2]).get().getId());
                 detailList.add(item);
               }
             }
